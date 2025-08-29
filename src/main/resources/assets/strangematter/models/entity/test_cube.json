@@ -1,0 +1,7 @@
+{
+  "loader": "forge:obj",
+  "model": "strangematter:models/entity/test_cube.obj",
+  "textures": {
+    "particle": "strangematter:entity/gravity_anomaly_icosahedron"
+  }
+}

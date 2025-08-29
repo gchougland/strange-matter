@@ -1,13 +1,20 @@
 package com.hexvane.strangematter;
 
+import com.hexvane.strangematter.entity.GravityAnomalyEntity;
+import com.hexvane.strangematter.client.GravityAnomalyRenderer;
+import com.hexvane.strangematter.command.AnomalyCommand;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -43,6 +50,10 @@ public class StrangeMatterMod
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
     // Create a Deferred Register to hold CreativeModeTabs which will all be registered under the "strangematter" namespace
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
+    // Create a Deferred Register to hold EntityTypes
+    public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, MODID);
+    // Create a Deferred Register to hold SoundEvents
+    public static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, MODID);
 
     // Creates a new Block with the id "strangematter:anomaly_core", combining the namespace and path
     public static final RegistryObject<Block> ANOMALY_CORE = BLOCKS.register("anomaly_core", () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_PURPLE)));
@@ -51,6 +62,18 @@ public class StrangeMatterMod
 
     // Creates a new research item with the id "strangematter:field_scanner"
     public static final RegistryObject<Item> FIELD_SCANNER = ITEMS.register("field_scanner", () -> new Item(new Item.Properties()));
+
+    // Gravity Anomaly Entity
+    public static final RegistryObject<EntityType<GravityAnomalyEntity>> GRAVITY_ANOMALY = ENTITY_TYPES.register("gravity_anomaly", 
+        () -> EntityType.Builder.<GravityAnomalyEntity>of(GravityAnomalyEntity::new, MobCategory.MISC)
+            .sized(1.0f, 1.0f) // Size of the entity
+            .build("gravity_anomaly"));
+
+    // Sound Events
+    public static final RegistryObject<SoundEvent> GRAVITY_ANOMALY_LOOP = SOUND_EVENTS.register("gravity_anomaly_loop", 
+        () -> SoundEvent.createVariableRangeEvent(new net.minecraft.resources.ResourceLocation(MODID, "gravity_anomaly_loop")));
+
+
 
     // Creates a creative tab with the id "strangematter:strange_matter_tab" for the anomaly items
     public static final RegistryObject<CreativeModeTab> STRANGE_MATTER_TAB = CREATIVE_MODE_TABS.register("strange_matter_tab", () -> CreativeModeTab.builder()
@@ -74,6 +97,10 @@ public class StrangeMatterMod
         ITEMS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so tabs get registered
         CREATIVE_MODE_TABS.register(modEventBus);
+        // Register the Deferred Register to the mod event bus so entity types get registered
+        ENTITY_TYPES.register(modEventBus);
+        // Register the Deferred Register to the mod event bus so sound events get registered
+        SOUND_EVENTS.register(modEventBus);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
@@ -96,6 +123,17 @@ public class StrangeMatterMod
         LOGGER.info(Config.magicNumberIntroduction + Config.magicNumber);
 
         Config.items.forEach((item) -> LOGGER.info("ITEM >> {}", item.toString()));
+        
+        // Set up sound events for entities
+        event.enqueueWork(() -> {
+            GravityAnomalyEntity.setGravityAnomalyLoopSound(GRAVITY_ANOMALY_LOOP.get());
+        });
+    }
+
+    // Register commands
+    @SubscribeEvent
+    public void registerCommands(net.minecraftforge.event.RegisterCommandsEvent event) {
+        AnomalyCommand.register(event.getDispatcher());
     }
 
     // Add the anomaly core block item to the building blocks tab
@@ -123,6 +161,11 @@ public class StrangeMatterMod
             // Some client setup code
             LOGGER.info("Strange Matter client initialized - prepare for reality distortion!");
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
+            
+            // Register entity renderers
+            event.enqueueWork(() -> {
+                net.minecraft.client.renderer.entity.EntityRenderers.register(GRAVITY_ANOMALY.get(), GravityAnomalyRenderer::new);
+            });
         }
     }
 }

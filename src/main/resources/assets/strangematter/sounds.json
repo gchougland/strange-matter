@@ -1,0 +1,13 @@
+{
+  "gravity_anomaly_loop": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "strangematter:gravity_anomaly_loop",
+        "stream": true,
+        "volume": 0.5,
+        "attenuation_distance": 10
+      }
+    ]
+  }
+}

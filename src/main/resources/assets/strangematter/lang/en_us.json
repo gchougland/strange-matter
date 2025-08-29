@@ -2,5 +2,6 @@
   "block.strangematter.anomaly_core": "Anomaly Core",
   "item.strangematter.anomaly_core": "Anomaly Core",
   "item.strangematter.field_scanner": "Field Scanner",
+  "entity.strangematter.gravity_anomaly": "Gravity Anomaly",
   "itemGroup.strangematter.strange_matter_tab": "Strange Matter"
 }
