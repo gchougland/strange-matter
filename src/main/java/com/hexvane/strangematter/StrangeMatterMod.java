@@ -76,10 +76,6 @@ public class StrangeMatterMod
     // Create a Deferred Register to hold PlacementModifierTypes
     public static final DeferredRegister<PlacementModifierType<?>> PLACEMENT_MODIFIERS = DeferredRegister.create(Registries.PLACEMENT_MODIFIER_TYPE, MODID);
 
-    // Creates a new Block with the id "strangematter:anomaly_core", combining the namespace and path
-    public static final RegistryObject<Block> ANOMALY_CORE = BLOCKS.register("anomaly_core", () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_PURPLE)));
-    // Creates a new BlockItem with the id "strangematter:anomaly_core", combining the namespace and path
-    public static final RegistryObject<Item> ANOMALY_CORE_ITEM = ITEMS.register("anomaly_core", () -> new BlockItem(ANOMALY_CORE.get(), new Item.Properties()));
 
     // Creates a new research item with the id "strangematter:field_scanner"
     public static final RegistryObject<Item> FIELD_SCANNER = ITEMS.register("field_scanner", () -> new Item(new Item.Properties()));
@@ -114,9 +110,9 @@ public class StrangeMatterMod
     // Creates a creative tab with the id "strangematter:strange_matter_tab" for the anomaly items
     public static final RegistryObject<CreativeModeTab> STRANGE_MATTER_TAB = CREATIVE_MODE_TABS.register("strange_matter_tab", () -> CreativeModeTab.builder()
             .withTabsBefore(CreativeModeTabs.COMBAT)
-            .icon(() -> ANOMALY_CORE_ITEM.get().getDefaultInstance())
+            .title(Component.translatable("itemGroup.strangematter.strange_matter_tab"))
+            .icon(() -> FIELD_SCANNER.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
-                output.accept(ANOMALY_CORE_ITEM.get());
                 output.accept(FIELD_SCANNER.get());
                 output.accept(ANOMALY_RESONATOR.get());
                 output.accept(ANOMALOUS_GRASS_ITEM.get());
@@ -312,11 +308,13 @@ public class StrangeMatterMod
             }));
     }
 
-    // Add the anomaly core block item to the building blocks tab
+    // Add items to creative tabs
     private void addCreative(BuildCreativeModeTabContentsEvent event)
     {
         if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS)
-            event.accept(ANOMALY_CORE_ITEM);
+        {
+            event.accept(ANOMALOUS_GRASS_ITEM.get());
+        }
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
