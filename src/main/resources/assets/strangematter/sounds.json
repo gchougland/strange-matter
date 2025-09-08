@@ -5,7 +5,7 @@
       {
         "name": "strangematter:gravity_anomaly_loop",
         "stream": true,
-        "volume": 0.5,
+        "volume": 0.8,
         "attenuation_distance": 10
       }
     ]

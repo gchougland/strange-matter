@@ -10,6 +10,8 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
@@ -43,6 +45,9 @@ public class StrangeMatterMod
 {
     // Define mod id in a common place for everything to reference
     public static final String MODID = "strangematter";
+    
+    // Attribute modifier ID for low gravity effect
+    public static final java.util.UUID LOW_GRAVITY_MODIFIER_ID = java.util.UUID.fromString("12345678-1234-1234-1234-123456789abc");
     // Directly reference a slf4j logger
     private static final Logger LOGGER = LogUtils.getLogger();
     // Create a Deferred Register to hold Blocks which will all be registered under the "strangematter" namespace
@@ -55,6 +60,8 @@ public class StrangeMatterMod
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, MODID);
     // Create a Deferred Register to hold SoundEvents
     public static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, MODID);
+    // Create a Deferred Register to hold Attributes
+    public static final DeferredRegister<Attribute> ATTRIBUTES = DeferredRegister.create(ForgeRegistries.ATTRIBUTES, MODID);
 
     // Creates a new Block with the id "strangematter:anomaly_core", combining the namespace and path
     public static final RegistryObject<Block> ANOMALY_CORE = BLOCKS.register("anomaly_core", () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_PURPLE)));
@@ -63,6 +70,10 @@ public class StrangeMatterMod
 
     // Creates a new research item with the id "strangematter:field_scanner"
     public static final RegistryObject<Item> FIELD_SCANNER = ITEMS.register("field_scanner", () -> new Item(new Item.Properties()));
+
+    // Custom gravity attribute for low gravity effects
+    public static final RegistryObject<Attribute> ENTITY_GRAVITY = ATTRIBUTES.register("entity_gravity", 
+        () -> new RangedAttribute("strangematter.entity_gravity", 0.08D, -1.0D, 1.0D).setSyncable(true));
 
     // Gravity Anomaly Entity
     public static final RegistryObject<EntityType<GravityAnomalyEntity>> GRAVITY_ANOMALY = ENTITY_TYPES.register("gravity_anomaly", 
@@ -102,6 +113,8 @@ public class StrangeMatterMod
         ENTITY_TYPES.register(modEventBus);
         // Register the Deferred Register to the mod event bus so sound events get registered
         SOUND_EVENTS.register(modEventBus);
+        // Register the Deferred Register to the mod event bus so attributes get registered
+        ATTRIBUTES.register(modEventBus);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);

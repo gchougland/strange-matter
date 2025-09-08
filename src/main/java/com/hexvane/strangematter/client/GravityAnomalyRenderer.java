@@ -52,17 +52,22 @@ public class GravityAnomalyRenderer extends EntityRenderer<GravityAnomalyEntity>
         float rotation = entity.getRotation() + (partialTicks * 0.5f);
         float pulseIntensity = entity.getPulseIntensity();
         
-        // Render the outer aura icosahedron first (behind the main icosahedron)
-        renderAuraIcosahedron(poseStack, buffer, packedLight, partialTicks);
-        
-        // Render floating dirt particles
-        renderFloatingParticles(poseStack, buffer, packedLight, pulseIntensity, partialTicks);
-        
-        // Render the icosahedron using our custom OBJ loader
+        // Render in proper order to avoid transparency issues:
+        // 1. First render opaque/solid elements
         renderIcosahedron(poseStack, buffer, packedLight, rotation, pulseIntensity);
         
-                 // Render emissive green glow effect
-         renderGlowEffect(poseStack, buffer, packedLight, rotation, pulseIntensity);
+        // 2. Then render translucent elements with proper depth testing
+        // Render the outer aura icosahedron (translucent)
+        renderAuraIcosahedron(poseStack, buffer, packedLight, partialTicks);
+        
+        // Render floating dirt particles (translucent)
+        renderFloatingParticles(poseStack, buffer, packedLight, pulseIntensity, partialTicks);
+        
+        // Render ground particle field (translucent)
+        renderGroundParticleField(poseStack, buffer, packedLight, partialTicks);
+        
+        // Render emissive green glow effect (translucent)
+        renderGlowEffect(poseStack, buffer, packedLight, rotation, pulseIntensity);
         
         poseStack.popPose();
         
@@ -126,7 +131,8 @@ public class GravityAnomalyRenderer extends EntityRenderer<GravityAnomalyEntity>
         poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(glowRotation));
         
         Matrix4f matrix4f = poseStack.last().pose();
-        VertexConsumer vertexConsumer = buffer.getBuffer(RenderType.lightning());
+        VertexConsumer vertexConsumer = buffer.getBuffer(RenderType.entityTranslucent(
+            new ResourceLocation("minecraft", "textures/block/white_wool.png")));
         
         // Calculate glow intensity based on pulse
         float glowIntensity = 0.2f + (pulseIntensity * 0.3f);
@@ -142,7 +148,7 @@ public class GravityAnomalyRenderer extends EntityRenderer<GravityAnomalyEntity>
             float angle2 = ((i + 1) / (float) segments) * 2.0f * (float) Math.PI;
             
             // Center vertex (bright)
-            vertexConsumer.vertex(matrix4f, 0, 0, 0).color(0.2f, 1.0f, 0.3f, centerAlpha).endVertex();
+            vertexConsumer.vertex(matrix4f, 0, 0, 0).color(0.2f, 1.0f, 0.3f, centerAlpha).uv(0.5f, 0.5f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
             
             // Edge vertices (fade to transparent)
             float x1 = (float) (Math.cos(angle1) * glowSize);
@@ -150,8 +156,8 @@ public class GravityAnomalyRenderer extends EntityRenderer<GravityAnomalyEntity>
             float x2 = (float) (Math.cos(angle2) * glowSize);
             float y2 = (float) (Math.sin(angle2) * glowSize);
             
-            vertexConsumer.vertex(matrix4f, x1, y1, 0).color(0.2f, 1.0f, 0.3f, edgeAlpha).endVertex();
-            vertexConsumer.vertex(matrix4f, x2, y2, 0).color(0.2f, 1.0f, 0.3f, edgeAlpha).endVertex();
+            vertexConsumer.vertex(matrix4f, x1, y1, 0).color(0.2f, 1.0f, 0.3f, edgeAlpha).uv(0.5f + x1 * 0.1f, 0.5f + y1 * 0.1f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
+            vertexConsumer.vertex(matrix4f, x2, y2, 0).color(0.2f, 1.0f, 0.3f, edgeAlpha).uv(0.5f + x2 * 0.1f, 0.5f + y2 * 0.1f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
         }
     }
     
@@ -182,17 +188,17 @@ public class GravityAnomalyRenderer extends EntityRenderer<GravityAnomalyEntity>
             poseStack.translate(x, y, z);
             
             // Rotation for each particle - each has different speeds and directions
-            float time = (System.currentTimeMillis() % 5000) / 5000.0f; // 5 second cycle
-            float rotationX = (i * 37.0f + time * 360.0f * (0.3f + (i % 3) * 0.2f)) % 360.0f;
-            float rotationY = (i * 73.0f + time * 360.0f * (0.2f + (i % 2) * 0.3f)) % 360.0f;
-            float rotationZ = (i * 29.0f + time * 360.0f * (0.4f + (i % 4) * 0.1f)) % 360.0f;
+            float time = (System.currentTimeMillis() % 360000) / 1000.0f; // 6 minute cycle (360 seconds)
+            float rotationX = (i * 37.0f + time * (10.0f + (i % 3) * 5.0f)) % 360.0f;
+            float rotationY = (i * 73.0f + time * (8.0f + (i % 2) * 7.0f)) % 360.0f;
+            float rotationZ = (i * 29.0f + time * (12.0f + (i % 4) * 3.0f)) % 360.0f;
             
             poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(rotationX));
             poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(rotationY));
             poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(rotationZ));
             
             // Varying sizes for particles
-            float size = 0.15f + (i % 3) * 0.05f; // 0.15f, 0.2f, 0.25f
+            float size = 0.1f + (i % 5) * 0.08f; // 0.1f, 0.18f, 0.26f, 0.34f, 0.42f
             poseStack.scale(size, size, size);
             
             // Render dirt block particle
@@ -202,10 +208,104 @@ public class GravityAnomalyRenderer extends EntityRenderer<GravityAnomalyEntity>
         }
     }
     
+    private void renderGroundParticleField(PoseStack poseStack, MultiBufferSource buffer, 
+                                         int packedLight, float partialTicks) {
+        
+        // Number of ground particles
+        int particleCount = 24;
+        
+        // Effect radius from the entity
+        float effectRadius = 4.0f; // Same as LEVITATION_RADIUS
+        
+        // Time for animation
+        float time = (System.currentTimeMillis() % 360000) / 1000.0f;
+        
+        for (int i = 0; i < particleCount; i++) {
+            poseStack.pushPose();
+            
+            // Distribute particles in a circle around the anomaly
+            float angle = (i * 360.0f / particleCount) + (time * 5.0f); // Slow rotation
+            float distance = (i % 3 + 1) * (effectRadius / 3.0f); // Vary distance: 1.33, 2.67, 4.0
+            
+            float x = (float) (Math.cos(Math.toRadians(angle)) * distance);
+            float z = (float) (Math.sin(Math.toRadians(angle)) * distance);
+            
+            // Height animation - particles rise and fall
+            float heightOffset = (float) Math.sin(time * 2.0f + i * 0.5f) * 0.3f + 0.1f;
+            float y = -1.0f + heightOffset; // Start below ground level
+            
+            poseStack.translate(x, y, z);
+            
+            // Small rotation for each particle
+            float rotation = time * 20.0f + i * 15.0f;
+            poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(rotation));
+            
+            // Small size for ground particles
+            float size = 0.05f + (i % 3) * 0.02f; // 0.05f, 0.07f, 0.09f
+            poseStack.scale(size, size, size);
+            
+            // Render colored particle
+            renderColoredParticle(poseStack, buffer, packedLight, 0x41b280);
+            
+            poseStack.popPose();
+        }
+    }
+    
+    private void renderColoredParticle(PoseStack poseStack, MultiBufferSource buffer, 
+                                     int packedLight, int color) {
+        // Extract RGB components from hex color #41b280
+        float r = ((color >> 16) & 0xFF) / 255.0f; // 0x41 = 65/255 = 0.255
+        float g = ((color >> 8) & 0xFF) / 255.0f;  // 0xb2 = 178/255 = 0.698
+        float b = (color & 0xFF) / 255.0f;         // 0x80 = 128/255 = 0.502
+        
+        Matrix4f matrix4f = poseStack.last().pose();
+        VertexConsumer vertexConsumer = buffer.getBuffer(RenderType.entityTranslucentCull(
+            new ResourceLocation("minecraft", "textures/block/white_wool.png")));
+        
+        // Render a simple cube with the specified color
+        float halfSize = 0.5f;
+        
+        // Front face
+        vertexConsumer.vertex(matrix4f, -halfSize, -halfSize, halfSize).color(r, g, b, 0.8f).uv(0.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
+        vertexConsumer.vertex(matrix4f, halfSize, -halfSize, halfSize).color(r, g, b, 0.8f).uv(1.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
+        vertexConsumer.vertex(matrix4f, halfSize, halfSize, halfSize).color(r, g, b, 0.8f).uv(1.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
+        vertexConsumer.vertex(matrix4f, -halfSize, halfSize, halfSize).color(r, g, b, 0.8f).uv(0.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
+        
+        // Back face
+        vertexConsumer.vertex(matrix4f, -halfSize, -halfSize, -halfSize).color(r, g, b, 0.8f).uv(0.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, -1).endVertex();
+        vertexConsumer.vertex(matrix4f, -halfSize, halfSize, -halfSize).color(r, g, b, 0.8f).uv(0.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, -1).endVertex();
+        vertexConsumer.vertex(matrix4f, halfSize, halfSize, -halfSize).color(r, g, b, 0.8f).uv(1.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, -1).endVertex();
+        vertexConsumer.vertex(matrix4f, halfSize, -halfSize, -halfSize).color(r, g, b, 0.8f).uv(1.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, -1).endVertex();
+        
+        // Top face
+        vertexConsumer.vertex(matrix4f, -halfSize, halfSize, -halfSize).color(r, g, b, 0.8f).uv(0.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 1, 0).endVertex();
+        vertexConsumer.vertex(matrix4f, -halfSize, halfSize, halfSize).color(r, g, b, 0.8f).uv(0.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 1, 0).endVertex();
+        vertexConsumer.vertex(matrix4f, halfSize, halfSize, halfSize).color(r, g, b, 0.8f).uv(1.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 1, 0).endVertex();
+        vertexConsumer.vertex(matrix4f, halfSize, halfSize, -halfSize).color(r, g, b, 0.8f).uv(1.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 1, 0).endVertex();
+        
+        // Bottom face
+        vertexConsumer.vertex(matrix4f, -halfSize, -halfSize, -halfSize).color(r, g, b, 0.8f).uv(0.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, -1, 0).endVertex();
+        vertexConsumer.vertex(matrix4f, halfSize, -halfSize, -halfSize).color(r, g, b, 0.8f).uv(1.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, -1, 0).endVertex();
+        vertexConsumer.vertex(matrix4f, halfSize, -halfSize, halfSize).color(r, g, b, 0.8f).uv(1.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, -1, 0).endVertex();
+        vertexConsumer.vertex(matrix4f, -halfSize, -halfSize, halfSize).color(r, g, b, 0.8f).uv(0.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, -1, 0).endVertex();
+        
+        // Right face
+        vertexConsumer.vertex(matrix4f, halfSize, -halfSize, -halfSize).color(r, g, b, 0.8f).uv(0.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(1, 0, 0).endVertex();
+        vertexConsumer.vertex(matrix4f, halfSize, halfSize, -halfSize).color(r, g, b, 0.8f).uv(0.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(1, 0, 0).endVertex();
+        vertexConsumer.vertex(matrix4f, halfSize, halfSize, halfSize).color(r, g, b, 0.8f).uv(1.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(1, 0, 0).endVertex();
+        vertexConsumer.vertex(matrix4f, halfSize, -halfSize, halfSize).color(r, g, b, 0.8f).uv(1.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(1, 0, 0).endVertex();
+        
+        // Left face
+        vertexConsumer.vertex(matrix4f, -halfSize, -halfSize, -halfSize).color(r, g, b, 0.8f).uv(0.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(-1, 0, 0).endVertex();
+        vertexConsumer.vertex(matrix4f, -halfSize, -halfSize, halfSize).color(r, g, b, 0.8f).uv(1.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(-1, 0, 0).endVertex();
+        vertexConsumer.vertex(matrix4f, -halfSize, halfSize, halfSize).color(r, g, b, 0.8f).uv(1.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(-1, 0, 0).endVertex();
+        vertexConsumer.vertex(matrix4f, -halfSize, halfSize, -halfSize).color(r, g, b, 0.8f).uv(0.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(-1, 0, 0).endVertex();
+    }
+    
     private void renderDirtBlock(PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
         // Create a simple colored cube for the dirt block (no texture for now)
         Matrix4f matrix4f = poseStack.last().pose();
-        VertexConsumer vertexConsumer = buffer.getBuffer(RenderType.entityTranslucent(
+        VertexConsumer vertexConsumer = buffer.getBuffer(RenderType.entityTranslucentCull(
             new ResourceLocation("minecraft", "textures/block/dirt.png")));
         
         // Render a simple cube (6 faces) with no color tinting
