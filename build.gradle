@@ -130,6 +130,16 @@ dependencies {
     // then special handling is done to allow a setup of a vanilla dependency without the use of an external repository.
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
+    // LWJGL dependencies for custom sound system
+    implementation 'org.lwjgl:lwjgl:3.3.2'
+    implementation 'org.lwjgl:lwjgl-openal:3.3.2'
+    implementation 'org.lwjgl:lwjgl-stb:3.3.2'
+    
+    // Platform-specific LWJGL natives
+    runtimeOnly 'org.lwjgl:lwjgl:3.3.2:natives-windows'
+    runtimeOnly 'org.lwjgl:lwjgl-openal:3.3.2:natives-windows'
+    runtimeOnly 'org.lwjgl:lwjgl-stb:3.3.2:natives-windows'
+
     // Example mod dependency with JEI - using fg.deobf() ensures the dependency is remapped to your development mappings
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
     // compileOnly fg.deobf("mezz.jei:jei-${mc_version}-common-api:${jei_version}")

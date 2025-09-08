@@ -2,6 +2,7 @@ package com.hexvane.strangematter;
 
 import com.hexvane.strangematter.entity.GravityAnomalyEntity;
 import com.hexvane.strangematter.client.GravityAnomalyRenderer;
+import com.hexvane.strangematter.client.sound.CustomSoundManager;
 import com.hexvane.strangematter.command.AnomalyCommand;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
@@ -124,9 +125,9 @@ public class StrangeMatterMod
 
         Config.items.forEach((item) -> LOGGER.info("ITEM >> {}", item.toString()));
         
-        // Set up sound events for entities
+        // Initialize custom sound manager
         event.enqueueWork(() -> {
-            GravityAnomalyEntity.setGravityAnomalyLoopSound(GRAVITY_ANOMALY_LOOP.get());
+            CustomSoundManager.getInstance().initialize();
         });
     }
 
@@ -149,6 +150,13 @@ public class StrangeMatterMod
     {
         // Do something when the server starts
         LOGGER.info("Strange Matter anomalies are spreading across the server...");
+    }
+    
+    @SubscribeEvent
+    public void onServerStopping(net.minecraftforge.event.server.ServerStoppingEvent event)
+    {
+        // Clean up custom sound manager
+        CustomSoundManager.getInstance().cleanup();
     }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent

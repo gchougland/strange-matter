@@ -6,6 +6,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -16,6 +17,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import com.hexvane.strangematter.client.sound.CustomSoundManager;
 
 import java.util.List;
 
@@ -38,17 +40,11 @@ public class GravityAnomalyEntity extends Entity {
     private float lastPulseTime = 0;
     
     // Sound system
-    private static final float MAX_SOUND_DISTANCE = 10.0f; // Maximum distance to hear the sound (matches attenuation)
-    private static final int SOUND_DURATION_TICKS = 120; // 6 seconds = 120 ticks
-    private static final int VOLUME_UPDATE_INTERVAL = 20; // Update volume every second (20 ticks)
-    
-    // Sound event reference - will be set from the main mod class
-    private static SoundEvent gravityAnomalyLoopSound;
+    private static final float MAX_SOUND_DISTANCE = 10.0f; // Maximum distance to hear the sound
+    private static final ResourceLocation GRAVITY_ANOMALY_SOUND = new ResourceLocation("strangematter", "gravity_anomaly_loop");
     
     // Sound tracking
     private boolean isSoundActive = false;
-    private int soundStartTick = 0;
-    private int lastVolumeUpdateTick = 0;
     private float lastCalculatedVolume = 0.0f;
     
     public GravityAnomalyEntity(EntityType<?> entityType, Level level) {
@@ -184,6 +180,7 @@ public class GravityAnomalyEntity extends Entity {
         if (nearestPlayer == null) {
             // No player nearby, stop sound
             if (isSoundActive) {
+                CustomSoundManager.getInstance().stopAmbientSound(GRAVITY_ANOMALY_SOUND);
                 isSoundActive = false;
             }
             return;
@@ -195,43 +192,38 @@ public class GravityAnomalyEntity extends Entity {
         if (distance > MAX_SOUND_DISTANCE) {
             // Player too far, stop sound
             if (isSoundActive) {
+                CustomSoundManager.getInstance().stopAmbientSound(GRAVITY_ANOMALY_SOUND);
                 isSoundActive = false;
             }
             return;
         }
         
-        // Player is in range, manage continuous sound loop
+        // Calculate volume based on distance
+        float volume = calculateSoundVolume(distance);
+        
+        // Player is in range, manage continuous sound
         if (!isSoundActive) {
-            // Start the sound loop
-            isSoundActive = true;
-            soundStartTick = tickCount;
-            
-            // Play the first sound immediately
-            this.level().playLocalSound(
+            // Start the sound
+            CustomSoundManager.getInstance().playAmbientSound(
+                GRAVITY_ANOMALY_SOUND,
                 this.getX(), this.getY(), this.getZ(),
-                getAmbientSound(),
-                SoundSource.AMBIENT,
-                calculateSoundVolume(distance),
-                1.0f, // Pitch
-                false // Don't broadcast to other players
+                volume,
+                true // Loop continuously
             );
+            isSoundActive = true;
+            lastCalculatedVolume = volume;
         } else {
-            // Continue the loop - play next sound when current one should end
-            int timeSinceStart = tickCount - soundStartTick;
-            int soundCycle = timeSinceStart / SOUND_DURATION_TICKS;
-            int currentCycleStart = soundStartTick + (soundCycle * SOUND_DURATION_TICKS);
-            
-            // If we're at the start of a new cycle, play the sound
-            if (tickCount == currentCycleStart) {
-                this.level().playLocalSound(
-                    this.getX(), this.getY(), this.getZ(),
-                    getAmbientSound(),
-                    SoundSource.AMBIENT,
-                    calculateSoundVolume(distance),
-                    1.0f, // Pitch
-                    false // Don't broadcast to other players
-                );
+            // Update volume if it changed significantly
+            if (Math.abs(volume - lastCalculatedVolume) > 0.01f) {
+                CustomSoundManager.getInstance().updateSoundVolume(GRAVITY_ANOMALY_SOUND, volume);
+                lastCalculatedVolume = volume;
             }
+            
+            // Update position
+            CustomSoundManager.getInstance().updateSoundPosition(
+                GRAVITY_ANOMALY_SOUND,
+                this.getX(), this.getY(), this.getZ()
+            );
         }
     }
     
@@ -246,12 +238,7 @@ public class GravityAnomalyEntity extends Entity {
     // Method to get the ambient sound (not an override since Entity doesn't have this)
     public SoundEvent getAmbientSound() {
         // Return the gravity anomaly loop sound
-        return gravityAnomalyLoopSound != null ? gravityAnomalyLoopSound : SoundEvents.AMBIENT_CAVE.get();
-    }
-    
-    // Method to set the sound event from the main mod class
-    public static void setGravityAnomalyLoopSound(SoundEvent sound) {
-        gravityAnomalyLoopSound = sound;
+        return SoundEvents.AMBIENT_CAVE.get();
     }
     
     public float getRotation() {
