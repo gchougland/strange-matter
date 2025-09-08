@@ -1,0 +1,200 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "strangematter:item/anomaly_resonator_0"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "angle": 0.0
+      },
+      "model": "strangematter:item/anomaly_resonator_0"
+    },
+    {
+      "predicate": {
+        "angle": 0.03125
+      },
+      "model": "strangematter:item/anomaly_resonator_1"
+    },
+    {
+      "predicate": {
+        "angle": 0.0625
+      },
+      "model": "strangematter:item/anomaly_resonator_2"
+    },
+    {
+      "predicate": {
+        "angle": 0.09375
+      },
+      "model": "strangematter:item/anomaly_resonator_3"
+    },
+    {
+      "predicate": {
+        "angle": 0.125
+      },
+      "model": "strangematter:item/anomaly_resonator_4"
+    },
+    {
+      "predicate": {
+        "angle": 0.15625
+      },
+      "model": "strangematter:item/anomaly_resonator_5"
+    },
+    {
+      "predicate": {
+        "angle": 0.1875
+      },
+      "model": "strangematter:item/anomaly_resonator_6"
+    },
+    {
+      "predicate": {
+        "angle": 0.21875
+      },
+      "model": "strangematter:item/anomaly_resonator_7"
+    },
+    {
+      "predicate": {
+        "angle": 0.25
+      },
+      "model": "strangematter:item/anomaly_resonator_8"
+    },
+    {
+      "predicate": {
+        "angle": 0.28125
+      },
+      "model": "strangematter:item/anomaly_resonator_9"
+    },
+    {
+      "predicate": {
+        "angle": 0.3125
+      },
+      "model": "strangematter:item/anomaly_resonator_10"
+    },
+    {
+      "predicate": {
+        "angle": 0.34375
+      },
+      "model": "strangematter:item/anomaly_resonator_11"
+    },
+    {
+      "predicate": {
+        "angle": 0.375
+      },
+      "model": "strangematter:item/anomaly_resonator_12"
+    },
+    {
+      "predicate": {
+        "angle": 0.40625
+      },
+      "model": "strangematter:item/anomaly_resonator_13"
+    },
+    {
+      "predicate": {
+        "angle": 0.4375
+      },
+      "model": "strangematter:item/anomaly_resonator_14"
+    },
+    {
+      "predicate": {
+        "angle": 0.46875
+      },
+      "model": "strangematter:item/anomaly_resonator_15"
+    },
+    {
+      "predicate": {
+        "angle": 0.5
+      },
+      "model": "strangematter:item/anomaly_resonator_16"
+    },
+    {
+      "predicate": {
+        "angle": 0.53125
+      },
+      "model": "strangematter:item/anomaly_resonator_17"
+    },
+    {
+      "predicate": {
+        "angle": 0.5625
+      },
+      "model": "strangematter:item/anomaly_resonator_18"
+    },
+    {
+      "predicate": {
+        "angle": 0.59375
+      },
+      "model": "strangematter:item/anomaly_resonator_19"
+    },
+    {
+      "predicate": {
+        "angle": 0.625
+      },
+      "model": "strangematter:item/anomaly_resonator_20"
+    },
+    {
+      "predicate": {
+        "angle": 0.65625
+      },
+      "model": "strangematter:item/anomaly_resonator_21"
+    },
+    {
+      "predicate": {
+        "angle": 0.6875
+      },
+      "model": "strangematter:item/anomaly_resonator_22"
+    },
+    {
+      "predicate": {
+        "angle": 0.71875
+      },
+      "model": "strangematter:item/anomaly_resonator_23"
+    },
+    {
+      "predicate": {
+        "angle": 0.75
+      },
+      "model": "strangematter:item/anomaly_resonator_24"
+    },
+    {
+      "predicate": {
+        "angle": 0.78125
+      },
+      "model": "strangematter:item/anomaly_resonator_25"
+    },
+    {
+      "predicate": {
+        "angle": 0.8125
+      },
+      "model": "strangematter:item/anomaly_resonator_26"
+    },
+    {
+      "predicate": {
+        "angle": 0.84375
+      },
+      "model": "strangematter:item/anomaly_resonator_27"
+    },
+    {
+      "predicate": {
+        "angle": 0.875
+      },
+      "model": "strangematter:item/anomaly_resonator_28"
+    },
+    {
+      "predicate": {
+        "angle": 0.90625
+      },
+      "model": "strangematter:item/anomaly_resonator_29"
+    },
+    {
+      "predicate": {
+        "angle": 0.9375
+      },
+      "model": "strangematter:item/anomaly_resonator_30"
+    },
+    {
+      "predicate": {
+        "angle": 0.96875
+      },
+      "model": "strangematter:item/anomaly_resonator_31"
+    }
+  ]
+}

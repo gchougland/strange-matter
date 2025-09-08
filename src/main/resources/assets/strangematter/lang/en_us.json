@@ -1,7 +1,11 @@
 {
+  "block.strangematter.anomalous_grass": "Anomalous Grass",
+  "item.strangematter.anomalous_grass": "Anomalous Grass",
   "block.strangematter.anomaly_core": "Anomaly Core",
   "item.strangematter.anomaly_core": "Anomaly Core",
   "item.strangematter.field_scanner": "Field Scanner",
+  "item.strangematter.anomaly_resonator": "Anomaly Resonator",
   "entity.strangematter.gravity_anomaly": "Gravity Anomaly",
-  "itemGroup.strangematter.strange_matter_tab": "Strange Matter"
+  "itemGroup.strangematter.strange_matter_tab": "Strange Matter",
+  "sound.strangematter.gravity_anomaly_loop": "Gravity Anomaly Hum"
 }

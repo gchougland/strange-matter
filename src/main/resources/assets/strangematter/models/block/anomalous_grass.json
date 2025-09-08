@@ -1,0 +1,8 @@
+{
+  "parent": "block/cube_bottom_top",
+  "textures": {
+    "top": "strangematter:block/anomalous_grass_top",
+    "side": "strangematter:block/anomalous_grass_side",
+    "bottom": "strangematter:block/anomalous_grass_bottom"
+  }
+}

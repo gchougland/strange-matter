@@ -72,6 +72,8 @@ public class GravityAnomalyEntity extends Entity {
         this.entityData.define(IS_CONTAINED, false);
     }
     
+    
+    
     @Override
     public void tick() {
         super.tick();
@@ -487,7 +489,7 @@ public class GravityAnomalyEntity extends Entity {
     
     @Override
     public boolean isPickable() {
-        return false;
+        return true; // Allow the entity to be interacted with
     }
     
     @Override
