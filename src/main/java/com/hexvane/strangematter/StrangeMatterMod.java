@@ -2,12 +2,17 @@ package com.hexvane.strangematter;
 
 import com.hexvane.strangematter.entity.GravityAnomalyEntity;
 import com.hexvane.strangematter.client.GravityAnomalyRenderer;
+import com.hexvane.strangematter.client.CrystalizedEctoplasmRenderer;
+import com.hexvane.strangematter.block.CrystalizedEctoplasmBlockEntity;
 import com.hexvane.strangematter.client.sound.CustomSoundManager;
 import com.hexvane.strangematter.command.AnomalyCommand;
 import com.hexvane.strangematter.block.AnomalousGrassBlock;
+import com.hexvane.strangematter.block.CrystalizedEctoplasmBlock;
 import com.hexvane.strangematter.item.AnomalousGrassItem;
 import com.hexvane.strangematter.item.AnomalyResonatorItem;
+import com.hexvane.strangematter.item.EctoplasmItem;
 import com.hexvane.strangematter.worldgen.GravityAnomalyConfiguredFeature;
+import com.hexvane.strangematter.worldgen.CrystalizedEctoplasmConfiguredFeature;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
@@ -24,6 +29,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.levelgen.feature.Feature;
@@ -67,6 +73,8 @@ public class StrangeMatterMod
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
     // Create a Deferred Register to hold EntityTypes
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, MODID);
+    // Create a Deferred Register to hold BlockEntityTypes
+    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MODID);
     // Create a Deferred Register to hold SoundEvents
     public static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, MODID);
     // Create a Deferred Register to hold Attributes
@@ -87,6 +95,15 @@ public class StrangeMatterMod
     public static final RegistryObject<Block> ANOMALOUS_GRASS_BLOCK = BLOCKS.register("anomalous_grass", AnomalousGrassBlock::new);
     public static final RegistryObject<Item> ANOMALOUS_GRASS_ITEM = ITEMS.register("anomalous_grass", () -> new AnomalousGrassItem((AnomalousGrassBlock) ANOMALOUS_GRASS_BLOCK.get()));
 
+    // Crystalized Ectoplasm Block
+    public static final RegistryObject<Block> CRYSTALIZED_ECTOPLASM_BLOCK = BLOCKS.register("crystalized_ectoplasm", CrystalizedEctoplasmBlock::new);
+    public static final RegistryObject<Item> CRYSTALIZED_ECTOPLASM_ITEM = ITEMS.register("crystalized_ectoplasm", () -> new BlockItem(CRYSTALIZED_ECTOPLASM_BLOCK.get(), new Item.Properties()));
+    public static final RegistryObject<BlockEntityType<CrystalizedEctoplasmBlockEntity>> CRYSTALIZED_ECTOPLASM_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("crystalized_ectoplasm", 
+        () -> BlockEntityType.Builder.of((pos, state) -> new CrystalizedEctoplasmBlockEntity(pos, state), CRYSTALIZED_ECTOPLASM_BLOCK.get()).build(null));
+
+    // Ectoplasm Item
+    public static final RegistryObject<Item> ECTOPLASM = ITEMS.register("ectoplasm", EctoplasmItem::new);
+
     // Custom gravity attribute for low gravity effects
     public static final RegistryObject<Attribute> ENTITY_GRAVITY = ATTRIBUTES.register("entity_gravity", 
         () -> new RangedAttribute("strangematter.entity_gravity", 0.08D, -1.0D, 1.0D).setSyncable(true));
@@ -104,6 +121,9 @@ public class StrangeMatterMod
     // World Generation Features
     public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> GRAVITY_ANOMALY_FEATURE = FEATURES.register("gravity_anomaly", 
         () -> new GravityAnomalyConfiguredFeature());
+    
+    public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> CRYSTALIZED_ECTOPLASM_FEATURE = FEATURES.register("crystalized_ectoplasm", 
+        () -> new CrystalizedEctoplasmConfiguredFeature());
 
 
 
@@ -116,6 +136,8 @@ public class StrangeMatterMod
                 output.accept(FIELD_SCANNER.get());
                 output.accept(ANOMALY_RESONATOR.get());
                 output.accept(ANOMALOUS_GRASS_ITEM.get());
+                output.accept(CRYSTALIZED_ECTOPLASM_ITEM.get());
+                output.accept(ECTOPLASM.get());
             }).build());
 
     public StrangeMatterMod()
@@ -136,6 +158,8 @@ public class StrangeMatterMod
         CREATIVE_MODE_TABS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so entity types get registered
         ENTITY_TYPES.register(modEventBus);
+        // Register the Deferred Register to the mod event bus so block entity types get registered
+        BLOCK_ENTITY_TYPES.register(modEventBus);
         // Register the Deferred Register to the mod event bus so sound events get registered
         SOUND_EVENTS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so attributes get registered
@@ -314,6 +338,7 @@ public class StrangeMatterMod
         if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS)
         {
             event.accept(ANOMALOUS_GRASS_ITEM.get());
+            event.accept(CRYSTALIZED_ECTOPLASM_ITEM.get());
         }
     }
 
@@ -346,6 +371,9 @@ public class StrangeMatterMod
             // Register entity renderers
             event.enqueueWork(() -> {
                 net.minecraft.client.renderer.entity.EntityRenderers.register(GRAVITY_ANOMALY.get(), GravityAnomalyRenderer::new);
+                
+                // Register block entity renderer for crystalized ectoplasm
+                net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(CRYSTALIZED_ECTOPLASM_BLOCK_ENTITY.get(), CrystalizedEctoplasmRenderer::new);
             });
         }
     }

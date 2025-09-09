@@ -1,0 +1,17 @@
+Crystalized Ectoplasm Block Texture
+====================================
+
+This should be a 16x16 pixel texture with the following characteristics:
+
+- Primary color: #41b280 (teal-green)
+- SEMI-TRANSPARENT: Use alpha channel for transparency (50-70% opacity)
+- Crystal cluster appearance with multiple crystal facets
+- Sharp, angular crystal shapes
+- Bright, glowing appearance to match the light level
+- Some variation in brightness across the crystal faces
+- Subtle highlights and shadows to give depth
+- The texture should have transparent/translucent areas
+
+The texture should look like a cluster of small crystals growing together,
+similar to amethyst clusters but with the specified teal-green color and
+semi-transparency so you can see through the crystal.

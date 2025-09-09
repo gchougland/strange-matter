@@ -37,7 +37,7 @@ public class GravityAnomalyEntity extends Entity {
     private static final EntityDataAccessor<Boolean> IS_CONTAINED = SynchedEntityData.defineId(GravityAnomalyEntity.class, EntityDataSerializers.BOOLEAN);
     
     // Constants for the gravity anomaly
-    private static final float LEVITATION_RADIUS = 4.0f;
+    private static final float LEVITATION_RADIUS = 8.0f;
     private static final float AURA_RADIUS = 2.0f;
     private static final float LEVITATION_FORCE = 0.1f;
     private static final float ROTATION_SPEED = 0.5f;

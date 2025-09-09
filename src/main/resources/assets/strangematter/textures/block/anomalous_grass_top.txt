@@ -1,2 +1,0 @@
-# This file should be replaced with an actual 16x16 pixel PNG texture
-# Generate with this prompt:

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " C ",
+    "COC",
+    " C "
+  ],
+  "key": {
+    "C": {
+      "item": "minecraft:crying_obsidian"
+    },
+    "O": {
+      "item": "minecraft:amethyst_shard"
+    }
+  },
+  "result": {
+    "item": "strangematter:anomaly_resonator"
+  }
+}

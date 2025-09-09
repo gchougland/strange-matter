@@ -1,6 +1,9 @@
 {
   "block.strangematter.anomalous_grass": "Anomalous Grass",
   "item.strangematter.anomalous_grass": "Anomalous Grass",
+  "block.strangematter.crystalized_ectoplasm": "Crystalized Ectoplasm",
+  "item.strangematter.crystalized_ectoplasm": "Crystalized Ectoplasm",
+  "item.strangematter.ectoplasm": "Ectoplasm",
   "item.strangematter.field_scanner": "Field Scanner",
   "item.strangematter.anomaly_resonator": "Anomaly Resonator",
   "entity.strangematter.gravity_anomaly": "Gravity Anomaly",

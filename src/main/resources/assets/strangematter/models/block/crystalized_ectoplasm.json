@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "strangematter:block/crystalized_ectoplasm"
+  },
+  "render_type": "translucent"
+}

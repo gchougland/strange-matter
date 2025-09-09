@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IEI",
+    "IRI",
+    "III"
+  ],
+  "key": {
+    "E": {
+      "item": "strangematter:ectoplasm"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "item": "strangematter:field_scanner"
+  }
+}
