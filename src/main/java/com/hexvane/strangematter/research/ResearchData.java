@@ -1,0 +1,131 @@
+package com.hexvane.strangematter.research;
+
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.UUID;
+
+public class ResearchData {
+    private final Map<ResearchType, Integer> researchPoints;
+    private final Set<String> scannedObjects;
+    private ResearchDataManager manager;
+    private UUID playerId;
+    
+    public ResearchData() {
+        this.researchPoints = new HashMap<>();
+        this.scannedObjects = new HashSet<>();
+        
+        // Initialize all research types to 0
+        for (ResearchType type : ResearchType.values()) {
+            researchPoints.put(type, 0);
+        }
+    }
+    
+    public void setManager(ResearchDataManager manager, UUID playerId) {
+        this.manager = manager;
+        this.playerId = playerId;
+    }
+    
+    public int getResearchPoints(ResearchType type) {
+        return researchPoints.getOrDefault(type, 0);
+    }
+    
+    public void addResearchPoints(ResearchType type, int amount) {
+        int current = researchPoints.getOrDefault(type, 0);
+        researchPoints.put(type, current + amount);
+        markDirty();
+    }
+    
+    public boolean hasScanned(String objectId) {
+        return scannedObjects.contains(objectId);
+    }
+    
+    public void markAsScanned(String objectId) {
+        scannedObjects.add(objectId);
+        markDirty();
+    }
+    
+    public Set<String> getScannedObjects() {
+        return new HashSet<>(scannedObjects);
+    }
+    
+    public void setScannedObjects(Set<String> scanned) {
+        scannedObjects.clear();
+        scannedObjects.addAll(scanned);
+        markDirty();
+    }
+    
+    private void markDirty() {
+        if (manager != null) {
+            manager.markDirty();
+        }
+    }
+    
+    public CompoundTag serializeNBT() {
+        CompoundTag tag = new CompoundTag();
+        
+        // Serialize research points
+        CompoundTag researchTag = new CompoundTag();
+        for (Map.Entry<ResearchType, Integer> entry : researchPoints.entrySet()) {
+            researchTag.putInt(entry.getKey().getName(), entry.getValue());
+        }
+        tag.put("research_points", researchTag);
+        
+        // Serialize scanned objects
+        ListTag scannedTag = new ListTag();
+        for (String objectId : scannedObjects) {
+            CompoundTag objectTag = new CompoundTag();
+            objectTag.putString("id", objectId);
+            scannedTag.add(objectTag);
+        }
+        tag.put("scanned_objects", scannedTag);
+        
+        return tag;
+    }
+    
+    public void deserializeNBT(CompoundTag tag) {
+        researchPoints.clear();
+        scannedObjects.clear();
+        
+        // Deserialize research points
+        if (tag.contains("research_points")) {
+            CompoundTag researchTag = tag.getCompound("research_points");
+            for (ResearchType type : ResearchType.values()) {
+                if (researchTag.contains(type.getName())) {
+                    researchPoints.put(type, researchTag.getInt(type.getName()));
+                } else {
+                    researchPoints.put(type, 0);
+                }
+            }
+        }
+        
+        // Deserialize scanned objects
+        if (tag.contains("scanned_objects")) {
+            ListTag scannedTag = tag.getList("scanned_objects", Tag.TAG_COMPOUND);
+            for (Tag t : scannedTag) {
+                if (t instanceof CompoundTag objectTag) {
+                    scannedObjects.add(objectTag.getString("id"));
+                }
+            }
+        }
+    }
+    
+    public void syncToClient(ServerPlayer player) {
+        ResearchDataServerHandler.syncResearchDataToClient(player, this);
+    }
+    
+    public static ResearchData get(Player player) {
+        if (player.level().isClientSide) {
+            // Return empty data for client - real data comes from network sync
+            return new ResearchData();
+        }
+        return ResearchDataManager.get(player);
+    }
+}

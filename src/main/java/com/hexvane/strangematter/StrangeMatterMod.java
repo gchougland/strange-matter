@@ -6,13 +6,16 @@ import com.hexvane.strangematter.client.CrystalizedEctoplasmRenderer;
 import com.hexvane.strangematter.block.CrystalizedEctoplasmBlockEntity;
 import com.hexvane.strangematter.client.sound.CustomSoundManager;
 import com.hexvane.strangematter.command.AnomalyCommand;
+import com.hexvane.strangematter.command.ResearchCommand;
 import com.hexvane.strangematter.block.AnomalousGrassBlock;
 import com.hexvane.strangematter.block.CrystalizedEctoplasmBlock;
 import com.hexvane.strangematter.item.AnomalousGrassItem;
 import com.hexvane.strangematter.item.AnomalyResonatorItem;
 import com.hexvane.strangematter.item.EctoplasmItem;
+import com.hexvane.strangematter.item.FieldScannerItem;
 import com.hexvane.strangematter.worldgen.GravityAnomalyConfiguredFeature;
 import com.hexvane.strangematter.worldgen.CrystalizedEctoplasmConfiguredFeature;
+import com.hexvane.strangematter.network.NetworkHandler;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
@@ -86,7 +89,7 @@ public class StrangeMatterMod
 
 
     // Creates a new research item with the id "strangematter:field_scanner"
-    public static final RegistryObject<Item> FIELD_SCANNER = ITEMS.register("field_scanner", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> FIELD_SCANNER = ITEMS.register("field_scanner", FieldScannerItem::new);
     
     // Anomaly Resonator - compass for finding anomalies
     public static final RegistryObject<Item> ANOMALY_RESONATOR = ITEMS.register("anomaly_resonator", AnomalyResonatorItem::new);
@@ -116,7 +119,10 @@ public class StrangeMatterMod
 
     // Sound Events
     public static final RegistryObject<SoundEvent> GRAVITY_ANOMALY_LOOP = SOUND_EVENTS.register("gravity_anomaly_loop", 
-        () -> SoundEvent.createVariableRangeEvent(new net.minecraft.resources.ResourceLocation(MODID, "gravity_anomaly_loop")));
+        () -> SoundEvent.createVariableRangeEvent(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(MODID, "gravity_anomaly_loop")));
+    
+    public static final RegistryObject<SoundEvent> FIELD_SCANNER_SCAN = SOUND_EVENTS.register("field_scanner_scan", 
+        () -> SoundEvent.createVariableRangeEvent(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(MODID, "field_scanner_scan")));
 
     // World Generation Features
     public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> GRAVITY_ANOMALY_FEATURE = FEATURES.register("gravity_anomaly", 
@@ -146,6 +152,9 @@ public class StrangeMatterMod
 
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
+        
+        // Register network handler
+        NetworkHandler.register();
         
         // Register the clientSetup method for client-side setup
         modEventBus.addListener(this::clientSetup);
@@ -199,11 +208,17 @@ public class StrangeMatterMod
     
     private void clientSetup(final FMLClientSetupEvent event)
     {
+        // Register research overlay
+        event.enqueueWork(() -> {
+            // Register the research gain overlay using the event system
+            // The overlay will be handled by ResearchOverlayEventHandler
+        });
+        
         // Register compass angle property for anomaly resonator
         event.enqueueWork(() -> {
             net.minecraft.client.renderer.item.ItemProperties.register(
                 ANOMALY_RESONATOR.get(),
-                new net.minecraft.resources.ResourceLocation("angle"),
+                net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("minecraft", "angle"),
                 (stack, level, entity, seed) -> {
                     if (level == null || entity == null) {
                         return 0.0F;
@@ -245,6 +260,7 @@ public class StrangeMatterMod
     @SubscribeEvent
     public void registerCommands(net.minecraftforge.event.RegisterCommandsEvent event) {
         AnomalyCommand.register(event.getDispatcher());
+        ResearchCommand.register(event.getDispatcher());
         
         // Register test command for gravity anomaly feature
         event.getDispatcher().register(Commands.literal("test_gravity_anomaly")

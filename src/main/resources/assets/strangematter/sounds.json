@@ -1,12 +1,10 @@
 {
-  "gravity_anomaly_loop": {
-    "category": "ambient",
+  "field_scanner_scan": {
+    "subtitle": "Field Scanner Scanning",
     "sounds": [
       {
-        "name": "strangematter:gravity_anomaly_loop",
-        "stream": true,
-        "volume": 0.8,
-        "attenuation_distance": 10
+        "name": "strangematter:field_scanner_scan",
+        "stream": false
       }
     ]
   }

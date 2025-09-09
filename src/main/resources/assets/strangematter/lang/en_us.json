@@ -1,12 +1,18 @@
 {
-  "block.strangematter.anomalous_grass": "Anomalous Grass",
-  "item.strangematter.anomalous_grass": "Anomalous Grass",
-  "block.strangematter.crystalized_ectoplasm": "Crystalized Ectoplasm",
-  "item.strangematter.crystalized_ectoplasm": "Crystalized Ectoplasm",
-  "item.strangematter.ectoplasm": "Ectoplasm",
   "item.strangematter.field_scanner": "Field Scanner",
   "item.strangematter.anomaly_resonator": "Anomaly Resonator",
+  "item.strangematter.anomalous_grass": "Anomalous Grass",
+  "item.strangematter.crystalized_ectoplasm": "Crystalized Ectoplasm",
+  "item.strangematter.ectoplasm": "Ectoplasm",
+  "block.strangematter.anomalous_grass": "Anomalous Grass",
+  "block.strangematter.crystalized_ectoplasm": "Crystalized Ectoplasm",
   "entity.strangematter.gravity_anomaly": "Gravity Anomaly",
   "itemGroup.strangematter.strange_matter_tab": "Strange Matter",
-  "sound.strangematter.gravity_anomaly_loop": "Gravity Anomaly Hum"
+  "subtitles.strangematter.field_scanner_scan": "Field Scanner Scanning",
+  "research.strangematter.cognition": "Cognition",
+  "research.strangematter.energy": "Energy", 
+  "research.strangematter.gravity": "Gravity",
+  "research.strangematter.shadow": "Shadow",
+  "research.strangematter.space": "Space",
+  "research.strangematter.time": "Time"
 }
