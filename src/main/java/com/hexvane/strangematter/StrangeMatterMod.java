@@ -9,10 +9,13 @@ import com.hexvane.strangematter.command.AnomalyCommand;
 import com.hexvane.strangematter.command.ResearchCommand;
 import com.hexvane.strangematter.block.AnomalousGrassBlock;
 import com.hexvane.strangematter.block.CrystalizedEctoplasmBlock;
+import com.hexvane.strangematter.block.ResoniteOreBlock;
 import com.hexvane.strangematter.item.AnomalousGrassItem;
 import com.hexvane.strangematter.item.AnomalyResonatorItem;
 import com.hexvane.strangematter.item.EctoplasmItem;
 import com.hexvane.strangematter.item.FieldScannerItem;
+import com.hexvane.strangematter.item.RawResoniteItem;
+import com.hexvane.strangematter.item.ResoniteIngotItem;
 import com.hexvane.strangematter.worldgen.GravityAnomalyConfiguredFeature;
 import com.hexvane.strangematter.worldgen.CrystalizedEctoplasmConfiguredFeature;
 import com.hexvane.strangematter.network.NetworkHandler;
@@ -107,6 +110,16 @@ public class StrangeMatterMod
     // Ectoplasm Item
     public static final RegistryObject<Item> ECTOPLASM = ITEMS.register("ectoplasm", EctoplasmItem::new);
 
+    // Resonite Ore Block
+    public static final RegistryObject<Block> RESONITE_ORE_BLOCK = BLOCKS.register("resonite_ore", ResoniteOreBlock::new);
+    public static final RegistryObject<Item> RESONITE_ORE_ITEM = ITEMS.register("resonite_ore", () -> new BlockItem(RESONITE_ORE_BLOCK.get(), new Item.Properties()));
+
+    // Raw Resonite Item
+    public static final RegistryObject<Item> RAW_RESONITE = ITEMS.register("raw_resonite", RawResoniteItem::new);
+
+    // Resonite Ingot Item
+    public static final RegistryObject<Item> RESONITE_INGOT = ITEMS.register("resonite_ingot", ResoniteIngotItem::new);
+
     // Custom gravity attribute for low gravity effects
     public static final RegistryObject<Attribute> ENTITY_GRAVITY = ATTRIBUTES.register("entity_gravity", 
         () -> new RangedAttribute("strangematter.entity_gravity", 0.08D, -1.0D, 1.0D).setSyncable(true));
@@ -144,6 +157,9 @@ public class StrangeMatterMod
                 output.accept(ANOMALOUS_GRASS_ITEM.get());
                 output.accept(CRYSTALIZED_ECTOPLASM_ITEM.get());
                 output.accept(ECTOPLASM.get());
+                output.accept(RESONITE_ORE_ITEM.get());
+                output.accept(RAW_RESONITE.get());
+                output.accept(RESONITE_INGOT.get());
             }).build());
 
     public StrangeMatterMod()

@@ -103,6 +103,9 @@ public class GravityAnomalyConfiguredFeature extends Feature<NoneFeatureConfigur
             }
         }
         
+        // Generate resonite ore clumps underneath the anomaly
+        generateResoniteOreClumps(level, random, groundPos);
+        
         // Spawn the gravity anomaly entity above the surface
         GravityAnomalyEntity anomaly = new GravityAnomalyEntity(StrangeMatterMod.GRAVITY_ANOMALY.get(), level.getLevel());
         anomaly.moveTo(anomalyPos.getX() + 0.5, anomalyPos.getY(), anomalyPos.getZ() + 0.5, 0.0f, 0.0f);
@@ -111,5 +114,40 @@ public class GravityAnomalyConfiguredFeature extends Feature<NoneFeatureConfigur
         LOGGER.info("Successfully placed gravity anomaly at: {} - Success: {}", anomalyPos, success);
         
         return success;
+    }
+    
+    private void generateResoniteOreClumps(WorldGenLevel level, RandomSource random, BlockPos centerPos) {
+        // Generate 2-4 ore clumps directly under the anomaly
+        int clumpCount = 2 + random.nextInt(3); // 2-4 clumps
+        
+        for (int i = 0; i < clumpCount; i++) {
+            // Small offset around the center (within 3 blocks)
+            int offsetX = random.nextInt(7) - 3; // -3 to +3
+            int offsetZ = random.nextInt(7) - 3; // -3 to +3
+            
+            BlockPos clumpCenter = centerPos.offset(offsetX, 0, offsetZ);
+            
+            // Generate ore in a small clump (3-6 blocks)
+            int oreCount = 3 + random.nextInt(4); // 3-6 ores per clump
+            
+            for (int j = 0; j < oreCount; j++) {
+                // Random position within 2 blocks of clump center
+                int oreX = clumpCenter.getX() + random.nextInt(5) - 2; // -2 to +2
+                int oreZ = clumpCenter.getZ() + random.nextInt(5) - 2; // -2 to +2
+                
+                // Find a suitable Y position directly under the anomaly (within 16 blocks)
+                int oreY = centerPos.getY() - (1 + random.nextInt(16)); // 1-16 blocks below
+                BlockPos orePos = new BlockPos(oreX, oreY, oreZ);
+                
+                // Check if the position is valid and within world bounds
+                if (orePos.getY() >= level.getMinBuildHeight() + 10) {
+                    var blockState = level.getBlockState(orePos);
+                    if (blockState.is(net.minecraft.world.level.block.Blocks.STONE) || 
+                        blockState.is(net.minecraft.world.level.block.Blocks.DEEPSLATE)) {
+                        level.setBlock(orePos, StrangeMatterMod.RESONITE_ORE_BLOCK.get().defaultBlockState(), 3);
+                    }
+                }
+            }
+        }
     }
 }
