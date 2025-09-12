@@ -1,7 +1,9 @@
 package com.hexvane.strangematter;
 
 import com.hexvane.strangematter.entity.GravityAnomalyEntity;
+import com.hexvane.strangematter.entity.WarpGateAnomalyEntity;
 import com.hexvane.strangematter.client.GravityAnomalyRenderer;
+import com.hexvane.strangematter.client.WarpGateAnomalyRenderer;
 import com.hexvane.strangematter.client.CrystalizedEctoplasmRenderer;
 import com.hexvane.strangematter.block.CrystalizedEctoplasmBlockEntity;
 import com.hexvane.strangematter.client.sound.CustomSoundManager;
@@ -18,6 +20,11 @@ import com.hexvane.strangematter.item.RawResoniteItem;
 import com.hexvane.strangematter.item.ResoniteIngotItem;
 import com.hexvane.strangematter.worldgen.GravityAnomalyConfiguredFeature;
 import com.hexvane.strangematter.worldgen.CrystalizedEctoplasmConfiguredFeature;
+import com.hexvane.strangematter.worldgen.WarpGateAnomalyStructure;
+import com.hexvane.strangematter.worldgen.WarpGateAnomalyFeature;
+import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.core.HolderSet;
+import java.util.Map;
 import com.hexvane.strangematter.network.NetworkHandler;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
@@ -40,6 +47,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
+import net.minecraft.world.level.levelgen.structure.StructureType;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -89,6 +97,8 @@ public class StrangeMatterMod
     public static final DeferredRegister<Feature<?>> FEATURES = DeferredRegister.create(Registries.FEATURE, MODID);
     // Create a Deferred Register to hold PlacementModifierTypes
     public static final DeferredRegister<PlacementModifierType<?>> PLACEMENT_MODIFIERS = DeferredRegister.create(Registries.PLACEMENT_MODIFIER_TYPE, MODID);
+    // Create a Deferred Register to hold StructureTypes
+    public static final DeferredRegister<StructureType<?>> STRUCTURE_TYPES = DeferredRegister.create(Registries.STRUCTURE_TYPE, MODID);
 
 
     // Creates a new research item with the id "strangematter:field_scanner"
@@ -130,12 +140,21 @@ public class StrangeMatterMod
             .sized(1.0f, 1.0f) // Size of the entity
             .build("gravity_anomaly"));
 
+    // Warp Gate Anomaly Entity
+    public static final RegistryObject<EntityType<WarpGateAnomalyEntity>> WARP_GATE_ANOMALY_ENTITY = ENTITY_TYPES.register("warp_gate_anomaly", 
+        () -> EntityType.Builder.<WarpGateAnomalyEntity>of(WarpGateAnomalyEntity::new, MobCategory.MISC)
+            .sized(2.0f, 3.0f) // Larger size for warp gate
+            .build("warp_gate_anomaly"));
+
     // Sound Events
     public static final RegistryObject<SoundEvent> GRAVITY_ANOMALY_LOOP = SOUND_EVENTS.register("gravity_anomaly_loop", 
         () -> SoundEvent.createVariableRangeEvent(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(MODID, "gravity_anomaly_loop")));
     
     public static final RegistryObject<SoundEvent> FIELD_SCANNER_SCAN = SOUND_EVENTS.register("field_scanner_scan", 
         () -> SoundEvent.createVariableRangeEvent(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(MODID, "field_scanner_scan")));
+    
+    public static final RegistryObject<SoundEvent> WARP_GATE_LOOP = SOUND_EVENTS.register("warp_gate_loop", 
+        () -> SoundEvent.createVariableRangeEvent(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(MODID, "warp_gate_loop")));
 
     // World Generation Features
     public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> GRAVITY_ANOMALY_FEATURE = FEATURES.register("gravity_anomaly", 
@@ -143,6 +162,14 @@ public class StrangeMatterMod
     
     public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> CRYSTALIZED_ECTOPLASM_FEATURE = FEATURES.register("crystalized_ectoplasm", 
         () -> new CrystalizedEctoplasmConfiguredFeature());
+    
+    public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> WARP_GATE_ANOMALY_FEATURE = FEATURES.register("warp_gate_anomaly_feature", 
+        () -> new WarpGateAnomalyFeature(net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration.CODEC));
+    
+
+    // Structure Types
+    public static final RegistryObject<StructureType<WarpGateAnomalyStructure>> WARP_GATE_ANOMALY_STRUCTURE = STRUCTURE_TYPES.register("warp_gate_anomaly_structure", 
+        () -> () -> WarpGateAnomalyStructure.CODEC);
 
 
 
@@ -193,6 +220,8 @@ public class StrangeMatterMod
         FEATURES.register(modEventBus);
         // Register the Deferred Register to the mod event bus so placement modifiers get registered
         PLACEMENT_MODIFIERS.register(modEventBus);
+        // Register the Deferred Register to the mod event bus so structure types get registered
+        STRUCTURE_TYPES.register(modEventBus); // Register structure types
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
@@ -403,6 +432,7 @@ public class StrangeMatterMod
             // Register entity renderers
             event.enqueueWork(() -> {
                 net.minecraft.client.renderer.entity.EntityRenderers.register(GRAVITY_ANOMALY.get(), GravityAnomalyRenderer::new);
+                net.minecraft.client.renderer.entity.EntityRenderers.register(WARP_GATE_ANOMALY_ENTITY.get(), WarpGateAnomalyRenderer::new);
                 
                 // Register block entity renderer for crystalized ectoplasm
                 net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(CRYSTALIZED_ECTOPLASM_BLOCK_ENTITY.get(), CrystalizedEctoplasmRenderer::new);

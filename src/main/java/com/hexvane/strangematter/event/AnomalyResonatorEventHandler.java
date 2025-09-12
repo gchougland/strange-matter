@@ -2,6 +2,8 @@ package com.hexvane.strangematter.event;
 
 import com.hexvane.strangematter.StrangeMatterMod;
 import com.hexvane.strangematter.entity.GravityAnomalyEntity;
+import com.hexvane.strangematter.entity.BaseAnomalyEntity;
+import com.hexvane.strangematter.entity.WarpGateAnomalyEntity;
 import com.hexvane.strangematter.item.AnomalyResonatorItem;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -15,7 +17,7 @@ public class AnomalyResonatorEventHandler {
     
     @SubscribeEvent
     public static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
-        if (event.getTarget() instanceof GravityAnomalyEntity anomaly) {
+        if (event.getTarget() instanceof BaseAnomalyEntity anomaly) {
             Player player = event.getEntity();
             
             // Check both hands for the anomaly resonator

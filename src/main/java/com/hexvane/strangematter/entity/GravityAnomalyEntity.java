@@ -24,100 +24,33 @@ import net.minecraft.world.phys.Vec3;
 import com.hexvane.strangematter.client.sound.CustomSoundManager;
 import com.hexvane.strangematter.StrangeMatterMod;
 import com.hexvane.strangematter.GravityData;
+import com.hexvane.strangematter.research.ResearchType;
 
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 
-public class GravityAnomalyEntity extends Entity {
-    
-    // Entity data for syncing between client and server
-    private static final EntityDataAccessor<Float> ROTATION = SynchedEntityData.defineId(GravityAnomalyEntity.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Float> PULSE_INTENSITY = SynchedEntityData.defineId(GravityAnomalyEntity.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Boolean> IS_CONTAINED = SynchedEntityData.defineId(GravityAnomalyEntity.class, EntityDataSerializers.BOOLEAN);
+public class GravityAnomalyEntity extends BaseAnomalyEntity {
     
     // Constants for the gravity anomaly
     private static final float LEVITATION_RADIUS = 8.0f;
     private static final float AURA_RADIUS = 2.0f;
     private static final float LEVITATION_FORCE = 0.1f;
-    private static final float ROTATION_SPEED = 0.5f;
-    private static final int PARTICLE_SPAWN_RATE = 20; // particles per second
-    
-    // Animation timers
-    private int tickCount = 0;
-    private float lastPulseTime = 0;
     
     // Track affected players and their modifiers
     private Set<Player> affectedPlayers = new HashSet<>();
     private AttributeModifier lowGravityModifier = new AttributeModifier("Low Gravity", 0.0, AttributeModifier.Operation.ADDITION);
     
     // Sound system
-    private static final float MAX_SOUND_DISTANCE = 10.0f; // Maximum distance to hear the sound
     private static final ResourceLocation GRAVITY_ANOMALY_SOUND = new ResourceLocation("strangematter", "gravity_anomaly_loop");
-    
-    // Sound tracking
-    private boolean isSoundActive = false;
-    private float lastCalculatedVolume = 0.0f;
     
     public GravityAnomalyEntity(EntityType<?> entityType, Level level) {
         super(entityType, level);
-        this.setNoGravity(true);
-        this.setInvulnerable(true);
     }
     
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(ROTATION, 0.0f);
-        this.entityData.define(PULSE_INTENSITY, 0.0f);
-        this.entityData.define(IS_CONTAINED, false);
-    }
-    
-    
-    
-    @Override
-    public void tick() {
-        super.tick();
-        tickCount++;
-        
-        if (!this.level().isClientSide) {
-            // Server-side logic
-            updateRotation();
-            updatePulseAnimation();
-            applyLevitationField();
-            spawnParticles();
-        } else {
-            // Client-side logic
-            updateClientEffects();
-            updateSoundEffects();
-            // Apply client-side effects for smoother visuals
-            applyClientSideEffects();
-        }
-    }
-    
-    private void updateRotation() {
-        float currentRotation = this.entityData.get(ROTATION);
-        float newRotation = currentRotation + ROTATION_SPEED;
-        if (newRotation >= 360.0f) {
-            newRotation -= 360.0f;
-        }
-        this.entityData.set(ROTATION, newRotation);
-    }
-    
-    private void updatePulseAnimation() {
-        // Create a pulsing effect every few seconds
-        if (tickCount % 60 == 0) { // Every 3 seconds (60 ticks)
-            this.entityData.set(PULSE_INTENSITY, 1.0f);
-        }
-        
-        // Gradually decrease pulse intensity
-        float currentPulse = this.entityData.get(PULSE_INTENSITY);
-        if (currentPulse > 0) {
-            this.entityData.set(PULSE_INTENSITY, Math.max(0, currentPulse - 0.05f));
-        }
-    }
-    
-    private void applyLevitationField() {
-        if (this.entityData.get(IS_CONTAINED)) {
+    protected void applyAnomalyEffects() {
+        if (this.isContained()) {
             return; // Don't apply levitation if contained
         }
         
@@ -166,7 +99,6 @@ public class GravityAnomalyEntity extends Entity {
         } else {
             applyGenericLowGravity(entity, currentVelocity, forceMultiplier);
         }
-        
     }
     
     private void applyItemLowGravity(ItemEntity item, Vec3 currentVelocity, double forceMultiplier) {
@@ -205,7 +137,6 @@ public class GravityAnomalyEntity extends Entity {
         
         // Also store in persistent data for fallback
         player.getPersistentData().putDouble("strangematter.gravity_force", forceMultiplier);
-        
     }
     
     private void applyMobLowGravity(LivingEntity mob, Vec3 currentVelocity, double forceMultiplier) {
@@ -251,7 +182,8 @@ public class GravityAnomalyEntity extends Entity {
         entity.setDeltaMovement(newVelocity);
     }
     
-    private void spawnParticles() {
+    @Override
+    protected void spawnParticles() {
         if (this.level().isClientSide) return;
         
         // Spawn levitation particles
@@ -288,175 +220,30 @@ public class GravityAnomalyEntity extends Entity {
         }
     }
     
-    private void updateClientEffects() {
+    @Override
+    protected void updateClientEffects() {
         // Client-side visual effects
         // This will be handled by the renderer
     }
     
-    private void applyClientSideEffects() {
-        // Apply client-side effects for smoother visuals
-        AABB levitationBox = this.getBoundingBox().inflate(LEVITATION_RADIUS);
-        List<Entity> entitiesInRange = this.level().getEntities(this, levitationBox);
-        
-        for (Entity entity : entitiesInRange) {
-            if (entity instanceof Player && ((Player) entity).isCreative()) {
-                continue; // Skip creative players
-            }
-            
-            // Calculate distance from anomaly center
-            double distance = this.distanceTo(entity);
-            if (distance <= LEVITATION_RADIUS) {
-                applyClientSideLowGravity(entity, distance);
-            }
-        }
+    @Override
+    protected ResourceLocation getAnomalySound() {
+        return GRAVITY_ANOMALY_SOUND;
     }
     
-    private void applyClientSideLowGravity(Entity entity, double distance) {
-        // Calculate force multiplier based on distance
-        double forceMultiplier = 1.0 - (distance / LEVITATION_RADIUS);
-        forceMultiplier = Math.max(0.1, forceMultiplier);
-        
-        Vec3 currentVelocity = entity.getDeltaMovement();
-        
-        // Apply client-side effects for items and mobs only
-        if (entity instanceof ItemEntity) {
-            applyClientSideItemEffect((ItemEntity) entity, currentVelocity, forceMultiplier);
-        } else if (entity instanceof LivingEntity && !(entity instanceof Player)) {
-            applyClientSideMobEffect((LivingEntity) entity, currentVelocity, forceMultiplier);
-        }
+    @Override
+    protected ResearchType getResearchType() {
+        return ResearchType.GRAVITY;
     }
     
-    private void applyClientSideItemEffect(ItemEntity item, Vec3 currentVelocity, double forceMultiplier) {
-        // Apply the same floating motion on client side for smooth visuals
-        double time = (System.currentTimeMillis() % 360000) / 1000.0;
-        double itemId = item.getId() * 0.1;
-        
-        double floatHeight = Math.sin(time * 0.5 + itemId) * 0.1 * forceMultiplier;
-        double driftX = Math.cos(time * 0.3 + itemId) * 0.02 * forceMultiplier;
-        double driftZ = Math.sin(time * 0.4 + itemId) * 0.02 * forceMultiplier;
-        
-        Vec3 newVelocity = new Vec3(
-            currentVelocity.x * 0.8 + driftX,
-            currentVelocity.y * 0.3 + floatHeight,
-            currentVelocity.z * 0.8 + driftZ
-        );
-        
-        if (newVelocity.length() > 0.5) {
-            newVelocity = newVelocity.normalize().multiply(0.5, 0.5, 0.5);
-        }
-        
-        item.setDeltaMovement(newVelocity);
+    @Override
+    protected int getResearchAmount() {
+        return 15; // Gravity research points
     }
     
-    private void applyClientSideMobEffect(LivingEntity mob, Vec3 currentVelocity, double forceMultiplier) {
-        // Apply the same floating motion on client side for smooth visuals
-        double time = (System.currentTimeMillis() % 360000) / 1000.0;
-        double mobId = mob.getId() * 0.1;
-        
-        double floatHeight = Math.sin(time * 0.8 + mobId) * 0.15 * forceMultiplier;
-        double driftX = Math.cos(time * 0.6 + mobId) * 0.03 * forceMultiplier;
-        double driftZ = Math.sin(time * 0.7 + mobId) * 0.03 * forceMultiplier;
-        
-        double secondaryFloat = Math.sin(time * 1.2 + mobId * 1.5) * 0.05 * forceMultiplier;
-        double secondaryDriftX = Math.cos(time * 0.9 + mobId * 1.3) * 0.01 * forceMultiplier;
-        double secondaryDriftZ = Math.sin(time * 1.1 + mobId * 1.7) * 0.01 * forceMultiplier;
-        
-        Vec3 newVelocity = new Vec3(
-            (currentVelocity.x * 0.7) + driftX + secondaryDriftX,
-            (currentVelocity.y * 0.2) + floatHeight + secondaryFloat,
-            (currentVelocity.z * 0.7) + driftZ + secondaryDriftZ
-        );
-        
-        if (forceMultiplier > 0.3) {
-            float rotationSpeed = (float)(forceMultiplier * 1.5);
-            mob.setYRot(mob.getYRot() + rotationSpeed);
-        }
-        
-        mob.setDeltaMovement(newVelocity);
-    }
-    
-    private void updateSoundEffects() {
-        // Find the nearest player
-        Player nearestPlayer = this.level().getNearestPlayer(this, MAX_SOUND_DISTANCE);
-        
-        if (nearestPlayer == null) {
-            // No player nearby, stop sound
-            if (isSoundActive) {
-                CustomSoundManager.getInstance().stopAmbientSound(GRAVITY_ANOMALY_SOUND);
-                isSoundActive = false;
-            }
-            return;
-        }
-        
-        // Calculate distance to player
-        double distance = this.distanceTo(nearestPlayer);
-        
-        if (distance > MAX_SOUND_DISTANCE) {
-            // Player too far, stop sound
-            if (isSoundActive) {
-                CustomSoundManager.getInstance().stopAmbientSound(GRAVITY_ANOMALY_SOUND);
-                isSoundActive = false;
-            }
-            return;
-        }
-        
-        // Calculate volume based on distance
-        float volume = calculateSoundVolume(distance);
-        
-        // Player is in range, manage continuous sound
-        if (!isSoundActive) {
-            // Start the sound
-            CustomSoundManager.getInstance().playAmbientSound(
-                GRAVITY_ANOMALY_SOUND,
-                this.getX(), this.getY(), this.getZ(),
-                volume,
-                true // Loop continuously
-            );
-            isSoundActive = true;
-            lastCalculatedVolume = volume;
-        } else {
-            // Update volume if it changed significantly
-            if (Math.abs(volume - lastCalculatedVolume) > 0.01f) {
-                CustomSoundManager.getInstance().updateSoundVolume(GRAVITY_ANOMALY_SOUND, volume);
-                lastCalculatedVolume = volume;
-            }
-            
-            // Update position
-            CustomSoundManager.getInstance().updateSoundPosition(
-                GRAVITY_ANOMALY_SOUND,
-                this.getX(), this.getY(), this.getZ()
-            );
-        }
-    }
-    
-    private float calculateSoundVolume(double distance) {
-        // Linear interpolation from max volume at 0 distance to min volume at max distance
-        float volumeRatio = 1.0f - (float)(distance / MAX_SOUND_DISTANCE);
-        volumeRatio = Math.max(0.0f, Math.min(1.0f, volumeRatio)); // Clamp between 0 and 1
-        
-        return 0.3f + (volumeRatio * 0.7f); // Range from 0.3 to 1.0
-    }
-    
-    // Method to get the ambient sound (not an override since Entity doesn't have this)
-    public SoundEvent getAmbientSound() {
-        // Return the gravity anomaly loop sound
-        return SoundEvents.AMBIENT_CAVE.get();
-    }
-    
-    public float getRotation() {
-        return this.entityData.get(ROTATION);
-    }
-    
-    public float getPulseIntensity() {
-        return this.entityData.get(PULSE_INTENSITY);
-    }
-    
-    public boolean isContained() {
-        return this.entityData.get(IS_CONTAINED);
-    }
-    
-    public void setContained(boolean contained) {
-        this.entityData.set(IS_CONTAINED, contained);
+    @Override
+    protected String getAnomalyName() {
+        return "Gravity";
     }
     
     public float getLevitationRadius() {
@@ -467,33 +254,9 @@ public class GravityAnomalyEntity extends Entity {
         return AURA_RADIUS;
     }
     
-    @Override
-    protected void readAdditionalSaveData(CompoundTag compound) {
-        if (compound.contains("Rotation")) {
-            this.entityData.set(ROTATION, compound.getFloat("Rotation"));
-        }
-        if (compound.contains("PulseIntensity")) {
-            this.entityData.set(PULSE_INTENSITY, compound.getFloat("PulseIntensity"));
-        }
-        if (compound.contains("IsContained")) {
-            this.entityData.set(IS_CONTAINED, compound.getBoolean("IsContained"));
-        }
-    }
-    
-    @Override
-    protected void addAdditionalSaveData(CompoundTag compound) {
-        compound.putFloat("Rotation", this.entityData.get(ROTATION));
-        compound.putFloat("PulseIntensity", this.entityData.get(PULSE_INTENSITY));
-        compound.putBoolean("IsContained", this.entityData.get(IS_CONTAINED));
-    }
-    
-    @Override
-    public boolean isPickable() {
-        return true; // Allow the entity to be interacted with
-    }
-    
-    @Override
-    public boolean isPushable() {
-        return false;
+    // Method to get the ambient sound (not an override since Entity doesn't have this)
+    public SoundEvent getAmbientSound() {
+        // Return the gravity anomaly loop sound
+        return SoundEvents.AMBIENT_CAVE.get();
     }
 }

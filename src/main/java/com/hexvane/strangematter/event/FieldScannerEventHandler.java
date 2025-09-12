@@ -1,7 +1,7 @@
 package com.hexvane.strangematter.event;
 
 import com.hexvane.strangematter.StrangeMatterMod;
-import com.hexvane.strangematter.entity.GravityAnomalyEntity;
+import com.hexvane.strangematter.entity.BaseAnomalyEntity;
 import com.hexvane.strangematter.item.FieldScannerItem;
 import com.hexvane.strangematter.research.ResearchData;
 import com.hexvane.strangematter.research.ScannableObject;
@@ -26,7 +26,7 @@ public class FieldScannerEventHandler {
     
     @SubscribeEvent
     public static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
-        if (event.getTarget() instanceof GravityAnomalyEntity anomaly) {
+        if (event.getTarget() instanceof BaseAnomalyEntity anomaly) {
             Player player = event.getEntity();
             
             // Check both hands for the field scanner

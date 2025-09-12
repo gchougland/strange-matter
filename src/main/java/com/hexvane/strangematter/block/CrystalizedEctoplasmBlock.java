@@ -69,7 +69,7 @@ public class CrystalizedEctoplasmBlock extends Block implements EntityBlock {
         
         // Debug message for world generation
         if (context.getLevel() != null) {
-            System.out.println("Crystalized Ectoplasm placed at " + context.getClickedPos() + " facing " + facing);
+            // System.out.println("Crystalized Ectoplasm placed at " + context.getClickedPos() + " facing " + facing);
         }
         
         // If placing on the top or bottom face, use the clicked face

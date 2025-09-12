@@ -2,6 +2,8 @@ package com.hexvane.strangematter.item;
 
 import com.hexvane.strangematter.StrangeMatterMod;
 import com.hexvane.strangematter.entity.GravityAnomalyEntity;
+import com.hexvane.strangematter.entity.BaseAnomalyEntity;
+import com.hexvane.strangematter.entity.WarpGateAnomalyEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -45,7 +47,7 @@ public class AnomalyResonatorItem extends CompassItem {
         
         // Update target position for compass needle
         List<UUID> syncedAnomalies = getSyncedAnomalies(stack);
-        GravityAnomalyEntity nearestAnomaly = findNearestUnsyncedAnomaly(level, player, stack);
+        BaseAnomalyEntity nearestAnomaly = findNearestUnsyncedAnomaly(level, player, stack);
         
         if (nearestAnomaly != null) {
             // Set the target position in NBT for the compass needle
@@ -67,8 +69,15 @@ public class AnomalyResonatorItem extends CompassItem {
     }
     
     // This method will be called by the entity interaction event handler
-    public void onInteractWithAnomaly(ItemStack stack, Player player, GravityAnomalyEntity anomaly) {
+    public void onInteractWithAnomaly(ItemStack stack, Player player, BaseAnomalyEntity anomaly) {
         if (player.level().isClientSide) {
+            return;
+        }
+        
+        // Check if this anomaly has already been synced
+        List<UUID> syncedAnomalies = getSyncedAnomalies(stack);
+        if (syncedAnomalies.contains(anomaly.getUUID())) {
+            player.sendSystemMessage(Component.literal("§cThis anomaly has already been synced!"));
             return;
         }
         
@@ -76,7 +85,7 @@ public class AnomalyResonatorItem extends CompassItem {
         syncWithAnomaly(stack, anomaly);
         
         // Update target position to point to next nearest unsynced anomaly
-        GravityAnomalyEntity nearestAnomaly = findNearestUnsyncedAnomaly(player.level(), player, stack);
+        BaseAnomalyEntity nearestAnomaly = findNearestUnsyncedAnomaly(player.level(), player, stack);
         if (nearestAnomaly != null) {
             setTargetPosition(stack, nearestAnomaly.blockPosition());
         } else {
@@ -86,7 +95,7 @@ public class AnomalyResonatorItem extends CompassItem {
         player.sendSystemMessage(Component.literal("§aResonator synced with this anomaly!"));
     }
     
-    private GravityAnomalyEntity findNearestUnsyncedAnomaly(Level level, Player player, ItemStack stack) {
+    private BaseAnomalyEntity findNearestUnsyncedAnomaly(Level level, Player player, ItemStack stack) {
         if (!(level instanceof ServerLevel serverLevel)) {
             return null;
         }
@@ -100,15 +109,15 @@ public class AnomalyResonatorItem extends CompassItem {
             playerPos.x + 1000, playerPos.y + 100, playerPos.z + 1000
         );
         
-        List<GravityAnomalyEntity> anomalies = serverLevel.getEntitiesOfClass(
-            GravityAnomalyEntity.class, 
-            searchArea
-        );
+        // Search for all types of anomalies
+        List<BaseAnomalyEntity> anomalies = new java.util.ArrayList<>();
+        anomalies.addAll(serverLevel.getEntitiesOfClass(GravityAnomalyEntity.class, searchArea));
+        anomalies.addAll(serverLevel.getEntitiesOfClass(WarpGateAnomalyEntity.class, searchArea));
         
-        GravityAnomalyEntity nearest = null;
+        BaseAnomalyEntity nearest = null;
         double nearestDistance = Double.MAX_VALUE;
         
-        for (GravityAnomalyEntity anomaly : anomalies) {
+        for (BaseAnomalyEntity anomaly : anomalies) {
             // Skip if already synced
             if (syncedAnomalies.contains(anomaly.getUUID())) {
                 continue;
@@ -124,7 +133,7 @@ public class AnomalyResonatorItem extends CompassItem {
         return nearest;
     }
     
-    private void syncWithAnomaly(ItemStack stack, GravityAnomalyEntity anomaly) {
+    private void syncWithAnomaly(ItemStack stack, BaseAnomalyEntity anomaly) {
         CompoundTag tag = stack.getOrCreateTag();
         
         // Add this anomaly to the synced list

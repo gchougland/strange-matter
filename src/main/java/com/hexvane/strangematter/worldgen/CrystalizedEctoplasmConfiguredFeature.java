@@ -36,13 +36,9 @@ public class CrystalizedEctoplasmConfiguredFeature extends Feature<NoneFeatureCo
         RandomSource random = context.random();
         BlockPos origin = context.origin();
         
-        LOGGER.info("CrystalizedEctoplasmFeature.place() called #{} at position: {} in dimension: {}", 
-                   callCount, origin, level.getLevel().dimension().location());
-        
         // Try to find a valid placement position
         BlockPos placementPos = findValidPlacement(level, origin, random);
         if (placementPos == null) {
-            LOGGER.debug("No valid placement found for crystalized ectoplasm at {}", origin);
             return false;
         }
         
@@ -53,17 +49,12 @@ public class CrystalizedEctoplasmConfiguredFeature extends Feature<NoneFeatureCo
             return false;
         }
         
-        LOGGER.debug("Found placement at {} with facing {} (support block at {})", 
-                    placementPos, facing, placementPos.relative(facing));
-        
         // Create the block state with the correct facing
         BlockState crystalState = StrangeMatterMod.CRYSTALIZED_ECTOPLASM_BLOCK.get().defaultBlockState()
             .setValue(CrystalizedEctoplasmBlock.FACING, facing);
         
         // Place the block
         if (level.setBlock(placementPos, crystalState, 2)) {
-            LOGGER.info("Successfully placed crystalized ectoplasm at {} facing {}", placementPos, facing);
-            System.out.println("Crystalized Ectoplasm placed at " + placementPos + " facing " + facing);
             return true;
         }
         
