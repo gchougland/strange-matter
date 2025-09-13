@@ -18,6 +18,7 @@ import com.hexvane.strangematter.item.EctoplasmItem;
 import com.hexvane.strangematter.item.FieldScannerItem;
 import com.hexvane.strangematter.item.RawResoniteItem;
 import com.hexvane.strangematter.item.ResoniteIngotItem;
+import com.hexvane.strangematter.item.ResearchTabletItem;
 import com.hexvane.strangematter.worldgen.GravityAnomalyConfiguredFeature;
 import com.hexvane.strangematter.worldgen.CrystalizedEctoplasmConfiguredFeature;
 import com.hexvane.strangematter.worldgen.WarpGateAnomalyStructure;
@@ -106,6 +107,9 @@ public class StrangeMatterMod
     
     // Anomaly Resonator - compass for finding anomalies
     public static final RegistryObject<Item> ANOMALY_RESONATOR = ITEMS.register("anomaly_resonator", AnomalyResonatorItem::new);
+    
+    // Research Notes - basic research item
+    public static final RegistryObject<Item> RESEARCH_NOTES = ITEMS.register("research_notes", () -> new Item(new Item.Properties()));
 
     // Anomalous Grass Block
     public static final RegistryObject<Block> ANOMALOUS_GRASS_BLOCK = BLOCKS.register("anomalous_grass", AnomalousGrassBlock::new);
@@ -129,6 +133,9 @@ public class StrangeMatterMod
 
     // Resonite Ingot Item
     public static final RegistryObject<Item> RESONITE_INGOT = ITEMS.register("resonite_ingot", ResoniteIngotItem::new);
+
+    // Research Tablet Item
+    public static final RegistryObject<Item> RESEARCH_TABLET = ITEMS.register("research_tablet", ResearchTabletItem::new);
 
     // Custom gravity attribute for low gravity effects
     public static final RegistryObject<Attribute> ENTITY_GRAVITY = ATTRIBUTES.register("entity_gravity", 
@@ -400,6 +407,13 @@ public class StrangeMatterMod
         {
             event.accept(ANOMALOUS_GRASS_ITEM.get());
             event.accept(CRYSTALIZED_ECTOPLASM_ITEM.get());
+        }
+        if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES)
+        {
+            event.accept(FIELD_SCANNER.get());
+            event.accept(ANOMALY_RESONATOR.get());
+            event.accept(RESEARCH_NOTES.get());
+            event.accept(RESEARCH_TABLET.get());
         }
     }
 

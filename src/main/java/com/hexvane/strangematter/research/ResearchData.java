@@ -15,17 +15,28 @@ import java.util.UUID;
 public class ResearchData {
     private final Map<ResearchType, Integer> researchPoints;
     private final Set<String> scannedObjects;
+    private final Set<String> unlockedResearch;
     private ResearchDataManager manager;
     private UUID playerId;
     
     public ResearchData() {
         this.researchPoints = new HashMap<>();
         this.scannedObjects = new HashSet<>();
+        this.unlockedResearch = new HashSet<>();
         
         // Initialize all research types to 0
         for (ResearchType type : ResearchType.values()) {
             researchPoints.put(type, 0);
         }
+        
+        // Initialize default unlocked research
+        initializeDefaultUnlockedResearch();
+    }
+    
+    private void initializeDefaultUnlockedResearch() {
+        // Unlock foundation and resonance scanner by default
+        unlockResearch("foundation");
+        unlockResearch("basic_scanner");
     }
     
     public void setManager(ResearchDataManager manager, UUID playerId) {
@@ -62,6 +73,25 @@ public class ResearchData {
         markDirty();
     }
     
+    public boolean hasUnlockedResearch(String researchId) {
+        return unlockedResearch.contains(researchId);
+    }
+    
+    public void unlockResearch(String researchId) {
+        unlockedResearch.add(researchId);
+        markDirty();
+    }
+    
+    public Set<String> getUnlockedResearch() {
+        return new HashSet<>(unlockedResearch);
+    }
+    
+    public void setUnlockedResearch(Set<String> unlocked) {
+        unlockedResearch.clear();
+        unlockedResearch.addAll(unlocked);
+        markDirty();
+    }
+    
     private void markDirty() {
         if (manager != null) {
             manager.markDirty();
@@ -87,12 +117,22 @@ public class ResearchData {
         }
         tag.put("scanned_objects", scannedTag);
         
+        // Serialize unlocked research
+        ListTag unlockedTag = new ListTag();
+        for (String researchId : unlockedResearch) {
+            CompoundTag unlockedResearchTag = new CompoundTag();
+            unlockedResearchTag.putString("id", researchId);
+            unlockedTag.add(unlockedResearchTag);
+        }
+        tag.put("unlocked_research", unlockedTag);
+        
         return tag;
     }
     
     public void deserializeNBT(CompoundTag tag) {
         researchPoints.clear();
         scannedObjects.clear();
+        unlockedResearch.clear();
         
         // Deserialize research points
         if (tag.contains("research_points")) {
@@ -115,6 +155,19 @@ public class ResearchData {
                 }
             }
         }
+        
+        // Deserialize unlocked research
+        if (tag.contains("unlocked_research")) {
+            ListTag unlockedTag = tag.getList("unlocked_research", Tag.TAG_COMPOUND);
+            for (Tag t : unlockedTag) {
+                if (t instanceof CompoundTag researchTag) {
+                    unlockedResearch.add(researchTag.getString("id"));
+                }
+            }
+        }
+        
+        // Ensure default unlocked research is always present (for new and existing players)
+        initializeDefaultUnlockedResearch();
     }
     
     public void syncToClient(ServerPlayer player) {
