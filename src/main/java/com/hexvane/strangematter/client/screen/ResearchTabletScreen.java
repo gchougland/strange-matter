@@ -41,6 +41,9 @@ public class ResearchTabletScreen extends Screen {
     private int lastMouseX, lastMouseY;
     private String selectedCategory = "general";
     
+    // Store saved drag position when opening research panes
+    private int savedDragOffsetX = 0, savedDragOffsetY = 0;
+    
     private final Map<String, Button> categoryButtons = new HashMap<>();
     
     public ResearchTabletScreen() {
@@ -57,9 +60,9 @@ public class ResearchTabletScreen extends Screen {
         this.guiX = (this.width - GUI_WIDTH) / 2;
         this.guiY = (this.height - GUI_HEIGHT) / 2;
         
-        // Initialize drag offset to center the view
-        this.dragOffsetX = -DRAGGABLE_AREA_WIDTH / 2;
-        this.dragOffsetY = -DRAGGABLE_AREA_HEIGHT / 2;
+        // Initialize drag offset to center the view on the screen (start at center of draggable area)
+        this.dragOffsetX = 0; // Start at center horizontally
+        this.dragOffsetY = 0; // Start at center vertically
         
         createCategoryButtons();
     }
@@ -227,6 +230,41 @@ public class ResearchTabletScreen extends Screen {
             }
         }
         return true;
+    }
+    
+    // Helper method to get the research node that was clicked
+    private ResearchNode getClickedNode(double mouseX, double mouseY) {
+        int draggableX = guiX + 1 + (GUI_WIDTH - DRAGGABLE_AREA_WIDTH) / 2;
+        int draggableY = guiY + 15;
+        
+        
+        for (ResearchNode node : ResearchNodeRegistry.getNodesByCategory(selectedCategory)) {
+            int nodeX = draggableX + DRAGGABLE_AREA_WIDTH / 2 + node.getX() + dragOffsetX;
+            int nodeY = draggableY + DRAGGABLE_AREA_HEIGHT / 2 + node.getY() + dragOffsetY;
+            
+            // Check if click is within this node's bounds (32x32 pixels)
+            if (mouseX >= nodeX && mouseX <= nodeX + 32 &&
+                mouseY >= nodeY && mouseY <= nodeY + 32) {
+                return node;
+            }
+        }
+        return null;
+    }
+    
+    // Helper method to open information page for a research node
+    private void openNodeInformationPage(ResearchNode node) {
+        // Save current drag position before opening information page
+        savedDragOffsetX = dragOffsetX;
+        savedDragOffsetY = dragOffsetY;
+        
+        // Open the research node information screen
+        this.minecraft.setScreen(new ResearchNodeInfoScreen(node, this));
+    }
+    
+    // Method to restore drag position when returning from information page
+    public void restoreDragPosition() {
+        dragOffsetX = savedDragOffsetX;
+        dragOffsetY = savedDragOffsetY;
     }
     
     // Helper method to generate obfuscated text (Standard Galactic Alphabet)
@@ -545,9 +583,9 @@ public class ResearchTabletScreen extends Screen {
         
         // Add unlock status
         if (isUnlocked) {
-            tooltipLines.add(new TooltipLine(Component.literal("§aUnlocked"), null));
+            tooltipLines.add(new TooltipLine(Component.translatable("gui.strangematter.research_tablet.unlocked").withStyle(style -> style.withColor(0x00FF00)), null));
         } else {
-            tooltipLines.add(new TooltipLine(Component.literal("§cLocked"), null));
+            tooltipLines.add(new TooltipLine(Component.translatable("gui.strangematter.research_tablet.locked").withStyle(style -> style.withColor(0xFF0000)), null));
             
             // Add research point costs (only if prerequisites are unlocked and there are costs)
             if (prerequisitesUnlocked && !node.getResearchCosts().isEmpty()) {
@@ -732,13 +770,27 @@ public class ResearchTabletScreen extends Screen {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) { // Left click
-            int draggableX = guiX + (GUI_WIDTH - DRAGGABLE_AREA_WIDTH) / 2;
-            int draggableY = guiY + 50;
+            int draggableX = guiX + 1 + (GUI_WIDTH - DRAGGABLE_AREA_WIDTH) / 2;
+            int draggableY = guiY + 15;
             
             // Check if click is within draggable area
             if (mouseX >= draggableX && mouseX <= draggableX + DRAGGABLE_AREA_WIDTH &&
                 mouseY >= draggableY && mouseY <= draggableY + DRAGGABLE_AREA_HEIGHT) {
                 
+                // First check for research node clicks
+                ResearchNode clickedNode = getClickedNode(mouseX, mouseY);
+                if (clickedNode != null) {
+                    ResearchData researchData = ResearchDataClientHandler.getClientResearchData();
+                    boolean isUnlocked = researchData.getUnlockedResearch().contains(clickedNode.getId());
+                    
+                    if (isUnlocked) {
+                        // Open information page for unlocked node
+                        openNodeInformationPage(clickedNode);
+                        return true;
+                    }
+                }
+                
+                // If no node was clicked, start dragging
                 this.isDragging = true;
                 this.lastMouseX = (int) mouseX;
                 this.lastMouseY = (int) mouseY;

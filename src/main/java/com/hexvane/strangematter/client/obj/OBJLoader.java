@@ -17,6 +17,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class OBJLoader {
     
@@ -25,48 +27,112 @@ public class OBJLoader {
         public List<float[]> normals = new ArrayList<>();
         public List<float[]> texCoords = new ArrayList<>();
         public List<int[]> faces = new ArrayList<>();
+        public List<String> faceMaterials = new ArrayList<>(); // Material for each face
+        public Map<String, ResourceLocation> materials = new HashMap<>(); // Material name -> texture
         
         public void render(PoseStack poseStack, MultiBufferSource buffer, 
-                          ResourceLocation texture, int packedLight, float r, float g, float b, float a) {
+                          ResourceLocation defaultTexture, int packedLight, float r, float g, float b, float a) {
             
             Matrix4f matrix4f = poseStack.last().pose();
             Matrix3f matrix3f = poseStack.last().normal();
             
-            // Choose render type based on alpha value
-            RenderType renderType = (a < 1.0f) ? 
-                TriangleRenderType.createTranslucentTriangles(texture) : 
-                TriangleRenderType.createTriangles(texture);
-            VertexConsumer vertexConsumer = buffer.getBuffer(renderType);
+            // Group faces by material
+            Map<String, List<Integer>> materialGroups = new HashMap<>();
+            for (int i = 0; i < faces.size(); i++) {
+                String material = (i < faceMaterials.size()) ? faceMaterials.get(i) : "default";
+                materialGroups.computeIfAbsent(material, k -> new ArrayList<>()).add(i);
+            }
             
-            for (int[] face : faces) {
-                // Each face is a triangle with 3 vertices
-                for (int i = 0; i < 3; i++) {
-                    int vertexIndex = face[i * 3] - 1; // OBJ uses 1-based indexing
-                    int texIndex = face[i * 3 + 1] - 1;
-                    int normalIndex = face[i * 3 + 2] - 1;
+            // Render each material group
+            for (Map.Entry<String, List<Integer>> entry : materialGroups.entrySet()) {
+                String materialName = entry.getKey();
+                List<Integer> faceIndices = entry.getValue();
+                
+                // Get texture for this material
+                ResourceLocation texture = materials.getOrDefault(materialName, defaultTexture);
+                
+                // Choose render type based on alpha value
+                RenderType renderType = (a < 1.0f) ? 
+                    TriangleRenderType.createTranslucentTriangles(texture) : 
+                    TriangleRenderType.createTriangles(texture);
+                VertexConsumer vertexConsumer = buffer.getBuffer(renderType);
+                
+                // Render faces for this material
+                for (Integer faceIndex : faceIndices) {
+                    int[] face = faces.get(faceIndex);
                     
-                    // Bounds checking
-                    if (vertexIndex >= 0 && vertexIndex < vertices.size() &&
-                        texIndex >= 0 && texIndex < texCoords.size() &&
-                        normalIndex >= 0 && normalIndex < normals.size()) {
+                    // Each face is a triangle with 3 vertices
+                    for (int i = 0; i < 3; i++) {
+                        int vertexIndex = face[i * 3] - 1; // OBJ uses 1-based indexing
+                        int texIndex = face[i * 3 + 1] - 1;
+                        int normalIndex = face[i * 3 + 2] - 1;
                         
-                        float[] vertex = vertices.get(vertexIndex);
-                        float[] texCoord = texCoords.get(texIndex);
-                        float[] normal = normals.get(normalIndex);
-                        
-                        vertexConsumer.vertex(matrix4f, vertex[0], vertex[1], vertex[2])
-                                .color(r, g, b, a)
-                                .uv(texCoord[0], texCoord[1])
-                                .uv2(packedLight)
-                                .endVertex();
+                        // Bounds checking
+                        if (vertexIndex >= 0 && vertexIndex < vertices.size() &&
+                            texIndex >= 0 && texIndex < texCoords.size() &&
+                            normalIndex >= 0 && normalIndex < normals.size()) {
+                            
+                            float[] vertex = vertices.get(vertexIndex);
+                            float[] texCoord = texCoords.get(texIndex);
+                            float[] normal = normals.get(normalIndex);
+                            
+                            vertexConsumer.vertex(matrix4f, vertex[0], vertex[1], vertex[2])
+                                    .color(r, g, b, a)
+                                    .uv(texCoord[0], texCoord[1])
+                                    .overlayCoords(OverlayTexture.NO_OVERLAY)
+                                    .uv2(packedLight)
+                                    .normal(matrix3f, normal[0], normal[1], normal[2])
+                                    .endVertex();
+                        }
                     }
                 }
             }
         }
     }
     
+    private static Map<String, ResourceLocation> loadMTL(ResourceLocation mtlLocation) {
+        Map<String, ResourceLocation> materials = new HashMap<>();
+        
+        try (InputStream stream = Minecraft.getInstance().getResourceManager()
+                .getResource(mtlLocation).get().open()) {
+            
+            BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+            String line;
+            String currentMaterial = null;
+            
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                
+                if (line.startsWith("newmtl ")) {
+                    currentMaterial = line.substring(7);
+                } else if (line.startsWith("map_Kd ") && currentMaterial != null) {
+                    String texturePath = line.substring(7);
+                    // Convert texture path to ResourceLocation
+                    ResourceLocation texture = new ResourceLocation(mtlLocation.getNamespace(), 
+                        "textures/block/" + texturePath);
+                    materials.put(currentMaterial, texture);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to load MTL file: " + e.getMessage());
+        }
+        
+        return materials;
+    }
+    
     public static OBJModel loadModel(ResourceLocation location) {
+        return loadModel(location, false);
+    }
+    
+    public static OBJModel loadModel(ResourceLocation location, boolean flipUVs) {
         OBJModel model = new OBJModel();
+        String currentMaterial = "default";
+        
+        // Load MTL file if it exists
+        String objPath = location.getPath();
+        String mtlPath = objPath.replace(".obj", ".mtl");
+        ResourceLocation mtlLocation = new ResourceLocation(location.getNamespace(), mtlPath);
+        model.materials = loadMTL(mtlLocation);
         
         try (InputStream stream = Minecraft.getInstance().getResourceManager()
                 .getResource(location).get().open()) {
@@ -77,7 +143,12 @@ public class OBJLoader {
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
                 
-                if (line.startsWith("v ")) {
+                if (line.startsWith("mtllib ")) {
+                    // Material library reference - already handled above
+                } else if (line.startsWith("usemtl ")) {
+                    // Material usage
+                    currentMaterial = line.substring(7);
+                } else if (line.startsWith("v ")) {
                     // Vertex
                     String[] parts = line.substring(2).split("\\s+");
                     float x = Float.parseFloat(parts[0]);
@@ -98,6 +169,9 @@ public class OBJLoader {
                     String[] parts = line.substring(3).split("\\s+");
                     float u = Float.parseFloat(parts[0]);
                     float v = Float.parseFloat(parts[1]);
+                    if (flipUVs) {
+                        v = 1.0f - v; // Flip V coordinate for models that need it
+                    }
                     model.texCoords.add(new float[]{u, v});
                     
                 } else if (line.startsWith("f ")) {
@@ -113,6 +187,7 @@ public class OBJLoader {
                     }
                     
                     model.faces.add(face);
+                    model.faceMaterials.add(currentMaterial);
                 }
             }
             

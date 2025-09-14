@@ -13,6 +13,7 @@
   "block.strangematter.anomalous_grass": "Anomalous Grass",
   "block.strangematter.crystalized_ectoplasm": "Crystalized Ectoplasm",
   "block.strangematter.resonite_ore": "Resonite Ore",
+  "block.strangematter.research_machine": "Research Machine",
   "entity.strangematter.gravity_anomaly": "Gravity Anomaly",
   "itemGroup.strangematter.strange_matter_tab": "Strange Matter",
   "subtitles.strangematter.field_scanner_scan": "Field Scanner Scanning",
@@ -40,5 +41,40 @@
   "research.strangematter.resonant_energy.name": "Resonant Energy Systems",
   "research.strangematter.resonant_energy.description": "Advanced systems for harnessing and stabilizing resonant energy from anomalies.",
   "research.strangematter.cognitive_interface.name": "Cognitive Interface",
-  "research.strangematter.cognitive_interface.description": "Advanced mental interfaces for interacting with anomaly phenomena."
+  "research.strangematter.cognitive_interface.description": "Advanced mental interfaces for interacting with anomaly phenomena.",
+  
+  "gui.strangematter.info_page.close": "✕",
+  "gui.strangematter.info_page.previous": "◀",
+  "gui.strangematter.info_page.next": "▶",
+  "gui.strangematter.info_page.page": "Page",
+  "gui.strangematter.info_page.of": "of",
+  "gui.strangematter.info_page.crafting_recipe": "Crafting Recipe",
+  "gui.strangematter.info_page.required_materials": "Required Materials",
+  
+  "gui.strangematter.research_tablet.unlocked": "Unlocked",
+  "gui.strangematter.research_tablet.locked": "Locked",
+  
+  "research.strangematter.foundation.intro.title": "Introduction to Anomaly Research",
+  "research.strangematter.foundation.intro.content": "Anomalies are mysterious phenomena that appear throughout the world. These strange occurrences can be studied and understood through careful observation and analysis.\n\nBy researching anomalies, you can unlock new technologies and gain deeper insights into the nature of reality itself.\n\nThis foundation research provides the basic tools and knowledge needed to begin your journey into anomaly study.",
+  
+  "research.strangematter.foundation.types.title": "Research Types",
+  "research.strangematter.foundation.types.content": "There are six fundamental types of research points that can be gained from studying anomalies:\n\n• Cognition: Mental and perception-based phenomena\n• Energy: Power and electrical anomalies\n• Gravity: Gravitational distortions and effects\n• Shadow: Dimensional and shadow-based anomalies\n• Space: Spatial distortions and portals\n• Time: Temporal anomalies and time-based effects\n\nEach anomaly type produces different research points when studied. Understanding these categories is essential for advancing your research.",
+  
+  "research.strangematter.foundation.scanner.title": "Field Scanner",
+  "research.strangematter.foundation.scanner.content": "The Field Scanner is your primary tool for detecting and analyzing anomalies. This handheld device can identify anomaly types and provide detailed readings.\n\nTo craft a Field Scanner, you'll need basic materials and some anomalous components. Once constructed, simply right-click while holding the scanner to begin analyzing nearby anomalies.",
+  
+  "research.strangematter.foundation.scanner_usage.title": "Using the Field Scanner",
+  "research.strangematter.foundation.scanner_usage.content": "To use the Field Scanner effectively:\n\n1. Hold the scanner in your hand\n2. Right-click while looking at an anomaly\n3. The scanner will analyze the anomaly and provide readings\n4. Research points will be automatically added\n\nDifferent anomalies provide different amounts and types of research points. Some anomalies are more powerful and will yield greater rewards, but may also be more dangerous to approach.",
+  
+  "research.strangematter.resonator.intro.title": "Anomaly Resonator",
+  "research.strangematter.resonator.intro.content": "The Anomaly Resonator is an advanced device that can detect and interact with anomalies at a much greater distance than basic scanners. This powerful tool not only points you toward nearby anomalies but also allows you to synchronize with them.\n\nUnlike simple scanners, the resonator creates a resonance field that extends far beyond visual range, making it essential for large-scale anomaly detection and management.",
+  
+  "research.strangematter.resonator.mechanics.title": "How the Resonator Works",
+  "research.strangematter.resonator.mechanics.content": "The Anomaly Resonator operates on advanced resonance principles:\n\n• Detection Range: 64 block radius for initial anomaly detection\n• Directional Guidance: Points directly toward the nearest anomaly\n• Synchronization: Allows you to 'sync' with specific anomalies\n• Filtering: Once synced, anomalies won't trigger new detections\n\nThe resonator uses resonite technology to maintain stable connections with anomalies over extended periods, making it perfect for long-term monitoring.",
+  
+  "research.strangematter.resonator.recipe.title": "Crafting the Resonator",
+  "research.strangematter.resonator.recipe.content": "To craft an Anomaly Resonator, you'll need advanced materials that can handle the resonance frequencies required for long-range detection.\n\nThe resonator requires resonite ingots for its core structure and amethyst shards for the resonance amplifier.",
+  
+  "research.strangematter.resonator.usage.title": "Using the Resonator",
+  "research.strangematter.resonator.usage.content": "To use the Anomaly Resonator effectively:\n\n1. Hold the resonator in your hand\n2. Right-click to activate resonance scanning\n3. Follow the directional indicator to locate anomalies\n4. Right-click on an anomaly to synchronize with it\n5. Synced anomalies will be filtered from future detections\n\nTips for Effective Use:\n• Sync with common anomalies you don't want to track\n• Use with field scanners for detailed analysis"
 }

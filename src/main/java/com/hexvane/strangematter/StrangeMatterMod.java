@@ -5,6 +5,7 @@ import com.hexvane.strangematter.entity.WarpGateAnomalyEntity;
 import com.hexvane.strangematter.client.GravityAnomalyRenderer;
 import com.hexvane.strangematter.client.WarpGateAnomalyRenderer;
 import com.hexvane.strangematter.client.CrystalizedEctoplasmRenderer;
+import com.hexvane.strangematter.client.ResearchMachineRenderer;
 import com.hexvane.strangematter.block.CrystalizedEctoplasmBlockEntity;
 import com.hexvane.strangematter.client.sound.CustomSoundManager;
 import com.hexvane.strangematter.command.AnomalyCommand;
@@ -12,6 +13,8 @@ import com.hexvane.strangematter.command.ResearchCommand;
 import com.hexvane.strangematter.block.AnomalousGrassBlock;
 import com.hexvane.strangematter.block.CrystalizedEctoplasmBlock;
 import com.hexvane.strangematter.block.ResoniteOreBlock;
+import com.hexvane.strangematter.block.ResearchMachineBlock;
+import com.hexvane.strangematter.block.ResearchMachineBlockEntity;
 import com.hexvane.strangematter.item.AnomalousGrassItem;
 import com.hexvane.strangematter.item.AnomalyResonatorItem;
 import com.hexvane.strangematter.item.EctoplasmItem;
@@ -126,6 +129,12 @@ public class StrangeMatterMod
 
     // Resonite Ore Block
     public static final RegistryObject<Block> RESONITE_ORE_BLOCK = BLOCKS.register("resonite_ore", ResoniteOreBlock::new);
+    
+    // Research Machine - advanced research device
+    public static final RegistryObject<Block> RESEARCH_MACHINE_BLOCK = BLOCKS.register("research_machine", ResearchMachineBlock::new);
+    public static final RegistryObject<Item> RESEARCH_MACHINE_ITEM = ITEMS.register("research_machine", () -> new BlockItem(RESEARCH_MACHINE_BLOCK.get(), new Item.Properties()));
+    public static final RegistryObject<BlockEntityType<ResearchMachineBlockEntity>> RESEARCH_MACHINE_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("research_machine", 
+        () -> BlockEntityType.Builder.of((pos, state) -> new ResearchMachineBlockEntity(pos, state), RESEARCH_MACHINE_BLOCK.get()).build(null));
     public static final RegistryObject<Item> RESONITE_ORE_ITEM = ITEMS.register("resonite_ore", () -> new BlockItem(RESONITE_ORE_BLOCK.get(), new Item.Properties()));
 
     // Raw Resonite Item
@@ -188,8 +197,11 @@ public class StrangeMatterMod
             .displayItems((parameters, output) -> {
                 output.accept(FIELD_SCANNER.get());
                 output.accept(ANOMALY_RESONATOR.get());
+                output.accept(RESEARCH_TABLET.get());
+                output.accept(RESEARCH_NOTES.get());
                 output.accept(ANOMALOUS_GRASS_ITEM.get());
                 output.accept(CRYSTALIZED_ECTOPLASM_ITEM.get());
+                output.accept(RESEARCH_MACHINE_ITEM.get());
                 output.accept(ECTOPLASM.get());
                 output.accept(RESONITE_ORE_ITEM.get());
                 output.accept(RAW_RESONITE.get());
@@ -450,7 +462,11 @@ public class StrangeMatterMod
                 
                 // Register block entity renderer for crystalized ectoplasm
                 net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(CRYSTALIZED_ECTOPLASM_BLOCK_ENTITY.get(), CrystalizedEctoplasmRenderer::new);
+                net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(RESEARCH_MACHINE_BLOCK_ENTITY.get(), ResearchMachineRenderer::new);
+                
             });
         }
+        
+        
     }
 }
