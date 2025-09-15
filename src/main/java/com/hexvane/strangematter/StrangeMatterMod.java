@@ -10,6 +10,7 @@ import com.hexvane.strangematter.block.CrystalizedEctoplasmBlockEntity;
 import com.hexvane.strangematter.client.sound.CustomSoundManager;
 import com.hexvane.strangematter.command.AnomalyCommand;
 import com.hexvane.strangematter.command.ResearchCommand;
+import com.hexvane.strangematter.sound.StrangeMatterSounds;
 import com.hexvane.strangematter.block.AnomalousGrassBlock;
 import com.hexvane.strangematter.block.CrystalizedEctoplasmBlock;
 import com.hexvane.strangematter.block.ResoniteOreBlock;
@@ -21,6 +22,7 @@ import com.hexvane.strangematter.item.EctoplasmItem;
 import com.hexvane.strangematter.item.FieldScannerItem;
 import com.hexvane.strangematter.item.RawResoniteItem;
 import com.hexvane.strangematter.item.ResoniteIngotItem;
+import com.hexvane.strangematter.item.ResearchNoteItem;
 import com.hexvane.strangematter.item.ResearchTabletItem;
 import com.hexvane.strangematter.worldgen.GravityAnomalyConfiguredFeature;
 import com.hexvane.strangematter.worldgen.CrystalizedEctoplasmConfiguredFeature;
@@ -112,7 +114,7 @@ public class StrangeMatterMod
     public static final RegistryObject<Item> ANOMALY_RESONATOR = ITEMS.register("anomaly_resonator", AnomalyResonatorItem::new);
     
     // Research Notes - basic research item
-    public static final RegistryObject<Item> RESEARCH_NOTES = ITEMS.register("research_notes", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> RESEARCH_NOTES = ITEMS.register("research_notes", () -> new com.hexvane.strangematter.item.ResearchNoteItem(new Item.Properties()));
 
     // Anomalous Grass Block
     public static final RegistryObject<Block> ANOMALOUS_GRASS_BLOCK = BLOCKS.register("anomalous_grass", AnomalousGrassBlock::new);
@@ -162,15 +164,7 @@ public class StrangeMatterMod
             .sized(2.0f, 3.0f) // Larger size for warp gate
             .build("warp_gate_anomaly"));
 
-    // Sound Events
-    public static final RegistryObject<SoundEvent> GRAVITY_ANOMALY_LOOP = SOUND_EVENTS.register("gravity_anomaly_loop", 
-        () -> SoundEvent.createVariableRangeEvent(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(MODID, "gravity_anomaly_loop")));
-    
-    public static final RegistryObject<SoundEvent> FIELD_SCANNER_SCAN = SOUND_EVENTS.register("field_scanner_scan", 
-        () -> SoundEvent.createVariableRangeEvent(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(MODID, "field_scanner_scan")));
-    
-    public static final RegistryObject<SoundEvent> WARP_GATE_LOOP = SOUND_EVENTS.register("warp_gate_loop", 
-        () -> SoundEvent.createVariableRangeEvent(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(MODID, "warp_gate_loop")));
+    // Sound Events are now registered in StrangeMatterSounds class
 
     // World Generation Features
     public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> GRAVITY_ANOMALY_FEATURE = FEATURES.register("gravity_anomaly", 
@@ -233,6 +227,8 @@ public class StrangeMatterMod
         BLOCK_ENTITY_TYPES.register(modEventBus);
         // Register the Deferred Register to the mod event bus so sound events get registered
         SOUND_EVENTS.register(modEventBus);
+        // Register StrangeMatterSounds
+        StrangeMatterSounds.SOUND_EVENTS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so attributes get registered
         ATTRIBUTES.register(modEventBus);
         // Register the Deferred Register to the mod event bus so features get registered

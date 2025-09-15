@@ -140,7 +140,7 @@ public class FieldScannerItem extends Item {
         // Play scanning sound
         if (progress % 10 == 0) { // Every 0.5 seconds
             level.playSound(null, player.getX(), player.getY(), player.getZ(), 
-                StrangeMatterMod.FIELD_SCANNER_SCAN.get(), SoundSource.PLAYERS, 0.3f, 1.2f);
+                com.hexvane.strangematter.sound.StrangeMatterSounds.FIELD_SCANNER_SCAN.get(), SoundSource.PLAYERS, 0.3f, 1.2f);
         }
         
         if (progress >= SCAN_DURATION) {

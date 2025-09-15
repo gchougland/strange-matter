@@ -54,6 +54,12 @@ public class ResearchData {
         markDirty();
     }
     
+    public void spendResearchPoints(ResearchType type, int amount) {
+        int current = researchPoints.getOrDefault(type, 0);
+        researchPoints.put(type, Math.max(0, current - amount));
+        markDirty();
+    }
+    
     public boolean hasScanned(String objectId) {
         return scannedObjects.contains(objectId);
     }

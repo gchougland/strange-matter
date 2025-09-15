@@ -2,6 +2,9 @@ package com.hexvane.strangematter.command;
 
 import com.hexvane.strangematter.research.ResearchData;
 import com.hexvane.strangematter.research.ResearchType;
+import com.hexvane.strangematter.research.ResearchNode;
+import com.hexvane.strangematter.research.ResearchNodeRegistry;
+import com.hexvane.strangematter.item.ResearchNoteItem;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -11,6 +14,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.Collection;
 
@@ -32,7 +36,12 @@ public class ResearchCommand {
             .then(Commands.literal("reset")
                 .executes(ResearchCommand::resetOwnResearch)
                 .then(Commands.argument("target", EntityArgument.players())
-                    .executes(ResearchCommand::resetPlayerResearch))));
+                    .executes(ResearchCommand::resetPlayerResearch)))
+            .then(Commands.literal("give")
+                .then(Commands.argument("research_id", com.mojang.brigadier.arguments.StringArgumentType.string())
+                    .executes(ResearchCommand::giveOwnResearchNote)
+                    .then(Commands.argument("target", EntityArgument.players())
+                        .executes(ResearchCommand::givePlayerResearchNote)))));
     }
     
     private static int checkOwnResearch(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
@@ -123,9 +132,49 @@ public class ResearchCommand {
         // Clear scanned objects
         researchData.setScannedObjects(java.util.Set.of());
         
+        // Clear unlocked research, but keep default unlocked ones (foundation and basic_scanner)
+        java.util.Set<String> defaultUnlocked = java.util.Set.of("foundation", "basic_scanner");
+        researchData.setUnlockedResearch(defaultUnlocked);
+        
         researchData.syncToClient(player);
         
         context.getSource().sendSuccess(() -> Component.literal("§aReset all research data for " + player.getName().getString()), true);
         return 1;
+    }
+    
+    private static int giveOwnResearchNote(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = context.getSource().getPlayerOrException();
+        return giveResearchNoteToPlayers(context, java.util.List.of(player));
+    }
+    
+    private static int givePlayerResearchNote(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        Collection<ServerPlayer> players = EntityArgument.getPlayers(context, "target");
+        return giveResearchNoteToPlayers(context, players);
+    }
+    
+    private static int giveResearchNoteToPlayers(CommandContext<CommandSourceStack> context, Collection<ServerPlayer> players) throws CommandSyntaxException {
+        String researchId = context.getArgument("research_id", String.class);
+        
+        ResearchNode node = ResearchNodeRegistry.getNode(researchId);
+        if (node == null) {
+            context.getSource().sendFailure(Component.literal("§cInvalid research ID: " + researchId));
+            return 0;
+        }
+        
+        int result = 0;
+        for (ServerPlayer player : players) {
+            // Create research note
+            ItemStack researchNote = ResearchNoteItem.createResearchNote(node.getResearchCosts(), node.getId());
+            
+            // Add to player inventory
+            if (player.getInventory().add(researchNote)) {
+                context.getSource().sendSuccess(() -> Component.literal("§aGave research notes for '" + node.getName() + "' to " + player.getName().getString()), true);
+                result = 1;
+            } else {
+                context.getSource().sendFailure(Component.literal("§cFailed to give research notes to " + player.getName().getString() + " (inventory full)"));
+            }
+        }
+        
+        return result;
     }
 }

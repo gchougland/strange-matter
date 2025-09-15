@@ -1,11 +1,98 @@
 {
+  "research_tablet_open": {
+    "sounds": ["strangematter:research_tablet_open"],
+    "subtitle": "Research tablet opens"
+  },
+  "research_tablet_node_hover": {
+    "sounds": ["strangematter:research_tablet_node_hover"],
+    "subtitle": "Research node hover"
+  },
+  "research_tablet_node_click": {
+    "sounds": ["strangematter:research_tablet_node_click"],
+    "subtitle": "Research node click"
+  },
+  "research_tablet_page_turn": {
+    "sounds": ["strangematter:research_tablet_page_turn"],
+    "subtitle": "Research page turn"
+  },
+  "research_node_locked_click": {
+    "sounds": ["strangematter:research_node_locked_click"],
+    "subtitle": "Research node locked"
+  },
+  "research_note_create": {
+    "sounds": ["strangematter:research_note_create"],
+    "subtitle": "Research note created"
+  },
+  "research_machine_open": {
+    "sounds": ["strangematter:research_machine_open"],
+    "subtitle": "Research machine opens"
+  },
+  "research_machine_note_insert": {
+    "sounds": ["strangematter:research_machine_note_insert"],
+    "subtitle": "Research note inserted"
+  },
+  "research_machine_note_reject": {
+    "sounds": ["strangematter:research_machine_note_reject"],
+    "subtitle": "Research note rejected"
+  },
+  "research_machine_begin_research": {
+    "sounds": ["strangematter:research_machine_begin_research"],
+    "subtitle": "Research begins"
+  },
+  "research_machine_idle_loop": {
+    "sounds": ["strangematter:research_machine_idle_loop"],
+    "subtitle": "Research machine humming"
+  },
+  "research_machine_success": {
+    "sounds": ["strangematter:research_machine_success"],
+    "subtitle": "Research completed successfully"
+  },
+  "research_machine_failure": {
+    "sounds": ["strangematter:research_machine_failure"],
+    "subtitle": "Research failed"
+  },
+  "research_machine_instability_high": {
+    "sounds": ["strangematter:research_machine_instability_high"],
+    "subtitle": "High instability warning"
+  },
+  "research_machine_instability_critical": {
+    "sounds": ["strangematter:research_machine_instability_critical"],
+    "subtitle": "Critical instability warning"
+  },
+  "energy_dial_toggle": {
+    "sounds": ["strangematter:energy_dial_toggle"],
+    "subtitle": "Dial toggled"
+  },
+  "energy_button_click": {
+    "sounds": ["strangematter:energy_button_click"],
+    "subtitle": "Button clicked"
+  },
+  "energy_wave_align": {
+    "sounds": ["strangematter:energy_wave_align"],
+    "subtitle": "Waves aligned"
+  },
+  "energy_wave_misalign": {
+    "sounds": ["strangematter:energy_wave_misalign"],
+    "subtitle": "Waves misaligned"
+  },
+  "minigame_stable": {
+    "sounds": ["strangematter:minigame_stable"],
+    "subtitle": "Minigame stable"
+  },
+  "minigame_unstable": {
+    "sounds": ["strangematter:minigame_unstable"],
+    "subtitle": "Minigame unstable"
+  },
   "field_scanner_scan": {
-    "subtitle": "Field Scanner Scanning",
-    "sounds": [
-      {
-        "name": "strangematter:field_scanner_scan",
-        "stream": false
-      }
-    ]
+    "sounds": ["strangematter:field_scanner_scan"],
+    "subtitle": "Field scanner scanning"
+  },
+  "gravity_anomaly_loop": {
+    "sounds": ["strangematter:gravity_anomaly_loop"],
+    "subtitle": "Gravity anomaly detected"
+  },
+  "warp_gate_loop": {
+    "sounds": ["strangematter:warp_gate_loop"],
+    "subtitle": "Warp gate active"
   }
 }

@@ -5,6 +5,8 @@ import com.hexvane.strangematter.research.ResearchData;
 import com.hexvane.strangematter.research.ResearchNode;
 import com.hexvane.strangematter.research.ResearchNodeRegistry;
 import com.hexvane.strangematter.research.ResearchType;
+import com.hexvane.strangematter.item.ResearchNoteItem;
+import com.hexvane.strangematter.sound.StrangeMatterSounds;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -43,6 +45,10 @@ public class ResearchTabletScreen extends Screen {
     
     // Store saved drag position when opening research panes
     private int savedDragOffsetX = 0, savedDragOffsetY = 0;
+    private int refreshCounter = 0;
+    
+    // Track hovered node for sound effects
+    private ResearchNode lastHoveredNode = null;
     
     private final Map<String, Button> categoryButtons = new HashMap<>();
     
@@ -56,6 +62,11 @@ public class ResearchTabletScreen extends Screen {
     @Override
     protected void init() {
         super.init();
+        
+        // Play open sound
+        if (minecraft != null && minecraft.player != null) {
+            minecraft.player.playSound(StrangeMatterSounds.RESEARCH_TABLET_OPEN.get(), 0.7f, 1.0f);
+        }
         
         this.guiX = (this.width - GUI_WIDTH) / 2;
         this.guiY = (this.height - GUI_HEIGHT) / 2;
@@ -80,7 +91,13 @@ public class ResearchTabletScreen extends Screen {
             String category = categories.get(i);
             Button button = Button.builder(
                 Component.translatable("research.category.strangematter." + category),
-                (btn) -> selectedCategory = category
+                (btn) -> {
+                    selectedCategory = category;
+                    // Play page turn sound
+                    if (minecraft != null && minecraft.player != null) {
+                        minecraft.player.playSound(StrangeMatterSounds.RESEARCH_TABLET_PAGE_TURN.get(), 0.6f, 1.0f);
+                    }
+                }
             )
             .bounds(startX + i * (buttonWidth + buttonSpacing), buttonY, buttonWidth, buttonHeight)
             .build();
@@ -468,6 +485,17 @@ public class ResearchTabletScreen extends Screen {
                 boolean prerequisitesUnlocked = hasPrerequisitesUnlocked(node, researchData);
                 boolean isHovered = mouseX >= nodeX && mouseX <= nodeX + 32 && mouseY >= nodeY && mouseY <= nodeY + 32;
                 
+                // Check for hover sound
+                if (isHovered && lastHoveredNode != node) {
+                    // Play hover sound
+                    if (minecraft != null && minecraft.player != null) {
+                        minecraft.player.playSound(StrangeMatterSounds.RESEARCH_TABLET_NODE_HOVER.get(), 0.3f, 1.0f);
+                    }
+                    lastHoveredNode = node;
+                } else if (!isHovered && lastHoveredNode == node) {
+                    lastHoveredNode = null;
+                }
+                
                 // Render node background
                 RenderSystem.setShaderTexture(0, RESEARCH_NODE_TEXTURE);
                 int color = isUnlocked ? 0x41B280 : (prerequisitesUnlocked ? 0xFFFFFF : 0x808080);
@@ -786,7 +814,34 @@ public class ResearchTabletScreen extends Screen {
                     if (isUnlocked) {
                         // Open information page for unlocked node
                         openNodeInformationPage(clickedNode);
+                        // Play node click sound
+                        minecraft.player.playSound(StrangeMatterSounds.RESEARCH_TABLET_NODE_CLICK.get(), 0.7f, 1.0f);
                         return true;
+                    } else {
+                        // Check if player can afford this research
+                        boolean canAfford = true;
+                        for (Map.Entry<ResearchType, Integer> entry : clickedNode.getResearchCosts().entrySet()) {
+                            ResearchType type = entry.getKey();
+                            int cost = entry.getValue();
+                            int currentPoints = researchData.getResearchPoints(type);
+                            if (currentPoints < cost) {
+                                canAfford = false;
+                                break;
+                            }
+                        }
+                        
+                        if (canAfford) {
+                            // Spend research points and give research note
+                            spendResearchPointsAndGiveNote(clickedNode);
+                            // Play research note create sound
+                            minecraft.player.playSound(StrangeMatterSounds.RESEARCH_NOTE_CREATE.get(), 0.8f, 1.0f);
+                            return true;
+                        } else {
+                            // Show message that player can't afford it and play locked sound
+                            minecraft.player.sendSystemMessage(Component.translatable("research.strangematter.cannot_afford"));
+                            minecraft.player.playSound(StrangeMatterSounds.RESEARCH_NODE_LOCKED_CLICK.get(), 0.6f, 1.0f);
+                            return true;
+                        }
                     }
                 }
                 
@@ -831,5 +886,36 @@ public class ResearchTabletScreen extends Screen {
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+    
+    @Override
+    public void tick() {
+        super.tick();
+        refreshCounter++;
+        
+        // Refresh display every 20 ticks (1 second) to pick up research data changes
+        if (refreshCounter % 20 == 0) {
+            // Force a re-render to pick up any changes in research data
+        }
+    }
+    
+    private void spendResearchPointsAndGiveNote(ResearchNode node) {
+        // Create research note
+        ItemStack researchNote = ResearchNoteItem.createResearchNote(node.getResearchCosts(), node.getId());
+        
+        // Add to player inventory
+        if (minecraft.player.getInventory().add(researchNote)) {
+            // Send packet to server to spend research points
+            com.hexvane.strangematter.network.SpendResearchPointsPacket packet = 
+                new com.hexvane.strangematter.network.SpendResearchPointsPacket(node.getResearchCosts(), node.getId());
+            
+            com.hexvane.strangematter.network.NetworkHandler.INSTANCE.sendToServer(packet);
+            
+            // Send message to player
+            minecraft.player.sendSystemMessage(Component.translatable("research.strangematter.note_received", node.getName()));
+        } else {
+            // Inventory full
+            minecraft.player.sendSystemMessage(Component.translatable("research.strangematter.inventory_full"));
+        }
     }
 }

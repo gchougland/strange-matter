@@ -45,8 +45,7 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
     private static final float AURA_RADIUS = 4.0f;
     private static final int TELEPORT_COOLDOWN = 100; // 5 seconds at 20 TPS
     
-    // Sound system
-    private static final ResourceLocation WARP_GATE_SOUND = new ResourceLocation("strangematter", "warp_gate_loop");
+    // Sound system - using StrangeMatterSounds for consistency
     
     // Teleportation tracking
     private int teleportCooldown = 0;
@@ -673,7 +672,7 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
     
     @Override
     protected ResourceLocation getAnomalySound() {
-        return WARP_GATE_SOUND;
+        return com.hexvane.strangematter.sound.StrangeMatterSounds.WARP_GATE_LOOP.get().getLocation();
     }
     
     @Override

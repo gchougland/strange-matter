@@ -30,6 +30,10 @@ public enum ResearchType {
         return ResourceLocation.parse(iconPath);
     }
     
+    public String getTranslationKey() {
+        return "research.strangematter." + name;
+    }
+    
     public static ResearchType fromName(String name) {
         for (ResearchType type : values()) {
             if (type.name.equals(name)) {

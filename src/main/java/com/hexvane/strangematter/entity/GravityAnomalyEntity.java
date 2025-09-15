@@ -41,8 +41,7 @@ public class GravityAnomalyEntity extends BaseAnomalyEntity {
     private Set<Player> affectedPlayers = new HashSet<>();
     private AttributeModifier lowGravityModifier = new AttributeModifier("Low Gravity", 0.0, AttributeModifier.Operation.ADDITION);
     
-    // Sound system
-    private static final ResourceLocation GRAVITY_ANOMALY_SOUND = new ResourceLocation("strangematter", "gravity_anomaly_loop");
+    // Sound system - using StrangeMatterSounds for consistency
     
     public GravityAnomalyEntity(EntityType<?> entityType, Level level) {
         super(entityType, level);
@@ -228,7 +227,7 @@ public class GravityAnomalyEntity extends BaseAnomalyEntity {
     
     @Override
     protected ResourceLocation getAnomalySound() {
-        return GRAVITY_ANOMALY_SOUND;
+        return com.hexvane.strangematter.sound.StrangeMatterSounds.GRAVITY_ANOMALY_LOOP.get().getLocation();
     }
     
     @Override
