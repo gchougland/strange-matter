@@ -27,6 +27,8 @@ public class ResearchMachineBlockEntity extends BlockEntity {
     private float instabilityLevel = 0.5f; // 0.0 = success, 1.0 = failure
     private int researchTicks = 0;
     private java.util.UUID playerId = null; // Track who inserted the research note
+    private java.util.UUID currentPlayerId = null; // Track who is currently using the machine
+    private Map<ResearchType, Map<String, Object>> minigameStates = new HashMap<>(); // Save minigame states
     
     public ResearchMachineBlockEntity(BlockPos pos, BlockState state) {
         super(StrangeMatterMod.RESEARCH_MACHINE_BLOCK_ENTITY.get(), pos, state);
@@ -83,20 +85,34 @@ public class ResearchMachineBlockEntity extends BlockEntity {
         if (playerId != null && !level.isClientSide) {
             net.minecraft.world.entity.player.Player player = level.getPlayerByUUID(playerId);
             if (player != null) {
-                // Unlock the research for the player
+                // Check if research is already unlocked
                 com.hexvane.strangematter.research.ResearchData researchData = 
                     com.hexvane.strangematter.research.ResearchData.get(player);
-                researchData.unlockResearch(currentResearchId);
-                researchData.syncToClient((net.minecraft.server.level.ServerPlayer) player);
+                boolean alreadyUnlocked = researchData.hasUnlockedResearch(currentResearchId);
                 
-                // Send success message
-                player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
-                    "block.strangematter.research_machine.research_completed_success", 
-                    com.hexvane.strangematter.research.ResearchNodeRegistry.getNode(currentResearchId).getName()));
-                
-                // Play success sound and particles at the machine location
-                level.playSound(null, worldPosition, StrangeMatterSounds.RESEARCH_MACHINE_SUCCESS.get(), 
-                    net.minecraft.sounds.SoundSource.BLOCKS, 0.6f, 1.0f);
+                if (alreadyUnlocked) {
+                    // Send message that research was already unlocked (for testing purposes)
+                    player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
+                        "block.strangematter.research_machine.research_already_unlocked", 
+                        com.hexvane.strangematter.research.ResearchNodeRegistry.getNode(currentResearchId).getName()));
+                    
+                    // Still play success sound and particles for consistency
+                    level.playSound(null, worldPosition, StrangeMatterSounds.RESEARCH_MACHINE_SUCCESS.get(), 
+                        net.minecraft.sounds.SoundSource.BLOCKS, 0.6f, 1.0f);
+                } else {
+                    // Unlock the research for the player
+                    researchData.unlockResearch(currentResearchId);
+                    researchData.syncToClient((net.minecraft.server.level.ServerPlayer) player);
+                    
+                    // Send success message
+                    player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
+                        "block.strangematter.research_machine.research_completed_success", 
+                        com.hexvane.strangematter.research.ResearchNodeRegistry.getNode(currentResearchId).getName()));
+                    
+                    // Play success sound and particles at the machine location
+                    level.playSound(null, worldPosition, StrangeMatterSounds.RESEARCH_MACHINE_SUCCESS.get(), 
+                        net.minecraft.sounds.SoundSource.BLOCKS, 0.6f, 1.0f);
+                }
                 
                 // Spawn success particles
                 for (int i = 0; i < 20; i++) {
@@ -128,6 +144,46 @@ public class ResearchMachineBlockEntity extends BlockEntity {
     }
     
     /**
+     * Creates a research note ItemStack from the current stored research data
+     */
+    private ItemStack createResearchNoteFromStoredData() {
+        if (currentResearchId.isEmpty() || activeResearchTypes.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        
+        // Create a map of research types with default costs (since we don't store the original costs)
+        Map<com.hexvane.strangematter.research.ResearchType, Integer> researchCosts = new HashMap<>();
+        for (com.hexvane.strangematter.research.ResearchType type : activeResearchTypes) {
+            researchCosts.put(type, 1); // Default cost of 1
+        }
+        
+        return com.hexvane.strangematter.item.ResearchNoteItem.createResearchNote(researchCosts, currentResearchId);
+    }
+    
+    /**
+     * Drops the current research note at the machine's position
+     */
+    private void dropResearchNote() {
+        if (level == null || level.isClientSide) {
+            return;
+        }
+        
+        ItemStack researchNote = createResearchNoteFromStoredData();
+        if (!researchNote.isEmpty()) {
+            // Drop the research note at the machine's position
+            net.minecraft.world.entity.item.ItemEntity itemEntity = new net.minecraft.world.entity.item.ItemEntity(
+                level, 
+                worldPosition.getX() + 0.5, 
+                worldPosition.getY() + 1.0, 
+                worldPosition.getZ() + 0.5, 
+                researchNote
+            );
+            itemEntity.setDefaultPickUpDelay();
+            level.addFreshEntity(itemEntity);
+        }
+    }
+    
+    /**
      * Handle research failure - trigger anomalous event and reset machine
      */
     public void handleResearchFailure() {
@@ -145,6 +201,9 @@ public class ResearchMachineBlockEntity extends BlockEntity {
             level.playSound(null, worldPosition, StrangeMatterSounds.RESEARCH_MACHINE_FAILURE.get(), 
                 net.minecraft.sounds.SoundSource.BLOCKS, 0.5f, 1.0f);
         }
+        
+        // Drop the research note before clearing
+        dropResearchNote();
         
         // Set state to failed and send immediate sync packet
         currentState = MachineState.FAILED;
@@ -204,18 +263,6 @@ public class ResearchMachineBlockEntity extends BlockEntity {
     }
     
     /**
-     * Set the client-side state for GUI synchronization
-     */
-    public void setClientState(MachineState state, String researchId, Set<ResearchType> activeTypes, 
-                              float instability, int ticks) {
-        this.currentState = state;
-        this.currentResearchId = researchId;
-        this.activeResearchTypes = new HashSet<>(activeTypes);
-        this.instabilityLevel = instability;
-        this.researchTicks = ticks;
-    }
-    
-    /**
      * Set the client-side instability level (for client-side updates)
      */
     public void setClientInstabilityLevel(float instability) {
@@ -234,7 +281,7 @@ public class ResearchMachineBlockEntity extends BlockEntity {
     /**
      * Send sync packet to clients
      */
-    private void sendSyncPacket() {
+    public void sendSyncPacket() {
         if (!level.isClientSide) {
             com.hexvane.strangematter.network.ResearchMachineSyncPacket packet = 
                 new com.hexvane.strangematter.network.ResearchMachineSyncPacket(
@@ -266,12 +313,42 @@ public class ResearchMachineBlockEntity extends BlockEntity {
             tag.putUUID("player_id", playerId);
         }
         
+        // Save current player ID
+        if (currentPlayerId != null) {
+            tag.putUUID("current_player_id", currentPlayerId);
+        }
+        
         // Save active research types
         CompoundTag typesTag = new CompoundTag();
         for (ResearchType type : activeResearchTypes) {
             typesTag.putBoolean(type.name(), true);
         }
         tag.put("active_types", typesTag);
+        
+        // Save minigame states
+        CompoundTag minigameStatesTag = new CompoundTag();
+        for (Map.Entry<ResearchType, Map<String, Object>> entry : minigameStates.entrySet()) {
+            CompoundTag stateTag = new CompoundTag();
+            Map<String, Object> state = entry.getValue();
+            
+            for (Map.Entry<String, Object> stateEntry : state.entrySet()) {
+                Object value = stateEntry.getValue();
+                if (value instanceof Boolean) {
+                    stateTag.putBoolean(stateEntry.getKey(), (Boolean) value);
+                } else if (value instanceof String) {
+                    stateTag.putString(stateEntry.getKey(), (String) value);
+                } else if (value instanceof Double) {
+                    stateTag.putDouble(stateEntry.getKey(), (Double) value);
+                } else if (value instanceof Integer) {
+                    stateTag.putInt(stateEntry.getKey(), (Integer) value);
+                } else {
+                    stateTag.putString(stateEntry.getKey(), value.toString());
+                }
+            }
+            
+            minigameStatesTag.put(entry.getKey().name(), stateTag);
+        }
+        tag.put("minigame_states", minigameStatesTag);
     }
     
     @Override
@@ -317,6 +394,13 @@ public class ResearchMachineBlockEntity extends BlockEntity {
             playerId = null;
         }
         
+        // Load current player ID
+        if (tag.contains("current_player_id")) {
+            currentPlayerId = tag.getUUID("current_player_id");
+        } else {
+            currentPlayerId = null;
+        }
+        
         // Load active research types with error handling
         activeResearchTypes.clear();
         if (tag.contains("active_types")) {
@@ -333,6 +417,40 @@ public class ResearchMachineBlockEntity extends BlockEntity {
             }
         }
         
+        // Load minigame states
+        minigameStates.clear();
+        if (tag.contains("minigame_states")) {
+            CompoundTag minigameStatesTag = tag.getCompound("minigame_states");
+            for (String typeName : minigameStatesTag.getAllKeys()) {
+                try {
+                    ResearchType type = ResearchType.valueOf(typeName);
+                    CompoundTag stateTag = minigameStatesTag.getCompound(typeName);
+                    Map<String, Object> state = new HashMap<>();
+                    
+                    for (String key : stateTag.getAllKeys()) {
+                        Object value;
+                        if (stateTag.contains(key, net.minecraft.nbt.Tag.TAG_BYTE)) {
+                            value = stateTag.getBoolean(key);
+                        } else if (stateTag.contains(key, net.minecraft.nbt.Tag.TAG_STRING)) {
+                            value = stateTag.getString(key);
+                        } else if (stateTag.contains(key, net.minecraft.nbt.Tag.TAG_DOUBLE)) {
+                            value = stateTag.getDouble(key);
+                        } else if (stateTag.contains(key, net.minecraft.nbt.Tag.TAG_INT)) {
+                            value = stateTag.getInt(key);
+                        } else {
+                            value = stateTag.getString(key);
+                        }
+                        
+                        state.put(key, value);
+                    }
+                    
+                    minigameStates.put(type, state);
+                } catch (IllegalArgumentException e) {
+                    // Skip invalid research types
+                }
+            }
+        }
+        
         // Ensure state consistency
         if (currentState == MachineState.IDLE && (!currentResearchId.isEmpty() || !activeResearchTypes.isEmpty())) {
             // If we have research data but state is IDLE, we should be READY
@@ -343,4 +461,73 @@ public class ResearchMachineBlockEntity extends BlockEntity {
             activeResearchTypes.clear();
         }
     }
+    
+    // Player locking methods
+    public boolean isPlayerLocked(java.util.UUID playerId) {
+        return currentPlayerId != null && !currentPlayerId.equals(playerId);
+    }
+    
+    public void lockToPlayer(java.util.UUID playerId) {
+        this.currentPlayerId = playerId;
+        setChanged();
+    }
+    
+    public void unlockPlayer() {
+        this.currentPlayerId = null;
+        setChanged();
+    }
+    
+    public java.util.UUID getCurrentPlayerId() {
+        return currentPlayerId;
+    }
+    
+    // Minigame state persistence methods
+    public Map<ResearchType, Map<String, Object>> getMinigameStates() {
+        return minigameStates;
+    }
+    
+    public void setMinigameStates(Map<ResearchType, Map<String, Object>> states) {
+        this.minigameStates = new HashMap<>(states);
+        setChanged();
+    }
+    
+    // Setter methods for client-side updates
+    public void setCurrentState(MachineState state) {
+        this.currentState = state;
+    }
+    
+    public void setCurrentResearchId(String researchId) {
+        this.currentResearchId = researchId;
+    }
+    
+    public void setActiveResearchTypes(Set<ResearchType> activeTypes) {
+        this.activeResearchTypes = new HashSet<>(activeTypes);
+    }
+    
+    public void setInstabilityLevel(float instabilityLevel) {
+        this.instabilityLevel = instabilityLevel;
+    }
+    
+    public void setResearchTicks(int researchTicks) {
+        this.researchTicks = researchTicks;
+    }
+    
+    // Client-side state update method
+    public void setClientState(MachineState state, String researchId, Set<ResearchType> activeTypes, 
+                              float instabilityLevel, int researchTicks) {
+        this.currentState = state;
+        this.currentResearchId = researchId;
+        this.activeResearchTypes = new HashSet<>(activeTypes);
+        this.instabilityLevel = instabilityLevel;
+        this.researchTicks = researchTicks;
+        
+        // Update the GUI if it's open
+        if (level != null && level.isClientSide) {
+            var minecraft = net.minecraft.client.Minecraft.getInstance();
+            if (minecraft.screen instanceof com.hexvane.strangematter.client.screen.ResearchMachineScreen screen) {
+                screen.handleStateSync(state, researchId, activeTypes, instabilityLevel, researchTicks);
+            }
+        }
+    }
+    
 }

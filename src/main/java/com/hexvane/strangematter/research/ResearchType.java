@@ -34,6 +34,10 @@ public enum ResearchType {
         return "research.strangematter." + name;
     }
     
+    public String getDisplayName() {
+        return net.minecraft.network.chat.Component.translatable(getTranslationKey()).getString();
+    }
+    
     public static ResearchType fromName(String name) {
         for (ResearchType type : values()) {
             if (type.name.equals(name)) {

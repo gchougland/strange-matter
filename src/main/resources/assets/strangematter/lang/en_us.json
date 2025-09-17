@@ -33,6 +33,8 @@
   "gui.strangematter.research_machine.researching": "Research in Progress...",
   "gui.strangematter.research_machine.completed": "Research Completed!",
   "gui.strangematter.research_machine.failed": "Research Failed!",
+  "block.strangematter.research_machine.research_completed_success": "Successfully completed research: %s",
+  "block.strangematter.research_machine.research_already_unlocked": "Research already unlocked: %s (minigame completed successfully)",
   "gui.strangematter.research_points": "Research Points",
   "research.category.strangematter.general": "General",
   "research.strangematter.foundation.name": "Foundation Research",
@@ -96,6 +98,11 @@
   "block.strangematter.research_machine.note_inserted": "Research note inserted into the machine.",
   "block.strangematter.research_machine.already_has_note": "The research machine already has a research note inserted.",
   "block.strangematter.research_machine.research_completed": "Research completed: %s",
-  "block.strangematter.research_machine.research_completed_success": "§aSuccessfully completed research: %s",
-  "block.strangematter.research_machine.research_failed": "Research failed due to anomalous interference!"
+  "block.strangematter.research_machine.research_failed": "Research failed due to anomalous interference!",
+  "gui.strangematter.research_machine.syncing": "Syncing with server...",
+  "gui.strangematter.research_machine.insert_note": "Insert a research note to begin",
+  "gui.strangematter.research_machine.begin_research": "Begin Research",
+  "gui.strangematter.research_machine.researching": "Research in progress...",
+  "gui.strangematter.research_machine.completed": "Research completed successfully!",
+  "gui.strangematter.research_machine.failed": "Research failed!"
 }

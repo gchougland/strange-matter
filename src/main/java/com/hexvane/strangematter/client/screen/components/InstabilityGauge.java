@@ -21,10 +21,12 @@ public class InstabilityGauge {
     private int x;
     private int y;
     private float fillLevel = 0.5f; // Default to half full (50%)
+    private BubblingParticleSystem particleSystem;
     
     public InstabilityGauge(int x, int y) {
         this.x = x;
         this.y = y;
+        this.particleSystem = BubblingParticleSystem.createInstabilityTubeEffect(x+25, y, GAUGE_WIDTH-30, GAUGE_HEIGHT-15);
     }
     
     public void setFillLevel(float fillLevel) {
@@ -35,9 +37,16 @@ public class InstabilityGauge {
         return fillLevel;
     }
     
+    public void update() {
+        particleSystem.update();
+    }
+    
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         // Render the fill texture with scissoring
         renderFill(guiGraphics);
+        
+        // Render particles (behind the tube texture)
+        particleSystem.render(guiGraphics);
         
         // Render the tube texture on top
         guiGraphics.blit(TUBE_TEXTURE, x, y, 0, 0, GAUGE_WIDTH, GAUGE_HEIGHT, GAUGE_WIDTH, GAUGE_HEIGHT);

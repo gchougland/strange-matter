@@ -35,8 +35,8 @@ public class ResearchNoteItem extends Item {
             // Try to get the research node to show its name
             com.hexvane.strangematter.research.ResearchNode node = com.hexvane.strangematter.research.ResearchNodeRegistry.getNode(researchId);
             if (node != null) {
-                // Show just the research name in green color
-                tooltip.add(Component.literal(node.getName()).withStyle(style -> style.withColor(0x00FF00)));
+                // Show the research display name in green color
+                tooltip.add(node.getDisplayName().copy().withStyle(style -> style.withColor(0x00FF00)));
             } else {
                 tooltip.add(Component.translatable("item.strangematter.research_note.for_research", researchId));
             }

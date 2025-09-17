@@ -61,12 +61,28 @@ public class SpendResearchPointsPacket {
                         researchData.spendResearchPoints(entry.getKey(), entry.getValue());
                     }
                     
-                    // Sync to client
-                    researchData.syncToClient(player);
+                    // Create and give research note on server side
+                    net.minecraft.world.item.ItemStack researchNote = 
+                        com.hexvane.strangematter.item.ResearchNoteItem.createResearchNote(packet.costs, packet.researchId);
                     
-                    // Send success message
-                    player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
-                        "research.strangematter.points_spent"));
+                    if (player.getInventory().add(researchNote)) {
+                        // Sync to client
+                        researchData.syncToClient(player);
+                        
+                        // Send success message
+                        player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
+                            "research.strangematter.note_received", 
+                            com.hexvane.strangematter.research.ResearchNodeRegistry.getNode(packet.researchId).getName()));
+                    } else {
+                        // Inventory full - refund the points
+                        for (Map.Entry<ResearchType, Integer> entry : packet.costs.entrySet()) {
+                            researchData.addResearchPoints(entry.getKey(), entry.getValue());
+                        }
+                        researchData.syncToClient(player);
+                        
+                        player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
+                            "research.strangematter.inventory_full"));
+                    }
                 } else {
                     // Send failure message
                     player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(

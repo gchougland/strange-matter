@@ -46,5 +46,15 @@ public class NetworkHandler {
             ResearchCompletionPacket::encode,
             ResearchCompletionPacket::new_,
             ResearchCompletionPacket::handle);
+            
+        INSTANCE.registerMessage(packetId++, MinigameStatePacket.class,
+            MinigameStatePacket::encode,
+            MinigameStatePacket::new_,
+            MinigameStatePacket::handle);
+            
+        INSTANCE.registerMessage(packetId++, RequestResearchMachineStatePacket.class,
+            RequestResearchMachineStatePacket::encode,
+            RequestResearchMachineStatePacket::decode,
+            RequestResearchMachineStatePacket::handle);
     }
 }

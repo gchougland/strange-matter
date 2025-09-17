@@ -27,6 +27,10 @@ import net.minecraftforge.fml.DistExecutor;
 import com.hexvane.strangematter.StrangeMatterMod;
 import com.hexvane.strangematter.client.screen.ResearchMachineScreen;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 public class ResearchMachineBlock extends Block implements EntityBlock {
     
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
@@ -116,5 +120,45 @@ public class ResearchMachineBlock extends Block implements EntityBlock {
             (level1, pos, state1, blockEntity) -> {
                 // Add any server-side ticking logic here if needed
             } : null;
+    }
+    
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+        if (!state.is(newState.getBlock())) {
+            // Block is being removed, drop the research note if there is one
+            BlockEntity blockEntity = level.getBlockEntity(pos);
+            if (blockEntity instanceof ResearchMachineBlockEntity researchMachine) {
+                // Check if there's a research note to drop
+                if (researchMachine.getCurrentState() != ResearchMachineBlockEntity.MachineState.IDLE) {
+                    // Create and drop the research note
+                    if (!level.isClientSide) {
+                        String researchId = researchMachine.getCurrentResearchId();
+                        Set<com.hexvane.strangematter.research.ResearchType> activeTypes = researchMachine.getActiveResearchTypes();
+                        
+                        if (!researchId.isEmpty() && !activeTypes.isEmpty()) {
+                            // Create a map of research types with default costs
+                            Map<com.hexvane.strangematter.research.ResearchType, Integer> researchCosts = new HashMap<>();
+                            for (com.hexvane.strangematter.research.ResearchType type : activeTypes) {
+                                researchCosts.put(type, 1); // Default cost of 1
+                            }
+                            
+                            ItemStack researchNote = com.hexvane.strangematter.item.ResearchNoteItem.createResearchNote(researchCosts, researchId);
+                            
+                            // Drop the research note at the block's position
+                            net.minecraft.world.entity.item.ItemEntity itemEntity = new net.minecraft.world.entity.item.ItemEntity(
+                                level, 
+                                pos.getX() + 0.5, 
+                                pos.getY() + 1.0, 
+                                pos.getZ() + 0.5, 
+                                researchNote
+                            );
+                            itemEntity.setDefaultPickUpDelay();
+                            level.addFreshEntity(itemEntity);
+                        }
+                    }
+                }
+            }
+        }
+        super.onRemove(state, level, pos, newState, isMoving);
     }
 }

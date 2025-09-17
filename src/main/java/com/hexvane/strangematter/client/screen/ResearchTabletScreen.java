@@ -900,22 +900,10 @@ public class ResearchTabletScreen extends Screen {
     }
     
     private void spendResearchPointsAndGiveNote(ResearchNode node) {
-        // Create research note
-        ItemStack researchNote = ResearchNoteItem.createResearchNote(node.getResearchCosts(), node.getId());
+        // Send packet to server to spend research points and create research note
+        com.hexvane.strangematter.network.SpendResearchPointsPacket packet = 
+            new com.hexvane.strangematter.network.SpendResearchPointsPacket(node.getResearchCosts(), node.getId());
         
-        // Add to player inventory
-        if (minecraft.player.getInventory().add(researchNote)) {
-            // Send packet to server to spend research points
-            com.hexvane.strangematter.network.SpendResearchPointsPacket packet = 
-                new com.hexvane.strangematter.network.SpendResearchPointsPacket(node.getResearchCosts(), node.getId());
-            
-            com.hexvane.strangematter.network.NetworkHandler.INSTANCE.sendToServer(packet);
-            
-            // Send message to player
-            minecraft.player.sendSystemMessage(Component.translatable("research.strangematter.note_received", node.getName()));
-        } else {
-            // Inventory full
-            minecraft.player.sendSystemMessage(Component.translatable("research.strangematter.inventory_full"));
-        }
+        com.hexvane.strangematter.network.NetworkHandler.INSTANCE.sendToServer(packet);
     }
 }

@@ -18,8 +18,8 @@ public class EnergyMinigame extends ResearchMinigame {
     private static final ResourceLocation LEFT_BUTTON_TEXTURE = new ResourceLocation(StrangeMatterMod.MODID, "textures/ui/left_button.png");
     
     // UI Constants
-    private static final int DIAL_SIZE = 16;
-    private static final int BUTTON_SIZE = 12;
+    private static final int DIAL_SIZE = 10;
+    private static final int BUTTON_SIZE = 10;
     private static final int WAVE_AREA_HEIGHT = 40;
     private static final int WAVE_AREA_Y_OFFSET = 10;
     
@@ -33,7 +33,7 @@ public class EnergyMinigame extends ResearchMinigame {
     private static final double MIN_AMPLITUDE = 0.5;
     private static final double MAX_AMPLITUDE = 1.5;
     private static final double MIN_PERIOD = 1.0;
-    private static final double MAX_PERIOD = 3.0;
+    private static final double MAX_PERIOD = 1.25; // Reduced range so only 5 clicks needed max
     
     // Control states
     private boolean amplitudeDialActive = false;
@@ -42,7 +42,8 @@ public class EnergyMinigame extends ResearchMinigame {
     // Alignment tracking
     private boolean isAligned = false;
     private int alignmentTicks = 0;
-    private int requiredAlignmentTicks = 40; // 2 seconds at 20 TPS
+    private int requiredAlignmentTicks = 100; // 5 seconds at 20 TPS
+    private int driftDelayTicks = 600; // 30 seconds delay before starting to drift
     private int driftDelay = 100; // 5 seconds before drifting starts
     private int driftTicks = 0;
     
@@ -93,7 +94,6 @@ public class EnergyMinigame extends ResearchMinigame {
         periodDialActive = false;
     }
     
-    
     private boolean checkAlignment() {
         double amplitudeDiff = Math.abs(currentAmplitude - targetAmplitude);
         double periodDiff = Math.abs(currentPeriod - targetPeriod);
@@ -134,12 +134,6 @@ public class EnergyMinigame extends ResearchMinigame {
     
     @Override
     protected void renderActive(GuiGraphics guiGraphics, int x, int y, int width, int height, int mouseX, int mouseY) {
-        // Render title
-        guiGraphics.drawCenteredString(minecraft.font, "Energy", x + width / 2, y + 5, 0xFFFFFF);
-        
-        // Render stability indicator in top right
-        renderStabilityIndicator(guiGraphics, x, y, width);
-        
         // Render sine waves in the top center (slightly wider)
         renderSineWaves(guiGraphics, x + width / 2 - 20, y + WAVE_AREA_Y_OFFSET, 40, WAVE_AREA_HEIGHT - 10);
         
@@ -149,17 +143,10 @@ public class EnergyMinigame extends ResearchMinigame {
     
     @Override
     protected void renderInactive(GuiGraphics guiGraphics, int x, int y, int width, int height) {
-        // Render title
-        guiGraphics.drawCenteredString(minecraft.font, "Energy", x + width / 2, y + 5, 0x888888);
+        // Title is now rendered by base class, no need to render here
         
-        // Render inactive stability indicator in top right
-        renderStabilityIndicator(guiGraphics, x, y, width);
-        
-        // Render inactive sine waves (slightly wider)
-        renderSineWaves(guiGraphics, x + width / 2 - 20, y + WAVE_AREA_Y_OFFSET, 40, WAVE_AREA_HEIGHT - 10);
-        
-        // Render inactive controls
-        renderControls(guiGraphics, x, y, width, height);
+        // Don't render interactive elements (sine waves and controls) when inactive
+        // The stability indicator and title are handled by the base class
     }
     
     private void renderSineWaves(GuiGraphics guiGraphics, int x, int y, int width, int height) {
@@ -194,10 +181,10 @@ public class EnergyMinigame extends ResearchMinigame {
         int centerX = x + width / 2;
         
         // Dials positioned slightly lower
-        int dialY = y + height - 32;
+        int dialY = y + height - 30;
         
-        // Amplitude dial (left side)
-        int amplitudeDialX = centerX - 18;
+        // Amplitude dial (left side) - adjusted for 10x10 size
+        int amplitudeDialX = centerX - 13;
         ResourceLocation amplitudeDialTexture = amplitudeDialActive ? DIAL_ON_TEXTURE : DIAL_OFF_TEXTURE;
         guiGraphics.blit(amplitudeDialTexture, amplitudeDialX, dialY, 0, 0, DIAL_SIZE, DIAL_SIZE, DIAL_SIZE, DIAL_SIZE);
         
@@ -206,8 +193,8 @@ public class EnergyMinigame extends ResearchMinigame {
             guiGraphics.fill(amplitudeDialX - 1, dialY - 1, amplitudeDialX + DIAL_SIZE + 1, dialY + DIAL_SIZE + 1, 0x80FFFFFF);
         }
         
-        // Period dial (right side)
-        int periodDialX = centerX + 2;
+        // Period dial (right side) - adjusted for 10x10 size
+        int periodDialX = centerX + 3;
         ResourceLocation periodDialTexture = periodDialActive ? DIAL_ON_TEXTURE : DIAL_OFF_TEXTURE;
         guiGraphics.blit(periodDialTexture, periodDialX, dialY, 0, 0, DIAL_SIZE, DIAL_SIZE, DIAL_SIZE, DIAL_SIZE);
         
@@ -216,10 +203,10 @@ public class EnergyMinigame extends ResearchMinigame {
             guiGraphics.fill(periodDialX - 1, dialY - 1, periodDialX + DIAL_SIZE + 1, dialY + DIAL_SIZE + 1, 0x80FFFFFF);
         }
         
-        // Arrow buttons (center, further apart, below dials)
+        // Arrow buttons (center, further apart, below dials) - adjusted for 10x10 size
         int buttonY = y + height - 15;
-        int leftButtonX = centerX - 16;
-        int rightButtonX = centerX + 4;
+        int leftButtonX = centerX - 13;
+        int rightButtonX = centerX + 3;
         
         // Check if buttons should be disabled
         boolean leftDisabled = (amplitudeDialActive && isAmplitudeAtMin()) || (periodDialActive && isPeriodAtMin());
@@ -252,23 +239,30 @@ public class EnergyMinigame extends ResearchMinigame {
         guiGraphics.pose().pushPose();
         guiGraphics.pose().scale(0.7f, 0.7f, 1.0f);
         guiGraphics.drawCenteredString(minecraft.font, "AMP", 
-            (int)((amplitudeDialX + DIAL_SIZE / 2) / 0.7f), (int)((dialY - 11) / 0.7f), 0xFF3dc7c7);
+            (int)((amplitudeDialX + DIAL_SIZE / 2) / 0.7f), (int)((dialY - 5) / 0.7f), 0xFF3dc7c7);
         guiGraphics.drawCenteredString(minecraft.font, "PER", 
-            (int)((periodDialX + DIAL_SIZE / 2) / 0.7f), (int)((dialY - 11) / 0.7f), 0xFF3dc7c7);
+            (int)((periodDialX + DIAL_SIZE / 2) / 0.7f), (int)((dialY - 5) / 0.7f), 0xFF3dc7c7);
         guiGraphics.pose().popPose();
     }
     
     @Override
-    protected boolean handleClick(int relativeX, int relativeY, int button) {
+    protected boolean handleClick(int mouseX, int mouseY, int button, int panelX, int panelY, int panelWidth, int panelHeight) {
         if (!isActive) return false;
         
-        int centerX = 21; // panelWidth / 2 (42 is MINIGAME_PANEL_WIDTH)
+        // Use absolute coordinates like research nodes do - much more reliable!
+        // mouseX and mouseY are absolute screen coordinates, just like research nodes
         
-        // Check amplitude dial click (slightly lowered position)
-        int dialY = 81 - 32; // MINIGAME_PANEL_HEIGHT - 32
-        int amplitudeDialX = centerX - 18;
-        if (relativeX >= amplitudeDialX && relativeX < amplitudeDialX + DIAL_SIZE && 
-            relativeY >= dialY && relativeY < dialY + DIAL_SIZE) {
+        // Calculate absolute positions of controls using panel position + relative offsets
+        int centerX = panelX + panelWidth / 2;
+        
+        // Dials positioned slightly lower - match renderControls exactly
+        int dialY = panelY + panelHeight - 32;
+        int amplitudeDialX = centerX - 13;
+        int periodDialX = centerX + 3;
+        
+        // Check amplitude dial click using absolute coordinates like research nodes
+        if (mouseX >= amplitudeDialX && mouseX <= amplitudeDialX + DIAL_SIZE && 
+            mouseY >= dialY && mouseY <= dialY + DIAL_SIZE) {
             amplitudeDialActive = !amplitudeDialActive;
             // Play dial toggle sound
             if (minecraft != null && minecraft.player != null) {
@@ -277,10 +271,9 @@ public class EnergyMinigame extends ResearchMinigame {
             return true;
         }
         
-        // Check period dial click (lowered position)
-        int periodDialX = centerX + 2;
-        if (relativeX >= periodDialX && relativeX < periodDialX + DIAL_SIZE && 
-            relativeY >= dialY && relativeY < dialY + DIAL_SIZE) {
+        // Check period dial click using absolute coordinates like research nodes
+        if (mouseX >= periodDialX && mouseX <= periodDialX + DIAL_SIZE && 
+            mouseY >= dialY && mouseY <= dialY + DIAL_SIZE) {
             periodDialActive = !periodDialActive;
             // Play dial toggle sound
             if (minecraft != null && minecraft.player != null) {
@@ -289,17 +282,17 @@ public class EnergyMinigame extends ResearchMinigame {
             return true;
         }
         
-        // Check arrow button clicks (further apart)
-        int buttonY = 81 - 15; // MINIGAME_PANEL_HEIGHT - 15
-        int leftButtonX = centerX - 16;
-        int rightButtonX = centerX + 4;
+        // Arrow buttons - match renderControls exactly
+        int buttonY = panelY + panelHeight - 15;
+        int leftButtonX = centerX - 13;
+        int rightButtonX = centerX + 3;
         
         // Check if buttons should be disabled
         boolean leftDisabled = (amplitudeDialActive && isAmplitudeAtMin()) || (periodDialActive && isPeriodAtMin());
         boolean rightDisabled = (amplitudeDialActive && isAmplitudeAtMax()) || (periodDialActive && isPeriodAtMax());
         
-        if (relativeX >= leftButtonX && relativeX < leftButtonX + BUTTON_SIZE && 
-            relativeY >= buttonY && relativeY < buttonY + BUTTON_SIZE && !leftDisabled) {
+        if (mouseX >= leftButtonX && mouseX <= leftButtonX + BUTTON_SIZE && 
+            mouseY >= buttonY && mouseY <= buttonY + BUTTON_SIZE && !leftDisabled) {
             // Left arrow - decrease
             adjustValues(-1);
             // Play button click sound
@@ -307,8 +300,8 @@ public class EnergyMinigame extends ResearchMinigame {
                 minecraft.player.playSound(StrangeMatterSounds.ENERGY_BUTTON_CLICK.get(), 0.5f, 1.0f);
             }
             return true;
-        } else if (relativeX >= rightButtonX && relativeX < rightButtonX + BUTTON_SIZE && 
-                   relativeY >= buttonY && relativeY < buttonY + BUTTON_SIZE && !rightDisabled) {
+        } else if (mouseX >= rightButtonX && mouseX <= rightButtonX + BUTTON_SIZE && 
+                   mouseY >= buttonY && mouseY <= buttonY + BUTTON_SIZE && !rightDisabled) {
             // Right arrow - increase
             adjustValues(1);
             // Play button click sound
@@ -374,6 +367,7 @@ public class EnergyMinigame extends ResearchMinigame {
                 // Just became aligned
                 isAligned = true;
                 alignmentTicks = 0;
+                driftTicks = 0; // Reset drift countdown when becoming aligned
                 // Play wave align sound
                 if (minecraft != null && minecraft.player != null) {
                     minecraft.player.playSound(StrangeMatterSounds.ENERGY_WAVE_ALIGN.get(), 0.4f, 1.0f);
@@ -383,7 +377,7 @@ public class EnergyMinigame extends ResearchMinigame {
                 if (alignmentTicks >= requiredAlignmentTicks) {
                     // Been aligned long enough, start drifting
                     driftTicks++;
-                    if (driftTicks >= driftDelay) {
+                    if (driftTicks >= driftDelayTicks) {
                         applyDrift();
                     }
                     setState(MinigameState.STABLE);
@@ -426,25 +420,46 @@ public class EnergyMinigame extends ResearchMinigame {
         }
     }
     
-    public void updateHoverStates(int relativeX, int relativeY) {
-        int centerX = 21; // panelWidth / 2
-        int dialY = 81 - 32; // MINIGAME_PANEL_HEIGHT - 32 (slightly lowered)
-        int buttonY = 81 - 15; // MINIGAME_PANEL_HEIGHT - 15
+    public void updateHoverStates(int mouseX, int mouseY, int panelX, int panelY, int panelWidth, int panelHeight) {
+        // Use absolute coordinates like research nodes do - much more reliable!
+        // Calculate absolute positions of controls using panel position + relative offsets
+        int centerX = panelX + panelWidth / 2;
         
-        // Check dial hover states
-        int amplitudeDialX = centerX - 18;
-        int periodDialX = centerX + 2;
-        amplitudeDialHovered = relativeX >= amplitudeDialX && relativeX < amplitudeDialX + DIAL_SIZE && 
-                              relativeY >= dialY && relativeY < dialY + DIAL_SIZE;
-        periodDialHovered = relativeX >= periodDialX && relativeX < periodDialX + DIAL_SIZE && 
-                           relativeY >= dialY && relativeY < dialY + DIAL_SIZE;
+        // Dials positioned slightly lower - match renderControls exactly
+        int dialY = panelY + panelHeight - 32;
+        int amplitudeDialX = centerX - 13;
+        int periodDialX = centerX + 3;
         
-        // Check button hover states (further apart)
-        int leftButtonX = centerX - 16;
-        int rightButtonX = centerX + 4;
-        leftButtonHovered = relativeX >= leftButtonX && relativeX < leftButtonX + BUTTON_SIZE && 
-                           relativeY >= buttonY && relativeY < buttonY + BUTTON_SIZE;
-        rightButtonHovered = relativeX >= rightButtonX && relativeX < rightButtonX + BUTTON_SIZE && 
-                            relativeY >= buttonY && relativeY < buttonY + BUTTON_SIZE;
+        // Check dial hover states using absolute coordinates like research nodes
+        amplitudeDialHovered = mouseX >= amplitudeDialX && mouseX <= amplitudeDialX + DIAL_SIZE && 
+                              mouseY >= dialY && mouseY <= dialY + DIAL_SIZE;
+        periodDialHovered = mouseX >= periodDialX && mouseX <= periodDialX + DIAL_SIZE && 
+                           mouseY >= dialY && mouseY <= dialY + DIAL_SIZE;
+        
+        // Arrow buttons - match renderControls exactly
+        int buttonY = panelY + panelHeight - 15;
+        int leftButtonX = centerX - 13;
+        int rightButtonX = centerX + 3;
+        
+        // Check button hover states using absolute coordinates like research nodes
+        leftButtonHovered = mouseX >= leftButtonX && mouseX <= leftButtonX + BUTTON_SIZE && 
+                           mouseY >= buttonY && mouseY <= buttonY + BUTTON_SIZE;
+        rightButtonHovered = mouseX >= rightButtonX && mouseX <= rightButtonX + BUTTON_SIZE && 
+                            mouseY >= buttonY && mouseY <= buttonY + BUTTON_SIZE;
     }
+    
+    // State management methods for persistence
+    public boolean isAmplitudeDialActive() { return amplitudeDialActive; }
+    public boolean isPeriodDialActive() { return periodDialActive; }
+    public double getCurrentAmplitude() { return currentAmplitude; }
+    public double getCurrentPeriod() { return currentPeriod; }
+    public double getTargetAmplitude() { return targetAmplitude; }
+    public double getTargetPeriod() { return targetPeriod; }
+    
+    public void setAmplitudeDialActive(boolean active) { this.amplitudeDialActive = active; }
+    public void setPeriodDialActive(boolean active) { this.periodDialActive = active; }
+    public void setCurrentAmplitude(double amplitude) { this.currentAmplitude = amplitude; }
+    public void setCurrentPeriod(double period) { this.currentPeriod = period; }
+    public void setTargetAmplitude(double amplitude) { this.targetAmplitude = amplitude; }
+    public void setTargetPeriod(double period) { this.targetPeriod = period; }
 }
