@@ -55,6 +55,7 @@ import com.hexvane.strangematter.block.LevitationPadBlockEntity;
 import com.hexvane.strangematter.network.EchoVacuumBeamPacket;
 import com.hexvane.strangematter.entity.WarpProjectileEntity;
 import com.hexvane.strangematter.entity.MiniWarpGateEntity;
+import com.hexvane.strangematter.item.HoverboardItem;
 import com.hexvane.strangematter.worldgen.GravityAnomalyConfiguredFeature;
 import com.hexvane.strangematter.worldgen.EchoingShadowConfiguredFeature;
 import com.hexvane.strangematter.worldgen.ThoughtwellConfiguredFeature;
@@ -390,6 +391,9 @@ public class StrangeMatterMod
         () -> new com.hexvane.strangematter.recipe.RealityForgeRecipe.Serializer());
 
         
+    // Hoverboard Item
+    public static final RegistryObject<Item> HOVERBOARD = ITEMS.register("hoverboard", HoverboardItem::new);
+
     // Custom gravity attribute for low gravity effects
     public static final RegistryObject<Attribute> ENTITY_GRAVITY = ATTRIBUTES.register("entity_gravity", 
         () -> new RangedAttribute("strangematter.entity_gravity", 0.08D, -1.0D, 1.0D).setSyncable(true));
@@ -542,6 +546,7 @@ public class StrangeMatterMod
                 output.accept(CONTAINMENT_CAPSULE_WARP_GATE.get());
                 output.accept(RESONANT_CONDUIT_ITEM.get());
                 output.accept(LEVITATION_PAD_ITEM.get());
+                output.accept(HOVERBOARD.get());
             }).build());
 
     public StrangeMatterMod()
