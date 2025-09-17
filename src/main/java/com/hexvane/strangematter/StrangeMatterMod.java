@@ -24,6 +24,7 @@ import com.hexvane.strangematter.item.RawResoniteItem;
 import com.hexvane.strangematter.item.ResoniteIngotItem;
 import com.hexvane.strangematter.item.ResearchNoteItem;
 import com.hexvane.strangematter.item.ResearchTabletItem;
+import com.hexvane.strangematter.item.HoverboardItem;
 import com.hexvane.strangematter.worldgen.GravityAnomalyConfiguredFeature;
 import com.hexvane.strangematter.worldgen.CrystalizedEctoplasmConfiguredFeature;
 import com.hexvane.strangematter.worldgen.WarpGateAnomalyStructure;
@@ -148,6 +149,9 @@ public class StrangeMatterMod
     // Research Tablet Item
     public static final RegistryObject<Item> RESEARCH_TABLET = ITEMS.register("research_tablet", ResearchTabletItem::new);
 
+    // Hoverboard Item
+    public static final RegistryObject<Item> HOVERBOARD = ITEMS.register("hoverboard", HoverboardItem::new);
+
     // Custom gravity attribute for low gravity effects
     public static final RegistryObject<Attribute> ENTITY_GRAVITY = ATTRIBUTES.register("entity_gravity", 
         () -> new RangedAttribute("strangematter.entity_gravity", 0.08D, -1.0D, 1.0D).setSyncable(true));
@@ -200,6 +204,7 @@ public class StrangeMatterMod
                 output.accept(RESONITE_ORE_ITEM.get());
                 output.accept(RAW_RESONITE.get());
                 output.accept(RESONITE_INGOT.get());
+                output.accept(HOVERBOARD.get());
             }).build());
 
     public StrangeMatterMod()
