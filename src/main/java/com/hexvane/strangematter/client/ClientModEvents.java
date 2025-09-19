@@ -33,6 +33,7 @@ public class ClientModEvents {
             net.minecraft.client.renderer.entity.EntityRenderers.register(StrangeMatterMod.WARP_PROJECTILE_ENTITY.get(), WarpProjectileRenderer::new);
             net.minecraft.client.renderer.entity.EntityRenderers.register(StrangeMatterMod.MINI_WARP_GATE_ENTITY.get(), MiniWarpGateRenderer::new);
             net.minecraft.client.renderer.entity.EntityRenderers.register(StrangeMatterMod.THROWABLE_CONTAINMENT_CAPSULE.get(), com.hexvane.strangematter.client.renderer.ThrowableContainmentCapsuleRenderer::new);
+            net.minecraft.client.renderer.entity.EntityRenderers.register(StrangeMatterMod.HOVERBOARD_ENTITY.get(), HoverboardRenderer::new);
             net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(StrangeMatterMod.RESEARCH_MACHINE_BLOCK_ENTITY.get(), ResearchMachineRenderer::new);
             net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(StrangeMatterMod.STASIS_PROJECTOR_BLOCK_ENTITY.get(), StasisProjectorRenderer::new);
             net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(StrangeMatterMod.RIFT_STABILIZER_BLOCK_ENTITY.get(), RiftStabilizerRenderer::new);

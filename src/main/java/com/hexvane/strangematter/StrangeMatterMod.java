@@ -56,6 +56,8 @@ import com.hexvane.strangematter.network.EchoVacuumBeamPacket;
 import com.hexvane.strangematter.entity.WarpProjectileEntity;
 import com.hexvane.strangematter.entity.MiniWarpGateEntity;
 import com.hexvane.strangematter.item.HoverboardItem;
+import com.hexvane.strangematter.entity.HoverboardEntity;
+import com.hexvane.strangematter.client.HoverboardRenderer;
 import com.hexvane.strangematter.worldgen.GravityAnomalyConfiguredFeature;
 import com.hexvane.strangematter.worldgen.EchoingShadowConfiguredFeature;
 import com.hexvane.strangematter.worldgen.ThoughtwellConfiguredFeature;
@@ -393,6 +395,12 @@ public class StrangeMatterMod
         
     // Hoverboard Item
     public static final RegistryObject<Item> HOVERBOARD = ITEMS.register("hoverboard", HoverboardItem::new);
+
+    // Hoverboard Entity
+    public static final RegistryObject<EntityType<HoverboardEntity>> HOVERBOARD_ENTITY = ENTITY_TYPES.register("hoverboard", 
+        () -> EntityType.Builder.<HoverboardEntity>of(HoverboardEntity::new, MobCategory.MISC)
+            .sized(1.0f, 1.0f) // Size of the entity
+            .build("hoverboard"));
 
     // Custom gravity attribute for low gravity effects
     public static final RegistryObject<Attribute> ENTITY_GRAVITY = ATTRIBUTES.register("entity_gravity", 

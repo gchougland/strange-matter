@@ -1,5 +1,7 @@
 package com.hexvane.strangematter.item;
 
+import com.hexvane.strangematter.StrangeMatterMod;
+import com.hexvane.strangematter.entity.HoverboardEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -113,11 +115,17 @@ public class HoverboardItem extends Item {
     }
     
     private void spawnHoverboard(Level level, Vec3 position, Player player) {
-        // Create boat entity (placeholder for hoverboard)
-        Boat hoverboard = new Boat(level, position.x, position.y, position.z);
+        // Create hoverboard entity
+        HoverboardEntity hoverboard = new HoverboardEntity(StrangeMatterMod.HOVERBOARD_ENTITY.get(), level);
         
-        // Set rotation to match player's look direction
-        hoverboard.setYRot(player.getYRot());
+        // Adjust spawn position to prevent glitching
+        // The 'position' from raycast is the exact click point, but we need to spawn above the block
+        double spawnX = position.x;
+        double spawnY = position.y + 0.1; // Slightly above the surface to prevent collision glitching
+        double spawnZ = position.z;
+        
+        // Set position and rotation
+        hoverboard.moveTo(spawnX, spawnY, spawnZ, player.getYRot(), 0.0f);
         
         // Add the entity to the world
         level.addFreshEntity(hoverboard);
