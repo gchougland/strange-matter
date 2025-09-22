@@ -282,6 +282,10 @@ public abstract class BaseAnomalyEntity extends Entity {
         return this.entityData.get(PULSE_INTENSITY);
     }
     
+    protected void setPulseIntensity(float intensity) {
+        this.entityData.set(PULSE_INTENSITY, intensity);
+    }
+    
     public boolean isContained() {
         return this.entityData.get(IS_CONTAINED);
     }
