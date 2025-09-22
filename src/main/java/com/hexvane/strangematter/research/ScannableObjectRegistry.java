@@ -23,6 +23,10 @@ public class ScannableObjectRegistry {
         registerEntity(ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "warp_gate_anomaly"), 
             ResearchType.SPACE, 10);
         
+        // Register energetic rift entity
+        registerEntity(ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "energetic_rift"), 
+            ResearchType.ENERGY, 12);
+        
         // Register crystalized ectoplasm block
         registerBlock(ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "crystalized_ectoplasm"), 
             ResearchType.ENERGY, 3);

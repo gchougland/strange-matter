@@ -44,6 +44,7 @@ public class StrangeMatterSounds {
     // Environmental Sounds
     public static final RegistryObject<SoundEvent> FIELD_SCANNER_SCAN = registerSoundEvent("field_scanner_scan");
     public static final RegistryObject<SoundEvent> GRAVITY_ANOMALY_LOOP = registerSoundEvent("gravity_anomaly_loop");
+    public static final RegistryObject<SoundEvent> ENERGETIC_RIFT_LOOP = registerSoundEvent("energetic_rift_loop");
     public static final RegistryObject<SoundEvent> WARP_GATE_LOOP = registerSoundEvent("warp_gate_loop");
 
     private static RegistryObject<SoundEvent> registerSoundEvent(String name) {

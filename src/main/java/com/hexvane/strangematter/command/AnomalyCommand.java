@@ -2,6 +2,7 @@ package com.hexvane.strangematter.command;
 
 import com.hexvane.strangematter.StrangeMatterMod;
 import com.hexvane.strangematter.entity.GravityAnomalyEntity;
+import com.hexvane.strangematter.entity.EnergeticRiftEntity;
 import com.hexvane.strangematter.entity.WarpGateAnomalyEntity;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -20,7 +21,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 public class AnomalyCommand {
     
     private static final SimpleCommandExceptionType INVALID_ANOMALY_TYPE = new SimpleCommandExceptionType(
-        Component.literal("Invalid anomaly type. Available types: gravity, warp_gate")
+        Component.literal("Invalid anomaly type. Available types: gravity, warp_gate, energetic_rift")
     );
     
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -108,6 +109,21 @@ public class AnomalyCommand {
                 } else {
                     throw new SimpleCommandExceptionType(Component.literal("Failed to create warp gate entity")).create();
                 }
+            case "energetic_rift":
+                EnergeticRiftEntity energeticRift = StrangeMatterMod.ENERGETIC_RIFT.get().create(level);
+                if (energeticRift != null) {
+                    energeticRift.setPos(spawnPos.getX() + 0.5, spawnPos.getY() + 1.0, spawnPos.getZ() + 0.5);
+                    level.addFreshEntity(energeticRift);
+                    
+                    // Spawn anomalous grass and resonite ore
+                    spawnAnomalousGrassAndOre(level, spawnPos);
+                    
+                    source.sendSuccess(() -> Component.literal("Spawned energetic rift at " + 
+                        spawnPos.getX() + ", " + spawnPos.getY() + ", " + spawnPos.getZ()), true);
+                    return 1;
+                } else {
+                    throw new SimpleCommandExceptionType(Component.literal("Failed to create energetic rift entity")).create();
+                }
             default:
                 throw INVALID_ANOMALY_TYPE.create();
         }
@@ -192,6 +208,37 @@ public class AnomalyCommand {
                 return 0;
             }
                 
+            case "energetic_rift":
+                // For energetic rift anomalies, search for entities
+                var energeticRiftEntities = serverLevel.getEntitiesOfClass(EnergeticRiftEntity.class, 
+                    new net.minecraft.world.phys.AABB(playerPos).inflate(10000));
+                
+                if (energeticRiftEntities.isEmpty()) {
+                    source.sendSuccess(() -> Component.literal("No energetic rift anomalies found within 10000 blocks"), false);
+                    return 0;
+                }
+                
+                // Find the nearest one
+                EnergeticRiftEntity nearestRift = null;
+                double nearestRiftDistance = Double.MAX_VALUE;
+                for (EnergeticRiftEntity entity : energeticRiftEntities) {
+                    double distance = playerPos.distSqr(entity.blockPosition());
+                    if (distance < nearestRiftDistance) {
+                        nearestRift = entity;
+                        nearestRiftDistance = distance;
+                    }
+                }
+                
+                if (nearestRift != null) {
+                    BlockPos nearestPos = nearestRift.blockPosition();
+                    double distance = Math.sqrt(nearestRiftDistance);
+                    source.sendSuccess(() -> Component.literal("Nearest energetic rift at " + 
+                        nearestPos.getX() + ", " + nearestPos.getY() + ", " + nearestPos.getZ() + 
+                        " (distance: " + String.format("%.1f", distance) + " blocks)"), false);
+                    return 1;
+                }
+                break;
+                
             default:
                 throw INVALID_ANOMALY_TYPE.create();
         }
@@ -206,6 +253,7 @@ public class AnomalyCommand {
         source.sendSuccess(() -> Component.literal("Available anomaly types:"), false);
         source.sendSuccess(() -> Component.literal("- gravity: Creates a floating icosahedron with levitation field"), false);
         source.sendSuccess(() -> Component.literal("- warp_gate: Creates a spatial anomaly for teleportation"), false);
+        source.sendSuccess(() -> Component.literal("- energetic_rift: Creates an electric anomaly that zaps entities and strikes lightning rods"), false);
         source.sendSuccess(() -> Component.literal(""), false);
         source.sendSuccess(() -> Component.literal("Commands:"), false);
         source.sendSuccess(() -> Component.literal("- /anomaly spawn <type> [pos]: Spawn single anomaly"), false);

@@ -3,6 +3,7 @@ package com.hexvane.strangematter;
 import com.hexvane.strangematter.entity.GravityAnomalyEntity;
 import com.hexvane.strangematter.entity.WarpGateAnomalyEntity;
 import com.hexvane.strangematter.client.GravityAnomalyRenderer;
+import com.hexvane.strangematter.client.EnergeticRiftRenderer;
 import com.hexvane.strangematter.client.WarpGateAnomalyRenderer;
 import com.hexvane.strangematter.client.CrystalizedEctoplasmRenderer;
 import com.hexvane.strangematter.client.ResearchMachineRenderer;
@@ -157,6 +158,13 @@ public class StrangeMatterMod
         () -> EntityType.Builder.<GravityAnomalyEntity>of(GravityAnomalyEntity::new, MobCategory.MISC)
             .sized(1.0f, 1.0f) // Size of the entity
             .build("gravity_anomaly"));
+    
+    // Energetic Rift Entity
+    public static final RegistryObject<EntityType<com.hexvane.strangematter.entity.EnergeticRiftEntity>> ENERGETIC_RIFT = ENTITY_TYPES.register("energetic_rift", 
+        () -> EntityType.Builder.<com.hexvane.strangematter.entity.EnergeticRiftEntity>of(
+            (entityType, level) -> new com.hexvane.strangematter.entity.EnergeticRiftEntity(entityType, level), MobCategory.MISC)
+            .sized(1.0f, 1.0f) // Size of the entity
+            .build("energetic_rift"));
 
     // Warp Gate Anomaly Entity
     public static final RegistryObject<EntityType<WarpGateAnomalyEntity>> WARP_GATE_ANOMALY_ENTITY = ENTITY_TYPES.register("warp_gate_anomaly", 
@@ -169,6 +177,9 @@ public class StrangeMatterMod
     // World Generation Features
     public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> GRAVITY_ANOMALY_FEATURE = FEATURES.register("gravity_anomaly", 
         () -> new GravityAnomalyConfiguredFeature());
+    
+    public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> ENERGETIC_RIFT_FEATURE = FEATURES.register("energetic_rift", 
+        () -> new com.hexvane.strangematter.worldgen.EnergeticRiftConfiguredFeature());
     
     public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> CRYSTALIZED_ECTOPLASM_FEATURE = FEATURES.register("crystalized_ectoplasm", 
         () -> new CrystalizedEctoplasmConfiguredFeature());
@@ -268,6 +279,11 @@ public class StrangeMatterMod
     
     private void clientSetup(final FMLClientSetupEvent event)
     {
+        // Initialize custom sound manager on client side
+        event.enqueueWork(() -> {
+            CustomSoundManager.getInstance().initialize();
+        });
+        
         // Register research overlay
         event.enqueueWork(() -> {
             // Register the research gain overlay using the event system
@@ -454,6 +470,7 @@ public class StrangeMatterMod
             // Register entity renderers
             event.enqueueWork(() -> {
                 net.minecraft.client.renderer.entity.EntityRenderers.register(GRAVITY_ANOMALY.get(), GravityAnomalyRenderer::new);
+                net.minecraft.client.renderer.entity.EntityRenderers.register(ENERGETIC_RIFT.get(), EnergeticRiftRenderer::new);
                 net.minecraft.client.renderer.entity.EntityRenderers.register(WARP_GATE_ANOMALY_ENTITY.get(), WarpGateAnomalyRenderer::new);
                 
                 // Register block entity renderer for crystalized ectoplasm

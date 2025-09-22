@@ -113,6 +113,7 @@ public class AnomalyResonatorItem extends CompassItem {
         List<BaseAnomalyEntity> anomalies = new java.util.ArrayList<>();
         anomalies.addAll(serverLevel.getEntitiesOfClass(GravityAnomalyEntity.class, searchArea));
         anomalies.addAll(serverLevel.getEntitiesOfClass(WarpGateAnomalyEntity.class, searchArea));
+        anomalies.addAll(serverLevel.getEntitiesOfClass(com.hexvane.strangematter.entity.EnergeticRiftEntity.class, searchArea));
         
         BaseAnomalyEntity nearest = null;
         double nearestDistance = Double.MAX_VALUE;
