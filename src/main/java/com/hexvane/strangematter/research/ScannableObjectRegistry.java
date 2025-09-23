@@ -27,6 +27,10 @@ public class ScannableObjectRegistry {
         registerEntity(ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "energetic_rift"), 
             ResearchType.ENERGY, 12);
         
+        // Register echoing shadow entity
+        registerEntity(ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "echoing_shadow"), 
+            ResearchType.SHADOW, 15);
+        
         // Register crystalized ectoplasm block
         registerBlock(ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "crystalized_ectoplasm"), 
             ResearchType.ENERGY, 3);

@@ -47,30 +47,16 @@ public class CustomSoundManager {
         if (initialized) return;
         
         try {
-            // Initialize OpenAL
-            long device = alcOpenDevice((ByteBuffer) null);
-            if (device == 0L) {
-                LOGGER.error("Failed to open OpenAL device");
+            // Always use Minecraft's existing OpenAL context - don't create our own
+            long currentContext = alcGetCurrentContext();
+            if (currentContext == 0L) {
+                LOGGER.warn("No OpenAL context available - Minecraft's audio system not initialized yet");
                 return;
             }
             
-            ALCCapabilities deviceCaps = ALC.createCapabilities(device);
-            long context = alcCreateContext(device, (IntBuffer) null);
-            if (context == 0L) {
-                LOGGER.error("Failed to create OpenAL context");
-                return;
-            }
-            
-            alcMakeContextCurrent(context);
-            ALCapabilities caps = AL.createCapabilities(deviceCaps);
-            
-            if (!caps.OpenAL10) {
-                LOGGER.error("OpenAL 1.0 not supported");
-                return;
-            }
-            
+            // Just mark as initialized - we'll use Minecraft's OpenAL context
             initialized = true;
-            LOGGER.info("Custom Sound Manager initialized successfully");
+            LOGGER.info("Custom Sound Manager initialized using Minecraft's OpenAL context");
             
         } catch (Exception e) {
             LOGGER.error("Failed to initialize Custom Sound Manager", e);
@@ -160,6 +146,11 @@ public class CustomSoundManager {
         }
     }
     
+    public void shutdown() {
+        LOGGER.info("Shutting down Custom Sound Manager");
+        cleanup();
+    }
+    
     public void stopAllSounds() {
         for (AmbientSoundInstance instance : activeSounds.values()) {
             instance.stop();
@@ -170,17 +161,23 @@ public class CustomSoundManager {
     public void cleanup() {
         stopAllSounds();
         
-        for (int buffer : soundBuffers.values()) {
-            alDeleteBuffers(buffer);
+        // Delete buffers with error checking
+        for (Map.Entry<ResourceLocation, Integer> entry : soundBuffers.entrySet()) {
+            try {
+                int buffer = entry.getValue();
+                if (buffer != 0) {
+                    alDeleteBuffers(buffer);
+                }
+            } catch (Exception e) {
+                LOGGER.warn("Error deleting sound buffer for " + entry.getKey(), e);
+            }
         }
         soundBuffers.clear();
         
         if (initialized) {
-            long context = alcGetCurrentContext();
-            long device = alcGetContextsDevice(context);
-            alcDestroyContext(context);
-            alcCloseDevice(device);
+            // Don't destroy Minecraft's OpenAL context - just mark as uninitialized
             initialized = false;
+            LOGGER.info("Custom Sound Manager cleaned up (preserving Minecraft's OpenAL context)");
         }
     }
     
@@ -222,22 +219,49 @@ public class CustomSoundManager {
         
         public void stop() {
             if (playing) {
-                alSourceStop(source);
-                alDeleteSources(source);
-                playing = false;
+                try {
+                    // Check if source is still valid before stopping
+                    int state = alGetSourcei(source, AL_SOURCE_STATE);
+                    if (state != AL_INVALID) {
+                        alSourceStop(source);
+                        alDeleteSources(source);
+                    }
+                } catch (Exception e) {
+                    LOGGER.warn("Error stopping sound source", e);
+                } finally {
+                    playing = false;
+                }
             }
         }
         
         public void setVolume(float newVolume) {
             this.volume = newVolume;
-            alSourcef(source, AL_GAIN, volume);
+            if (playing) {
+                try {
+                    int state = alGetSourcei(source, AL_SOURCE_STATE);
+                    if (state != AL_INVALID) {
+                        alSourcef(source, AL_GAIN, volume);
+                    }
+                } catch (Exception e) {
+                    LOGGER.warn("Error setting sound volume", e);
+                }
+            }
         }
         
         public void setPosition(double x, double y, double z) {
             this.x = x;
             this.y = y;
             this.z = z;
-            alSource3f(source, AL_POSITION, (float) x, (float) y, (float) z);
+            if (playing) {
+                try {
+                    int state = alGetSourcei(source, AL_SOURCE_STATE);
+                    if (state != AL_INVALID) {
+                        alSource3f(source, AL_POSITION, (float) x, (float) y, (float) z);
+                    }
+                } catch (Exception e) {
+                    LOGGER.warn("Error setting sound position", e);
+                }
+            }
         }
         
         public boolean isPlaying() {

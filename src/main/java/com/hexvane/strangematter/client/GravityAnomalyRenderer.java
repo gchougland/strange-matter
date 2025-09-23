@@ -131,7 +131,7 @@ public class GravityAnomalyRenderer extends EntityRenderer<GravityAnomalyEntity>
         poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(glowRotation));
         
         Matrix4f matrix4f = poseStack.last().pose();
-        VertexConsumer vertexConsumer = buffer.getBuffer(RenderType.entityTranslucent(
+        VertexConsumer vertexConsumer = buffer.getBuffer(RenderType.entityTranslucentEmissive(
             new ResourceLocation("minecraft", "textures/block/white_wool.png")));
         
         // Calculate glow intensity based on pulse
@@ -260,7 +260,7 @@ public class GravityAnomalyRenderer extends EntityRenderer<GravityAnomalyEntity>
         
         Matrix4f matrix4f = poseStack.last().pose();
         VertexConsumer vertexConsumer = buffer.getBuffer(RenderType.entityTranslucentCull(
-            new ResourceLocation("minecraft", "textures/block/white_wool.png")));
+            ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/entity/gravity_anomaly_aura.png")));
         
         // Render a simple cube with the specified color
         float halfSize = 0.5f;

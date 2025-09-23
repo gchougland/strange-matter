@@ -212,6 +212,9 @@ public abstract class BaseAnomalyEntity extends Entity {
     }
     
     protected void updateSoundEffects() {
+        // Ensure CustomSoundManager is initialized
+        CustomSoundManager.getInstance().initialize();
+        
         // Find the nearest player
         Player nearestPlayer = this.level().getNearestPlayer(this, MAX_SOUND_DISTANCE);
         

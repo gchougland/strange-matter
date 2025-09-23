@@ -95,6 +95,10 @@
     "sounds": ["strangematter:energetic_rift_loop"],
     "subtitle": "Energetic rift detected"
   },
+  "echoing_shadow_loop": {
+    "sounds": ["strangematter:echoing_shadow_loop"],
+    "subtitle": "Echoing shadow detected"
+  },
   "warp_gate_loop": {
     "sounds": ["strangematter:warp_gate_loop"],
     "subtitle": "Warp gate active"
