@@ -3,6 +3,7 @@ package com.hexvane.strangematter.command;
 import com.hexvane.strangematter.StrangeMatterMod;
 import com.hexvane.strangematter.entity.GravityAnomalyEntity;
 import com.hexvane.strangematter.entity.EnergeticRiftEntity;
+import com.hexvane.strangematter.entity.EchoingShadowEntity;
 import com.hexvane.strangematter.entity.WarpGateAnomalyEntity;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -21,7 +22,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 public class AnomalyCommand {
     
     private static final SimpleCommandExceptionType INVALID_ANOMALY_TYPE = new SimpleCommandExceptionType(
-        Component.literal("Invalid anomaly type. Available types: gravity, warp_gate, energetic_rift")
+        Component.literal("Invalid anomaly type. Available types: gravity, warp_gate, energetic_rift, echoing_shadow")
     );
     
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -123,6 +124,21 @@ public class AnomalyCommand {
                     return 1;
                 } else {
                     throw new SimpleCommandExceptionType(Component.literal("Failed to create energetic rift entity")).create();
+                }
+            case "echoing_shadow":
+                EchoingShadowEntity echoingShadow = StrangeMatterMod.ECHOING_SHADOW.get().create(level);
+                if (echoingShadow != null) {
+                    echoingShadow.setPos(spawnPos.getX() + 0.5, spawnPos.getY() + 1.0, spawnPos.getZ() + 0.5);
+                    level.addFreshEntity(echoingShadow);
+                    
+                    // Spawn anomalous grass and resonite ore
+                    spawnAnomalousGrassAndOre(level, spawnPos);
+                    
+                    source.sendSuccess(() -> Component.literal("Spawned echoing shadow at " + 
+                        spawnPos.getX() + ", " + spawnPos.getY() + ", " + spawnPos.getZ()), true);
+                    return 1;
+                } else {
+                    throw new SimpleCommandExceptionType(Component.literal("Failed to create echoing shadow entity")).create();
                 }
             default:
                 throw INVALID_ANOMALY_TYPE.create();
@@ -239,6 +255,37 @@ public class AnomalyCommand {
                 }
                 break;
                 
+            case "echoing_shadow":
+                // For echoing shadow anomalies, search for entities
+                var echoingShadowEntities = serverLevel.getEntitiesOfClass(EchoingShadowEntity.class, 
+                    new net.minecraft.world.phys.AABB(playerPos).inflate(10000));
+                
+                if (echoingShadowEntities.isEmpty()) {
+                    source.sendSuccess(() -> Component.literal("No echoing shadow anomalies found within 10000 blocks"), false);
+                    return 0;
+                }
+                
+                // Find the nearest one
+                EchoingShadowEntity nearestShadow = null;
+                double nearestShadowDistance = Double.MAX_VALUE;
+                for (EchoingShadowEntity entity : echoingShadowEntities) {
+                    double distance = playerPos.distSqr(entity.blockPosition());
+                    if (distance < nearestShadowDistance) {
+                        nearestShadow = entity;
+                        nearestShadowDistance = distance;
+                    }
+                }
+                
+                if (nearestShadow != null) {
+                    BlockPos nearestPos = nearestShadow.blockPosition();
+                    double distance = Math.sqrt(nearestShadowDistance);
+                    source.sendSuccess(() -> Component.literal("Nearest echoing shadow at " + 
+                        nearestPos.getX() + ", " + nearestPos.getY() + ", " + nearestPos.getZ() + 
+                        " (distance: " + String.format("%.1f", distance) + " blocks)"), false);
+                    return 1;
+                }
+                break;
+                
             default:
                 throw INVALID_ANOMALY_TYPE.create();
         }
@@ -254,6 +301,7 @@ public class AnomalyCommand {
         source.sendSuccess(() -> Component.literal("- gravity: Creates a floating icosahedron with levitation field"), false);
         source.sendSuccess(() -> Component.literal("- warp_gate: Creates a spatial anomaly for teleportation"), false);
         source.sendSuccess(() -> Component.literal("- energetic_rift: Creates an electric anomaly that zaps entities and strikes lightning rods"), false);
+        source.sendSuccess(() -> Component.literal("- echoing_shadow: Creates a shadow anomaly that absorbs light and boosts mob spawning"), false);
         source.sendSuccess(() -> Component.literal(""), false);
         source.sendSuccess(() -> Component.literal("Commands:"), false);
         source.sendSuccess(() -> Component.literal("- /anomaly spawn <type> [pos]: Spawn single anomaly"), false);

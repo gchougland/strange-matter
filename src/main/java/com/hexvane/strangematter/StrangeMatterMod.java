@@ -1,9 +1,11 @@
 package com.hexvane.strangematter;
 
 import com.hexvane.strangematter.entity.GravityAnomalyEntity;
+import com.hexvane.strangematter.entity.EchoingShadowEntity;
 import com.hexvane.strangematter.entity.WarpGateAnomalyEntity;
 import com.hexvane.strangematter.client.GravityAnomalyRenderer;
 import com.hexvane.strangematter.client.EnergeticRiftRenderer;
+import com.hexvane.strangematter.client.EchoingShadowRenderer;
 import com.hexvane.strangematter.client.WarpGateAnomalyRenderer;
 import com.hexvane.strangematter.client.CrystalizedEctoplasmRenderer;
 import com.hexvane.strangematter.client.ResearchMachineRenderer;
@@ -26,6 +28,7 @@ import com.hexvane.strangematter.item.ResoniteIngotItem;
 import com.hexvane.strangematter.item.ResearchNoteItem;
 import com.hexvane.strangematter.item.ResearchTabletItem;
 import com.hexvane.strangematter.worldgen.GravityAnomalyConfiguredFeature;
+import com.hexvane.strangematter.worldgen.EchoingShadowConfiguredFeature;
 import com.hexvane.strangematter.worldgen.CrystalizedEctoplasmConfiguredFeature;
 import com.hexvane.strangematter.worldgen.WarpGateAnomalyStructure;
 import com.hexvane.strangematter.worldgen.WarpGateAnomalyFeature;
@@ -166,6 +169,12 @@ public class StrangeMatterMod
             .sized(1.0f, 1.0f) // Size of the entity
             .build("energetic_rift"));
 
+    // Echoing Shadow Entity
+    public static final RegistryObject<EntityType<EchoingShadowEntity>> ECHOING_SHADOW = ENTITY_TYPES.register("echoing_shadow", 
+        () -> EntityType.Builder.<EchoingShadowEntity>of(EchoingShadowEntity::new, MobCategory.MISC)
+            .sized(1.0f, 1.0f) // Size of the entity
+            .build("echoing_shadow"));
+
     // Warp Gate Anomaly Entity
     public static final RegistryObject<EntityType<WarpGateAnomalyEntity>> WARP_GATE_ANOMALY_ENTITY = ENTITY_TYPES.register("warp_gate_anomaly", 
         () -> EntityType.Builder.<WarpGateAnomalyEntity>of(WarpGateAnomalyEntity::new, MobCategory.MISC)
@@ -180,6 +189,9 @@ public class StrangeMatterMod
     
     public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> ENERGETIC_RIFT_FEATURE = FEATURES.register("energetic_rift", 
         () -> new com.hexvane.strangematter.worldgen.EnergeticRiftConfiguredFeature());
+    
+    public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> ECHOING_SHADOW_FEATURE = FEATURES.register("echoing_shadow", 
+        () -> new EchoingShadowConfiguredFeature());
     
     public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> CRYSTALIZED_ECTOPLASM_FEATURE = FEATURES.register("crystalized_ectoplasm", 
         () -> new CrystalizedEctoplasmConfiguredFeature());
@@ -471,6 +483,7 @@ public class StrangeMatterMod
             event.enqueueWork(() -> {
                 net.minecraft.client.renderer.entity.EntityRenderers.register(GRAVITY_ANOMALY.get(), GravityAnomalyRenderer::new);
                 net.minecraft.client.renderer.entity.EntityRenderers.register(ENERGETIC_RIFT.get(), EnergeticRiftRenderer::new);
+                net.minecraft.client.renderer.entity.EntityRenderers.register(ECHOING_SHADOW.get(), EchoingShadowRenderer::new);
                 net.minecraft.client.renderer.entity.EntityRenderers.register(WARP_GATE_ANOMALY_ENTITY.get(), WarpGateAnomalyRenderer::new);
                 
                 // Register block entity renderer for crystalized ectoplasm

@@ -88,6 +88,89 @@ public class OBJLoader {
                 }
             }
         }
+        
+        public void renderWithDistortion(PoseStack poseStack, MultiBufferSource buffer, 
+                                       ResourceLocation defaultTexture, int packedLight, float r, float g, float b, float a,
+                                       float time) {
+            
+            Matrix4f matrix4f = poseStack.last().pose();
+            Matrix3f matrix3f = poseStack.last().normal();
+            
+            // Choose render type based on alpha value
+            RenderType renderType = (a < 1.0f) ? 
+                TriangleRenderType.createTranslucentTriangles(defaultTexture) : 
+                TriangleRenderType.createTriangles(defaultTexture);
+            VertexConsumer vertexConsumer = buffer.getBuffer(renderType);
+            
+            // Render all faces with per-vertex distortion
+            for (int faceIndex = 0; faceIndex < faces.size(); faceIndex++) {
+                int[] face = faces.get(faceIndex);
+                
+                // Each face is a triangle with 3 vertices
+                for (int i = 0; i < 3; i++) {
+                    int vertexIndex = face[i * 3] - 1; // OBJ uses 1-based indexing
+                    int texIndex = face[i * 3 + 1] - 1;
+                    int normalIndex = face[i * 3 + 2] - 1;
+                    
+                    // Bounds checking
+                    if (vertexIndex >= 0 && vertexIndex < vertices.size() &&
+                        texIndex >= 0 && texIndex < texCoords.size() &&
+                        normalIndex >= 0 && normalIndex < normals.size()) {
+                        
+                        float[] originalVertex = vertices.get(vertexIndex);
+                        float[] distortedVertex = applyVertexDistortion(originalVertex, vertexIndex, time);
+                        float[] texCoord = texCoords.get(texIndex);
+                        float[] normal = normals.get(normalIndex);
+                        
+                        vertexConsumer.vertex(matrix4f, distortedVertex[0], distortedVertex[1], distortedVertex[2])
+                                .color(r, g, b, a)
+                                .uv(texCoord[0], texCoord[1])
+                                .overlayCoords(OverlayTexture.NO_OVERLAY)
+                                .uv2(packedLight)
+                                .normal(matrix3f, normal[0], normal[1], normal[2])
+                                .endVertex();
+                    }
+                }
+            }
+        }
+        
+        private float[] applyVertexDistortion(float[] originalVertex, int vertexIndex, float time) {
+            // Create unique animation for each vertex based on its index
+            float vertexTime = time + (vertexIndex * 0.2f); // Offset each vertex
+            
+            // Calculate multiple sine waves for complex distortion (reduced intensity)
+            float distortion1 = (float) (Math.sin(vertexTime * 1.5) * 0.08);
+            float distortion2 = (float) (Math.sin(vertexTime * 2.3 + vertexIndex * 0.3) * 0.05);
+            float distortion3 = (float) (Math.sin(vertexTime * 0.8 + vertexIndex * 0.6) * 0.03);
+            
+            // Combine distortions
+            float totalDistortion = distortion1 + distortion2 + distortion3;
+            
+            // Apply distortion radially from the vertex position
+            float[] result = new float[3];
+            float magnitude = (float) Math.sqrt(originalVertex[0] * originalVertex[0] + 
+                                              originalVertex[1] * originalVertex[1] + 
+                                              originalVertex[2] * originalVertex[2]);
+            
+            if (magnitude > 0) {
+                // Normalize the vertex position
+                float nx = originalVertex[0] / magnitude;
+                float ny = originalVertex[1] / magnitude;
+                float nz = originalVertex[2] / magnitude;
+                
+                // Apply distortion along the radial direction
+                result[0] = originalVertex[0] + nx * totalDistortion;
+                result[1] = originalVertex[1] + ny * totalDistortion;
+                result[2] = originalVertex[2] + nz * totalDistortion;
+            } else {
+                // If magnitude is 0, just return the original vertex
+                result[0] = originalVertex[0];
+                result[1] = originalVertex[1];
+                result[2] = originalVertex[2];
+            }
+            
+            return result;
+        }
     }
     
     private static Map<String, ResourceLocation> loadMTL(ResourceLocation mtlLocation) {
