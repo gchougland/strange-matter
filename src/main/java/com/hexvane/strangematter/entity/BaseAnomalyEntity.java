@@ -273,7 +273,7 @@ public abstract class BaseAnomalyEntity extends Entity {
         float volumeRatio = 1.0f - (float)(distance / MAX_SOUND_DISTANCE);
         volumeRatio = Math.max(0.0f, Math.min(1.0f, volumeRatio)); // Clamp between 0 and 1
         
-        return 0.3f + (volumeRatio * 0.7f); // Range from 0.3 to 1.0
+        return 0.5f + (volumeRatio * 0.5f); // Range from 0.5 to 1.0
     }
     
     // Getters for entity data

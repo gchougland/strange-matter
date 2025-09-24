@@ -5,6 +5,7 @@ import com.hexvane.strangematter.entity.GravityAnomalyEntity;
 import com.hexvane.strangematter.entity.EnergeticRiftEntity;
 import com.hexvane.strangematter.entity.EchoingShadowEntity;
 import com.hexvane.strangematter.entity.WarpGateAnomalyEntity;
+import com.hexvane.strangematter.entity.TemporalBloomEntity;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -22,7 +23,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 public class AnomalyCommand {
     
     private static final SimpleCommandExceptionType INVALID_ANOMALY_TYPE = new SimpleCommandExceptionType(
-        Component.literal("Invalid anomaly type. Available types: gravity, warp_gate, energetic_rift, echoing_shadow")
+        Component.literal("Invalid anomaly type. Available types: gravity, warp_gate, energetic_rift, echoing_shadow, temporal_bloom")
     );
     
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -140,6 +141,21 @@ public class AnomalyCommand {
                 } else {
                     throw new SimpleCommandExceptionType(Component.literal("Failed to create echoing shadow entity")).create();
                 }
+            case "temporal_bloom":
+                TemporalBloomEntity temporalBloom = StrangeMatterMod.TEMPORAL_BLOOM.get().create(level);
+                if (temporalBloom != null) {
+                    temporalBloom.setPos(spawnPos.getX() + 0.5, spawnPos.getY() + 1.0, spawnPos.getZ() + 0.5);
+                    level.addFreshEntity(temporalBloom);
+                    
+                    // Spawn anomalous grass and resonite ore
+                    spawnAnomalousGrassAndOre(level, spawnPos);
+                    
+                    source.sendSuccess(() -> Component.literal("Spawned temporal bloom at " + 
+                        spawnPos.getX() + ", " + spawnPos.getY() + ", " + spawnPos.getZ()), true);
+                    return 1;
+                } else {
+                    throw new SimpleCommandExceptionType(Component.literal("Failed to create temporal bloom entity")).create();
+                }
             default:
                 throw INVALID_ANOMALY_TYPE.create();
         }
@@ -193,7 +209,7 @@ public class AnomalyCommand {
                 // Create a TagKey for our warp gate structure using the correct 1.20.1 Forge API
                 var warpGateTag = net.minecraft.tags.TagKey.create(
                     net.minecraft.core.registries.Registries.STRUCTURE,
-                    new net.minecraft.resources.ResourceLocation("strangematter", "warp_gate_anomaly")
+                    net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("strangematter", "warp_gate_anomaly")
                 );
 
                 System.out.println("Locate Command: Created TagKey: " + warpGateTag);
@@ -286,6 +302,37 @@ public class AnomalyCommand {
                 }
                 break;
                 
+            case "temporal_bloom":
+                // For temporal bloom anomalies, search for entities
+                var temporalBloomEntities = serverLevel.getEntitiesOfClass(TemporalBloomEntity.class, 
+                    new net.minecraft.world.phys.AABB(playerPos).inflate(10000));
+                
+                if (temporalBloomEntities.isEmpty()) {
+                    source.sendSuccess(() -> Component.literal("No temporal bloom anomalies found within 10000 blocks"), false);
+                    return 0;
+                }
+                
+                // Find the nearest one
+                TemporalBloomEntity nearestBloom = null;
+                double nearestBloomDistance = Double.MAX_VALUE;
+                for (TemporalBloomEntity entity : temporalBloomEntities) {
+                    double distance = playerPos.distSqr(entity.blockPosition());
+                    if (distance < nearestBloomDistance) {
+                        nearestBloom = entity;
+                        nearestBloomDistance = distance;
+                    }
+                }
+                
+                if (nearestBloom != null) {
+                    BlockPos nearestPos = nearestBloom.blockPosition();
+                    double distance = Math.sqrt(nearestBloomDistance);
+                    source.sendSuccess(() -> Component.literal("Nearest temporal bloom at " + 
+                        nearestPos.getX() + ", " + nearestPos.getY() + ", " + nearestPos.getZ() + 
+                        " (distance: " + String.format("%.1f", distance) + " blocks)"), false);
+                    return 1;
+                }
+                break;
+                
             default:
                 throw INVALID_ANOMALY_TYPE.create();
         }
@@ -302,6 +349,7 @@ public class AnomalyCommand {
         source.sendSuccess(() -> Component.literal("- warp_gate: Creates a spatial anomaly for teleportation"), false);
         source.sendSuccess(() -> Component.literal("- energetic_rift: Creates an electric anomaly that zaps entities and strikes lightning rods"), false);
         source.sendSuccess(() -> Component.literal("- echoing_shadow: Creates a shadow anomaly that absorbs light and boosts mob spawning"), false);
+        source.sendSuccess(() -> Component.literal("- temporal_bloom: Creates a temporal anomaly that affects crop growth and transforms mobs"), false);
         source.sendSuccess(() -> Component.literal(""), false);
         source.sendSuccess(() -> Component.literal("Commands:"), false);
         source.sendSuccess(() -> Component.literal("- /anomaly spawn <type> [pos]: Spawn single anomaly"), false);
@@ -358,7 +406,7 @@ public class AnomalyCommand {
             // Create a TagKey for our warp gate structure (now that we have a structure tag file)
             var warpGateTag = net.minecraft.tags.TagKey.create(
                 net.minecraft.core.registries.Registries.STRUCTURE,
-                new net.minecraft.resources.ResourceLocation("strangematter", "warp_gate_anomaly")
+                net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("strangematter", "warp_gate_anomaly")
             );
             
             source.sendSuccess(() -> Component.literal("Searching for warp gate structure with TagKey: " + warpGateTag), false);
