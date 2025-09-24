@@ -4,6 +4,7 @@ import com.hexvane.strangematter.entity.GravityAnomalyEntity;
 import com.hexvane.strangematter.entity.EchoingShadowEntity;
 import com.hexvane.strangematter.entity.WarpGateAnomalyEntity;
 import com.hexvane.strangematter.client.GravityAnomalyRenderer;
+import com.hexvane.strangematter.client.TemporalBloomRenderer;
 import com.hexvane.strangematter.client.EnergeticRiftRenderer;
 import com.hexvane.strangematter.client.EchoingShadowRenderer;
 import com.hexvane.strangematter.client.WarpGateAnomalyRenderer;
@@ -181,6 +182,13 @@ public class StrangeMatterMod
             .sized(2.0f, 3.0f) // Larger size for warp gate
             .build("warp_gate_anomaly"));
 
+    // Temporal Bloom Entity
+    public static final RegistryObject<EntityType<com.hexvane.strangematter.entity.TemporalBloomEntity>> TEMPORAL_BLOOM = ENTITY_TYPES.register("temporal_bloom", 
+        () -> EntityType.Builder.<com.hexvane.strangematter.entity.TemporalBloomEntity>of(
+            (entityType, level) -> new com.hexvane.strangematter.entity.TemporalBloomEntity(entityType, level), MobCategory.MISC)
+            .sized(1.0f, 1.0f) // Size of the entity
+            .build("temporal_bloom"));
+
     // Sound Events are now registered in StrangeMatterSounds class
 
     // World Generation Features
@@ -192,6 +200,9 @@ public class StrangeMatterMod
     
     public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> ECHOING_SHADOW_FEATURE = FEATURES.register("echoing_shadow", 
         () -> new EchoingShadowConfiguredFeature());
+    
+    public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> TEMPORAL_BLOOM_FEATURE = FEATURES.register("temporal_bloom", 
+        () -> new com.hexvane.strangematter.worldgen.TemporalBloomConfiguredFeature());
     
     public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> CRYSTALIZED_ECTOPLASM_FEATURE = FEATURES.register("crystalized_ectoplasm", 
         () -> new CrystalizedEctoplasmConfiguredFeature());
@@ -485,6 +496,7 @@ public class StrangeMatterMod
                 net.minecraft.client.renderer.entity.EntityRenderers.register(ENERGETIC_RIFT.get(), EnergeticRiftRenderer::new);
                 net.minecraft.client.renderer.entity.EntityRenderers.register(ECHOING_SHADOW.get(), EchoingShadowRenderer::new);
                 net.minecraft.client.renderer.entity.EntityRenderers.register(WARP_GATE_ANOMALY_ENTITY.get(), WarpGateAnomalyRenderer::new);
+                net.minecraft.client.renderer.entity.EntityRenderers.register(TEMPORAL_BLOOM.get(), TemporalBloomRenderer::new);
                 
                 // Register block entity renderer for crystalized ectoplasm
                 net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(CRYSTALIZED_ECTOPLASM_BLOCK_ENTITY.get(), CrystalizedEctoplasmRenderer::new);
