@@ -346,60 +346,12 @@ public class TemporalBloomEntity extends BaseAnomalyEntity {
                         0.0
                     );
                 }
-                
-                // Also add some end rod particles for variety
-                serverLevel.sendParticles(
-                    ParticleTypes.END_ROD,
-                    x + offsetX, y + offsetY, z + offsetZ,
-                    1,
-                    (this.level().getRandom().nextDouble() - 0.5) * 0.1,
-                    (this.level().getRandom().nextDouble() - 0.5) * 0.1,
-                    (this.level().getRandom().nextDouble() - 0.5) * 0.1,
-                    0.0
-                );
             }
         }
     }
     
     private void spawnBlockEffectParticles(BlockPos pos) {
         if (this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-            // Create a ring of particles around the affected block
-            for (int i = 0; i < 16; i++) {
-                double angle = (i * Math.PI * 2) / 16.0;
-                double radius = 0.8;
-                double x = pos.getX() + 0.5 + Math.cos(angle) * radius;
-                double z = pos.getZ() + 0.5 + Math.sin(angle) * radius;
-                double y = pos.getY() + 0.5;
-                
-                // Reduce white particles - only spawn every third one
-                if (i % 3 == 0) {
-                    serverLevel.sendParticles(
-                        ParticleTypes.ELECTRIC_SPARK,
-                        x, y, z,
-                        1,
-                        Math.cos(angle + Math.PI/2) * 0.1, 0.2, Math.sin(angle + Math.PI/2) * 0.1,
-                        0.0
-                    );
-                }
-            }
-            
-            // Add some upward spiraling particles
-            for (int i = 0; i < 8; i++) {
-                double angle = (i * Math.PI * 2) / 8.0;
-                double radius = 0.5;
-                double x = pos.getX() + 0.5 + Math.cos(angle) * radius;
-                double z = pos.getZ() + 0.5 + Math.sin(angle) * radius;
-                double y = pos.getY() + 0.2;
-                
-                serverLevel.sendParticles(
-                    ParticleTypes.END_ROD,
-                    x, y, z,
-                    1,
-                    Math.cos(angle) * 0.05, 0.2, Math.sin(angle) * 0.05,
-                    0.0
-                );
-            }
-            
             // Add some portal particles for extra visibility
             for (int i = 0; i < 4; i++) {
                 double x = pos.getX() + 0.5 + (this.level().getRandom().nextDouble() - 0.5) * 1.0;
@@ -421,45 +373,6 @@ public class TemporalBloomEntity extends BaseAnomalyEntity {
     
     private void spawnEntityEffectParticles(LivingEntity entity) {
         if (this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-            // Create a spiral of particles around the affected entity
-            for (int i = 0; i < 20; i++) {
-                double angle = (i * Math.PI * 2) / 20.0;
-                double radius = entity.getBbWidth() * 0.8;
-                double x = entity.getX() + Math.cos(angle) * radius;
-                double z = entity.getZ() + Math.sin(angle) * radius;
-                double y = entity.getY() + entity.getBbHeight() * 0.5;
-                
-                // Reduce white particles - only spawn every other one
-                if (i % 2 == 0) {
-                    serverLevel.sendParticles(
-                        ParticleTypes.ELECTRIC_SPARK,
-                        x, y, z,
-                        1,
-                        Math.cos(angle + Math.PI/2) * 0.1, 0.1, Math.sin(angle + Math.PI/2) * 0.1,
-                        0.0
-                    );
-                }
-            }
-            
-            // Add temporal energy particles above the entity
-            for (int i = 0; i < 12; i++) {
-                double offsetX = (this.level().getRandom().nextDouble() - 0.5) * entity.getBbWidth();
-                double offsetZ = (this.level().getRandom().nextDouble() - 0.5) * entity.getBbWidth();
-                double x = entity.getX() + offsetX;
-                double z = entity.getZ() + offsetZ;
-                double y = entity.getY() + entity.getBbHeight() + 0.5;
-                
-                serverLevel.sendParticles(
-                    ParticleTypes.END_ROD,
-                    x, y, z,
-                    1,
-                    (this.level().getRandom().nextDouble() - 0.5) * 0.1,
-                    0.15,
-                    (this.level().getRandom().nextDouble() - 0.5) * 0.1,
-                    0.0
-                );
-            }
-            
             // Add portal particles for extra visibility
             for (int i = 0; i < 6; i++) {
                 double x = entity.getX() + (this.level().getRandom().nextDouble() - 0.5) * entity.getBbWidth();

@@ -33,8 +33,8 @@ public class ResearchTabletScreen extends Screen {
     
     private static final int GUI_WIDTH = 320;
     private static final int GUI_HEIGHT = 240;
-    private static final int DRAGGABLE_AREA_WIDTH = 275;
-    private static final int DRAGGABLE_AREA_HEIGHT = 180;
+    private static final int DRAGGABLE_AREA_WIDTH = 246;
+    private static final int DRAGGABLE_AREA_HEIGHT = 161;
     private static final int BACKGROUND_TILE_SIZE = 64;
     
     private int guiX, guiY;
@@ -135,8 +135,8 @@ public class ResearchTabletScreen extends Screen {
     }
     
     private void renderDraggableArea(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        int draggableX = guiX + 1 + (GUI_WIDTH - DRAGGABLE_AREA_WIDTH) / 2;
-        int draggableY = guiY + 15;
+        int draggableX = guiX + (GUI_WIDTH - DRAGGABLE_AREA_WIDTH) / 2;
+        int draggableY = guiY + 21;
         
         // Enable scissor to clip the draggable area
         guiGraphics.enableScissor(draggableX, draggableY, draggableX + DRAGGABLE_AREA_WIDTH, draggableY + DRAGGABLE_AREA_HEIGHT);
@@ -751,8 +751,8 @@ public class ResearchTabletScreen extends Screen {
     
     private void renderResearchPointsBackground(GuiGraphics guiGraphics) {
         // Calculate the area needed for research points display
-        int startX = guiX + GUI_WIDTH - 100;
-        int startY = guiY + 20;
+        int startX = guiX + GUI_WIDTH - 110;
+        int startY = guiY + 25;
         
         // Calculate dimensions based on the research points content
         // Title: "Research:" + 6 research types with spacing
@@ -765,8 +765,8 @@ public class ResearchTabletScreen extends Screen {
     
     private void renderResearchPoints(GuiGraphics guiGraphics) {
         ResearchData researchData = ResearchDataClientHandler.getClientResearchData();
-        int startX = guiX + GUI_WIDTH - 100;
-        int startY = guiY + 20;
+        int startX = guiX + GUI_WIDTH - 110;
+        int startY = guiY + 25;
         
         // Render smaller title
         guiGraphics.drawString(this.font, "Research:", startX, startY, 0xFFFFFF);
