@@ -115,6 +115,7 @@ public class AnomalyResonatorItem extends CompassItem {
         anomalies.addAll(serverLevel.getEntitiesOfClass(WarpGateAnomalyEntity.class, searchArea));
         anomalies.addAll(serverLevel.getEntitiesOfClass(com.hexvane.strangematter.entity.EnergeticRiftEntity.class, searchArea));
         anomalies.addAll(serverLevel.getEntitiesOfClass(com.hexvane.strangematter.entity.TemporalBloomEntity.class, searchArea));
+        anomalies.addAll(serverLevel.getEntitiesOfClass(com.hexvane.strangematter.entity.ThoughtwellEntity.class, searchArea));
         anomalies.addAll(serverLevel.getEntitiesOfClass(com.hexvane.strangematter.entity.EchoingShadowEntity.class, searchArea));
         
         BaseAnomalyEntity nearest = null;

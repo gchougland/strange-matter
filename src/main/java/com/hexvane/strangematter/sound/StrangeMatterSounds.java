@@ -48,6 +48,7 @@ public class StrangeMatterSounds {
     public static final RegistryObject<SoundEvent> ECHOING_SHADOW_LOOP = registerSoundEvent("echoing_shadow_loop");
     public static final RegistryObject<SoundEvent> WARP_GATE_LOOP = registerSoundEvent("warp_gate_loop");
     public static final RegistryObject<SoundEvent> TEMPORAL_BLOOM_LOOP = registerSoundEvent("temporal_bloom_loop");
+    public static final RegistryObject<SoundEvent> THOUGHTWELL_LOOP = registerSoundEvent("thoughtwell_loop");
 
     private static RegistryObject<SoundEvent> registerSoundEvent(String name) {
         return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(StrangeMatterMod.MODID, name)));

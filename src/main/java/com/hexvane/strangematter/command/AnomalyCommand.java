@@ -6,6 +6,7 @@ import com.hexvane.strangematter.entity.EnergeticRiftEntity;
 import com.hexvane.strangematter.entity.EchoingShadowEntity;
 import com.hexvane.strangematter.entity.WarpGateAnomalyEntity;
 import com.hexvane.strangematter.entity.TemporalBloomEntity;
+import com.hexvane.strangematter.entity.ThoughtwellEntity;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -23,7 +24,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 public class AnomalyCommand {
     
     private static final SimpleCommandExceptionType INVALID_ANOMALY_TYPE = new SimpleCommandExceptionType(
-        Component.literal("Invalid anomaly type. Available types: gravity, warp_gate, energetic_rift, echoing_shadow, temporal_bloom")
+        Component.literal("Invalid anomaly type. Available types: gravity, warp_gate, energetic_rift, echoing_shadow, temporal_bloom, thoughtwell")
     );
     
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -155,6 +156,21 @@ public class AnomalyCommand {
                     return 1;
                 } else {
                     throw new SimpleCommandExceptionType(Component.literal("Failed to create temporal bloom entity")).create();
+                }
+            case "thoughtwell":
+                ThoughtwellEntity thoughtwell = StrangeMatterMod.THOUGHTWELL.get().create(level);
+                if (thoughtwell != null) {
+                    thoughtwell.setPos(spawnPos.getX() + 0.5, spawnPos.getY() + 1.0, spawnPos.getZ() + 0.5);
+                    level.addFreshEntity(thoughtwell);
+                    
+                    // Spawn anomalous grass and resonite ore
+                    spawnAnomalousGrassAndOre(level, spawnPos);
+                    
+                    source.sendSuccess(() -> Component.literal("Spawned thoughtwell at " + 
+                        spawnPos.getX() + ", " + spawnPos.getY() + ", " + spawnPos.getZ()), true);
+                    return 1;
+                } else {
+                    throw new SimpleCommandExceptionType(Component.literal("Failed to create thoughtwell entity")).create();
                 }
             default:
                 throw INVALID_ANOMALY_TYPE.create();
@@ -333,6 +349,37 @@ public class AnomalyCommand {
                 }
                 break;
                 
+            case "thoughtwell":
+                // For thoughtwell anomalies, search for entities
+                var thoughtwellEntities = serverLevel.getEntitiesOfClass(ThoughtwellEntity.class, 
+                    new net.minecraft.world.phys.AABB(playerPos).inflate(10000));
+                
+                if (thoughtwellEntities.isEmpty()) {
+                    source.sendSuccess(() -> Component.literal("No thoughtwell anomalies found within 10000 blocks"), false);
+                    return 0;
+                }
+                
+                // Find the nearest one
+                ThoughtwellEntity nearestThoughtwell = null;
+                double nearestThoughtwellDistance = Double.MAX_VALUE;
+                for (ThoughtwellEntity entity : thoughtwellEntities) {
+                    double distance = playerPos.distSqr(entity.blockPosition());
+                    if (distance < nearestThoughtwellDistance) {
+                        nearestThoughtwell = entity;
+                        nearestThoughtwellDistance = distance;
+                    }
+                }
+                
+                if (nearestThoughtwell != null) {
+                    BlockPos nearestPos = nearestThoughtwell.blockPosition();
+                    double distance = Math.sqrt(nearestThoughtwellDistance);
+                    source.sendSuccess(() -> Component.literal("Nearest thoughtwell at " + 
+                        nearestPos.getX() + ", " + nearestPos.getY() + ", " + nearestPos.getZ() + 
+                        " (distance: " + String.format("%.1f", distance) + " blocks)"), false);
+                    return 1;
+                }
+                break;
+                
             default:
                 throw INVALID_ANOMALY_TYPE.create();
         }
@@ -350,6 +397,7 @@ public class AnomalyCommand {
         source.sendSuccess(() -> Component.literal("- energetic_rift: Creates an electric anomaly that zaps entities and strikes lightning rods"), false);
         source.sendSuccess(() -> Component.literal("- echoing_shadow: Creates a shadow anomaly that absorbs light and boosts mob spawning"), false);
         source.sendSuccess(() -> Component.literal("- temporal_bloom: Creates a temporal anomaly that affects crop growth and transforms mobs"), false);
+        source.sendSuccess(() -> Component.literal("- thoughtwell: Creates a cognitive anomaly that affects player perception and confuses mobs"), false);
         source.sendSuccess(() -> Component.literal(""), false);
         source.sendSuccess(() -> Component.literal("Commands:"), false);
         source.sendSuccess(() -> Component.literal("- /anomaly spawn <type> [pos]: Spawn single anomaly"), false);

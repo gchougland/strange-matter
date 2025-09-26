@@ -35,6 +35,10 @@ public class ScannableObjectRegistry {
         registerEntity(ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "temporal_bloom"), 
         ResearchType.TIME, 15);
         
+        // Register thoughtwell entity
+        registerEntity(ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "thoughtwell"), 
+            ResearchType.COGNITION, 15);
+        
         // Register crystalized ectoplasm block
         registerBlock(ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "crystalized_ectoplasm"), 
             ResearchType.ENERGY, 3);
