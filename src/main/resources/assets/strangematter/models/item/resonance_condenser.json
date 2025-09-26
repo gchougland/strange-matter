@@ -1,0 +1,5 @@
+{
+	"parent": "strangematter:block/resonance_condenser",
+	"render_type": "minecraft:cutout"
+}
+
