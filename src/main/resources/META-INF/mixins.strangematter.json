@@ -9,8 +9,10 @@
     "ServerLevelMixin"
   ],
   "client": [
-    "LightTextureMixin"
+    "LightTextureMixin",
+    "EntityRendererMixin"
   ],
+  "accessors": [],
   "server": [],
   "verbose": true
 }

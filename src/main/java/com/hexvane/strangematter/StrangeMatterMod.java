@@ -3,8 +3,10 @@ package com.hexvane.strangematter;
 import com.hexvane.strangematter.entity.GravityAnomalyEntity;
 import com.hexvane.strangematter.entity.EchoingShadowEntity;
 import com.hexvane.strangematter.entity.WarpGateAnomalyEntity;
+import com.hexvane.strangematter.entity.ThoughtwellEntity;
 import com.hexvane.strangematter.client.GravityAnomalyRenderer;
 import com.hexvane.strangematter.client.TemporalBloomRenderer;
+import com.hexvane.strangematter.client.ThoughtwellRenderer;
 import com.hexvane.strangematter.client.EnergeticRiftRenderer;
 import com.hexvane.strangematter.client.EchoingShadowRenderer;
 import com.hexvane.strangematter.client.WarpGateAnomalyRenderer;
@@ -26,16 +28,13 @@ import com.hexvane.strangematter.item.EctoplasmItem;
 import com.hexvane.strangematter.item.FieldScannerItem;
 import com.hexvane.strangematter.item.RawResoniteItem;
 import com.hexvane.strangematter.item.ResoniteIngotItem;
-import com.hexvane.strangematter.item.ResearchNoteItem;
 import com.hexvane.strangematter.item.ResearchTabletItem;
 import com.hexvane.strangematter.worldgen.GravityAnomalyConfiguredFeature;
 import com.hexvane.strangematter.worldgen.EchoingShadowConfiguredFeature;
+import com.hexvane.strangematter.worldgen.ThoughtwellConfiguredFeature;
 import com.hexvane.strangematter.worldgen.CrystalizedEctoplasmConfiguredFeature;
 import com.hexvane.strangematter.worldgen.WarpGateAnomalyStructure;
 import com.hexvane.strangematter.worldgen.WarpGateAnomalyFeature;
-import net.minecraft.world.level.levelgen.structure.Structure;
-import net.minecraft.core.HolderSet;
-import java.util.Map;
 import com.hexvane.strangematter.network.NetworkHandler;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
@@ -45,17 +44,13 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
-import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
 import net.minecraft.world.level.levelgen.structure.StructureType;
@@ -189,6 +184,13 @@ public class StrangeMatterMod
             .sized(1.0f, 1.0f) // Size of the entity
             .build("temporal_bloom"));
 
+    // Thoughtwell Entity
+    public static final RegistryObject<EntityType<com.hexvane.strangematter.entity.ThoughtwellEntity>> THOUGHTWELL = ENTITY_TYPES.register("thoughtwell", 
+        () -> EntityType.Builder.<com.hexvane.strangematter.entity.ThoughtwellEntity>of(
+            (entityType, level) -> new com.hexvane.strangematter.entity.ThoughtwellEntity(entityType, level), MobCategory.MISC)
+            .sized(1.0f, 1.0f) // Size of the entity
+            .build("thoughtwell"));
+
     // Sound Events are now registered in StrangeMatterSounds class
 
     // World Generation Features
@@ -203,6 +205,9 @@ public class StrangeMatterMod
     
     public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> TEMPORAL_BLOOM_FEATURE = FEATURES.register("temporal_bloom", 
         () -> new com.hexvane.strangematter.worldgen.TemporalBloomConfiguredFeature());
+    
+    public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> THOUGHTWELL_FEATURE = FEATURES.register("thoughtwell", 
+        () -> new com.hexvane.strangematter.worldgen.ThoughtwellConfiguredFeature());
     
     public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> CRYSTALIZED_ECTOPLASM_FEATURE = FEATURES.register("crystalized_ectoplasm", 
         () -> new CrystalizedEctoplasmConfiguredFeature());
@@ -497,6 +502,7 @@ public class StrangeMatterMod
                 net.minecraft.client.renderer.entity.EntityRenderers.register(ECHOING_SHADOW.get(), EchoingShadowRenderer::new);
                 net.minecraft.client.renderer.entity.EntityRenderers.register(WARP_GATE_ANOMALY_ENTITY.get(), WarpGateAnomalyRenderer::new);
                 net.minecraft.client.renderer.entity.EntityRenderers.register(TEMPORAL_BLOOM.get(), TemporalBloomRenderer::new);
+                net.minecraft.client.renderer.entity.EntityRenderers.register(THOUGHTWELL.get(), ThoughtwellRenderer::new);
                 
                 // Register block entity renderer for crystalized ectoplasm
                 net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(CRYSTALIZED_ECTOPLASM_BLOCK_ENTITY.get(), CrystalizedEctoplasmRenderer::new);
