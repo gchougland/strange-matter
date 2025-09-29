@@ -10,6 +10,14 @@ import net.minecraft.world.entity.player.Inventory;
 public class ResonanceCondenserScreen extends BaseMachineScreen<ResonanceCondenserMenu> {
 
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/gui/resonance_condenser.png");
+    
+    // Energy bar position (at the top of the screen)
+    private static final int ENERGY_BAR_X = 8;
+    private static final int ENERGY_BAR_Y = -18;
+    
+    // Progress bar position (below the machine slot)
+    private static final int PROGRESS_BAR_X = 79;
+    private static final int PROGRESS_BAR_Y = 50;
 
     public ResonanceCondenserScreen(ResonanceCondenserMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, TEXTURE);
@@ -17,6 +25,25 @@ public class ResonanceCondenserScreen extends BaseMachineScreen<ResonanceCondens
         this.imageHeight = 148;
     }
 
+    @Override
+    protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
+        super.renderBg(guiGraphics, partialTick, mouseX, mouseY);
+        
+        // Render energy bar and progress bar using the reusable components
+        if (this.menu.getDataAccess() != null) {
+            int energyStored = this.menu.getDataAccess().get(0);
+            int maxEnergyStored = this.menu.getDataAccess().get(1);
+            int progressLevel = this.menu.getDataAccess().get(5);
+            int maxProgress = this.menu.getDataAccess().get(6);
+            
+            int x = (this.width - this.imageWidth) / 2;
+            int y = (this.height - this.imageHeight) / 2;
+            
+            renderEnergyBar(guiGraphics, x + ENERGY_BAR_X, y + ENERGY_BAR_Y, energyStored, maxEnergyStored);
+            renderProgressBar(guiGraphics, x + PROGRESS_BAR_X, y + PROGRESS_BAR_Y, progressLevel, maxProgress);
+        }
+    }
+    
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         // Render title
@@ -28,15 +55,25 @@ public class ResonanceCondenserScreen extends BaseMachineScreen<ResonanceCondens
 
     @Override
     protected void renderMachineLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        // Render resonance level (energy absorption progress) - positioned to not overlap with slots
+        // No machine-specific labels needed - progress is now shown as a visual bar
+    }
+    
+    @Override
+    protected void renderTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        super.renderTooltip(guiGraphics, mouseX, mouseY);
+        
+        // Check for energy bar and progress bar tooltips
         if (this.menu.getDataAccess() != null) {
-            int energyLevel = this.menu.getDataAccess().get(0);
-            int maxEnergy = this.menu.getDataAccess().get(1);
-            Component energyText = Component.literal("Energy: " + energyLevel + "/" + maxEnergy);
-            guiGraphics.drawString(this.font, energyText, 8, 55, 0x26bdba, false);
-        } else {
-            Component energyText = Component.literal("Energy: 0/100");
-            guiGraphics.drawString(this.font, energyText, 8, 55, 0x26bdba, false);
+            int energyStored = this.menu.getDataAccess().get(0);
+            int maxEnergyStored = this.menu.getDataAccess().get(1);
+            int progressLevel = this.menu.getDataAccess().get(5);
+            int maxProgress = this.menu.getDataAccess().get(6);
+            
+            int x = (this.width - this.imageWidth) / 2;
+            int y = (this.height - this.imageHeight) / 2;
+            
+            renderEnergyBarTooltip(guiGraphics, mouseX, mouseY, x + ENERGY_BAR_X, y + ENERGY_BAR_Y, energyStored, maxEnergyStored);
+            renderProgressBarTooltip(guiGraphics, mouseX, mouseY, x + PROGRESS_BAR_X, y + PROGRESS_BAR_Y, progressLevel, maxProgress);
         }
     }
 }

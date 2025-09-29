@@ -64,4 +64,46 @@ public abstract class BaseMachineScreen<T extends BaseMachineMenu> extends Abstr
     protected net.minecraft.world.Container getMachineInventory() {
         return this.menu.getMachineInventory();
     }
+    
+    /**
+     * Render energy bar at the specified position using the reusable component.
+     * This method can be called by subclasses to easily add energy bars to their screens.
+     */
+    protected void renderEnergyBar(GuiGraphics guiGraphics, int x, int y, int energyStored, int maxEnergyStored) {
+        EnergyBarRenderer.renderEnergyBar(guiGraphics, x, y, energyStored, maxEnergyStored);
+    }
+    
+    /**
+     * Check if mouse is over energy bar and render tooltip if so.
+     * This method can be called by subclasses to handle energy bar tooltips.
+     */
+    protected boolean renderEnergyBarTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY, int x, int y, int energyStored, int maxEnergyStored) {
+        if (EnergyBarRenderer.isMouseOverEnergyBar(mouseX, mouseY, x, y)) {
+            Component tooltip = EnergyBarRenderer.getEnergyBarTooltip(energyStored, maxEnergyStored);
+            guiGraphics.renderTooltip(this.font, tooltip, mouseX, mouseY);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Render progress bar at the specified position using the reusable component.
+     * This method can be called by subclasses to easily add progress bars to their screens.
+     */
+    protected void renderProgressBar(GuiGraphics guiGraphics, int x, int y, int progressLevel, int maxProgressLevel) {
+        ProgressBarRenderer.renderProgressBar(guiGraphics, x, y, progressLevel, maxProgressLevel);
+    }
+
+    /**
+     * Check if mouse is over progress bar and render tooltip if so.
+     * This method can be called by subclasses to handle progress bar tooltips.
+     */
+    protected boolean renderProgressBarTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY, int x, int y, int progressLevel, int maxProgressLevel) {
+        if (ProgressBarRenderer.isMouseOverProgressBar(mouseX, mouseY, x, y)) {
+            Component tooltip = ProgressBarRenderer.getProgressBarTooltip(progressLevel, maxProgressLevel);
+            guiGraphics.renderTooltip(this.font, tooltip, mouseX, mouseY);
+            return true;
+        }
+        return false;
+    }
 }

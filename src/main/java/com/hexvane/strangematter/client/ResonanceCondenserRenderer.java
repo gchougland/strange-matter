@@ -15,6 +15,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import java.util.List;
 
@@ -33,11 +34,125 @@ public class ResonanceCondenserRenderer implements BlockEntityRenderer<Resonance
     public void render(ResonanceCondenserBlockEntity blockEntity, float partialTicks, 
                       PoseStack poseStack, MultiBufferSource buffer, int packedLight, int packedOverlay) {
         
-        // Don't render the block model - Minecraft handles that automatically
-        // Only render the energy arcs
+        // Render the glass tube part as translucent
+        renderGlassTube(blockEntity, poseStack, buffer, packedLight, packedOverlay);
+        
+        // Render the energy arcs
         if (blockEntity.getLevel() != null && blockEntity.getLevel().isClientSide) {
             renderEnergyArcs(blockEntity, poseStack, buffer, packedLight, partialTicks);
         }
+    }
+    
+    private void renderGlassTube(ResonanceCondenserBlockEntity blockEntity, PoseStack poseStack, 
+                                MultiBufferSource buffer, int packedLight, int packedOverlay) {
+        
+        poseStack.pushPose();
+        
+        // Use the correct render type with the texture
+        VertexConsumer consumer = buffer.getBuffer(RenderType.entityTranslucentEmissive(TEXTURE));
+        
+        // Glass tube dimensions: from [5, 19, 5] to [11, 31, 11]
+        // Convert from block coordinates (0-16) to world coordinates (0-1)
+        double minX = 5.0 / 16.0;  // 0.3125
+        double minY = 19.0 / 16.0; // 1.1875
+        double minZ = 5.0 / 16.0;  // 0.3125
+        double maxX = 11.0 / 16.0; // 0.6875
+        double maxY = 31.0 / 16.0; // 1.9375
+        double maxZ = 11.0 / 16.0; // 0.6875
+        
+        // Use white color with transparency to show texture properly
+        float r = 1.0f;
+        float g = 1.0f;
+        float b = 1.0f;
+        float a = 0.6f; // 60% opacity for glass effect
+        
+        Matrix4f matrix = poseStack.last().pose();
+        
+        // Render North face (facing negative Z)
+        consumer.vertex(matrix, (float)minX, (float)minY, (float)minZ)
+            .color(r, g, b, a).uv(7.0f/16.0f, 8.0f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+            .normal(0, 0, -1).endVertex();
+        consumer.vertex(matrix, (float)maxX, (float)minY, (float)minZ)
+            .color(r, g, b, a).uv(8.5f/16.0f, 8.0f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+            .normal(0, 0, -1).endVertex();
+        consumer.vertex(matrix, (float)maxX, (float)maxY, (float)minZ)
+            .color(r, g, b, a).uv(8.5f/16.0f, 11.0f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+            .normal(0, 0, -1).endVertex();
+        consumer.vertex(matrix, (float)minX, (float)maxY, (float)minZ)
+            .color(r, g, b, a).uv(7.0f/16.0f, 11.0f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+            .normal(0, 0, -1).endVertex();
+        
+        // Render East face (facing positive X)
+        consumer.vertex(matrix, (float)maxX, (float)minY, (float)minZ)
+            .color(r, g, b, a).uv(8.5f/16.0f, 7.0f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+            .normal(1, 0, 0).endVertex();
+        consumer.vertex(matrix, (float)maxX, (float)minY, (float)maxZ)
+            .color(r, g, b, a).uv(10.0f/16.0f, 7.0f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+            .normal(1, 0, 0).endVertex();
+        consumer.vertex(matrix, (float)maxX, (float)maxY, (float)maxZ)
+            .color(r, g, b, a).uv(10.0f/16.0f, 10.0f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+            .normal(1, 0, 0).endVertex();
+        consumer.vertex(matrix, (float)maxX, (float)maxY, (float)minZ)
+            .color(r, g, b, a).uv(8.5f/16.0f, 10.0f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+            .normal(1, 0, 0).endVertex();
+        
+        // Render South face (facing positive Z)
+        consumer.vertex(matrix, (float)maxX, (float)minY, (float)maxZ)
+            .color(r, g, b, a).uv(10.0f/16.0f, 7.0f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+            .normal(0, 0, 1).endVertex();
+        consumer.vertex(matrix, (float)minX, (float)minY, (float)maxZ)
+            .color(r, g, b, a).uv(11.5f/16.0f, 7.0f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+            .normal(0, 0, 1).endVertex();
+        consumer.vertex(matrix, (float)minX, (float)maxY, (float)maxZ)
+            .color(r, g, b, a).uv(11.5f/16.0f, 10.0f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+            .normal(0, 0, 1).endVertex();
+        consumer.vertex(matrix, (float)maxX, (float)maxY, (float)maxZ)
+            .color(r, g, b, a).uv(10.0f/16.0f, 10.0f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+            .normal(0, 0, 1).endVertex();
+        
+        // Render West face (facing negative X)
+        consumer.vertex(matrix, (float)minX, (float)minY, (float)maxZ)
+            .color(r, g, b, a).uv(8.5f/16.0f, 10.0f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+            .normal(-1, 0, 0).endVertex();
+        consumer.vertex(matrix, (float)minX, (float)minY, (float)minZ)
+            .color(r, g, b, a).uv(10.0f/16.0f, 10.0f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+            .normal(-1, 0, 0).endVertex();
+        consumer.vertex(matrix, (float)minX, (float)maxY, (float)minZ)
+            .color(r, g, b, a).uv(10.0f/16.0f, 13.0f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+            .normal(-1, 0, 0).endVertex();
+        consumer.vertex(matrix, (float)minX, (float)maxY, (float)maxZ)
+            .color(r, g, b, a).uv(8.5f/16.0f, 13.0f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+            .normal(-1, 0, 0).endVertex();
+        
+        // Render Up face (facing positive Y)
+        consumer.vertex(matrix, (float)minX, (float)maxY, (float)minZ)
+            .color(r, g, b, a).uv(11.5f/16.0f, 11.5f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+            .normal(0, 1, 0).endVertex();
+        consumer.vertex(matrix, (float)maxX, (float)maxY, (float)minZ)
+            .color(r, g, b, a).uv(10.0f/16.0f, 11.5f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+            .normal(0, 1, 0).endVertex();
+        consumer.vertex(matrix, (float)maxX, (float)maxY, (float)maxZ)
+            .color(r, g, b, a).uv(10.0f/16.0f, 10.0f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+            .normal(0, 1, 0).endVertex();
+        consumer.vertex(matrix, (float)minX, (float)maxY, (float)maxZ)
+            .color(r, g, b, a).uv(11.5f/16.0f, 10.0f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+            .normal(0, 1, 0).endVertex();
+        
+        // Render Down face (facing negative Y)
+        consumer.vertex(matrix, (float)minX, (float)minY, (float)maxZ)
+            .color(r, g, b, a).uv(5.5f/16.0f, 11.0f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+            .normal(0, -1, 0).endVertex();
+        consumer.vertex(matrix, (float)maxX, (float)minY, (float)maxZ)
+            .color(r, g, b, a).uv(4.0f/16.0f, 11.0f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+            .normal(0, -1, 0).endVertex();
+        consumer.vertex(matrix, (float)maxX, (float)minY, (float)minZ)
+            .color(r, g, b, a).uv(4.0f/16.0f, 12.5f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+            .normal(0, -1, 0).endVertex();
+            consumer.vertex(matrix, (float)minX, (float)minY, (float)minZ)
+                .color(r, g, b, a).uv(5.5f/16.0f, 12.5f/16.0f).overlayCoords(packedOverlay).uv2(packedLight)
+                .normal(0, -1, 0).endVertex();
+
+        poseStack.popPose();
     }
     
     

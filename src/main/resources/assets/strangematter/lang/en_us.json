@@ -119,8 +119,9 @@
   "block.strangematter.research_machine.research_failed": "Research failed due to anomalous interference!",
   "gui.strangematter.research_machine.syncing": "Syncing with server...",
   "gui.strangematter.research_machine.insert_note": "Insert a research note to begin",
-  "gui.strangematter.research_machine.begin_research": "Begin Research",
-  "gui.strangematter.research_machine.researching": "Research in progress...",
-  "gui.strangematter.research_machine.completed": "Research completed successfully!",
-  "gui.strangematter.research_machine.failed": "Research failed!"
+  "block.strangematter.paradoxical_energy_cell": "Paradoxical Energy Cell",
+  "item.strangematter.paradoxical_energy_cell": "Paradoxical Energy Cell",
+  "block.strangematter.paradoxical_energy_cell.info": "Infinite Resonance Energy Source",
+  "gui.strangematter.resonance_energy": "Resonance Energy: %d/%d",
+  "gui.strangematter.progress": "Progress: %d/%d"
 }

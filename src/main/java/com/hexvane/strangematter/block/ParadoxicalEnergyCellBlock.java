@@ -20,23 +20,20 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraft.world.level.BlockGetter;
+import net.minecraft.network.chat.Component;
 import com.hexvane.strangematter.StrangeMatterMod;
 
-public class ResonanceCondenserBlock extends Block implements EntityBlock {
+public class ParadoxicalEnergyCellBlock extends Block implements EntityBlock {
     
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     
-    public ResonanceCondenserBlock() {
+    public ParadoxicalEnergyCellBlock() {
         super(BlockBehaviour.Properties.of()
-            .mapColor(MapColor.COLOR_BLUE)
-            .strength(3.0f, 6.0f)
+            .mapColor(MapColor.COLOR_PURPLE)
+            .strength(5.0f, 10.0f)
             .sound(SoundType.METAL)
             .requiresCorrectToolForDrops()
-            .lightLevel(state -> 5) // Emit light level 5
+            .lightLevel(state -> 15) // Emit maximum light
             .noOcclusion() // Allow light to pass through
             .isViewBlocking((state, level, pos) -> false) // Not view blocking for translucent effect
             .isSuffocating((state, level, pos) -> false) // Not suffocating
@@ -61,9 +58,9 @@ public class ResonanceCondenserBlock extends Block implements EntityBlock {
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         if (!level.isClientSide) {
             BlockEntity tile = level.getBlockEntity(pos);
-            if (tile instanceof ResonanceCondenserBlockEntity condenser) {
-                // Use NetworkHooks.openScreen like MaterialNexus
-                net.minecraftforge.network.NetworkHooks.openScreen((net.minecraft.server.level.ServerPlayer) player, condenser, pos);
+            if (tile instanceof ParadoxicalEnergyCellBlockEntity cell) {
+                // Paradoxical Energy Cell doesn't have a GUI, just show energy info
+                player.displayClientMessage(Component.translatable("block.strangematter.paradoxical_energy_cell.info"), true);
                 return InteractionResult.SUCCESS;
             }
         }
@@ -72,26 +69,16 @@ public class ResonanceCondenserBlock extends Block implements EntityBlock {
     
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new ResonanceCondenserBlockEntity(pos, state);
+        return new ParadoxicalEnergyCellBlockEntity(pos, state);
     }
     
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        return blockEntityType == StrangeMatterMod.RESONANCE_CONDENSER_BLOCK_ENTITY.get() && !level.isClientSide ? 
+        return blockEntityType == StrangeMatterMod.PARADOXICAL_ENERGY_CELL_BLOCK_ENTITY.get() && !level.isClientSide ? 
             (level1, pos, state1, blockEntity) -> {
-                if (blockEntity instanceof ResonanceCondenserBlockEntity condenser) {
-                    ResonanceCondenserBlockEntity.tick(level1, pos, state1, condenser);
+                if (blockEntity instanceof ParadoxicalEnergyCellBlockEntity cell) {
+                    ParadoxicalEnergyCellBlockEntity.tick(level1, pos, state1, cell);
                 }
             } : null;
-    }
-    
-    @Override
-    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return Shapes.block(); // Full block shape for proper selection box
-    }
-    
-    @Override
-    public VoxelShape getVisualShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return Shapes.block(); // Full block visual shape
     }
 }

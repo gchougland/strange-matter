@@ -29,54 +29,38 @@ import com.hexvane.strangematter.research.ScannableObjectRegistry;
 import com.hexvane.strangematter.menu.ResonanceCondenserMenu;
 
 public class ResonanceCondenserBlockEntity extends BaseMachineBlockEntity {
-    
-    private int resonanceLevel = 0;
-    private int maxResonanceLevel = 100;
-    
-    // ContainerData for GUI synchronization
-    private final ContainerData dataAccess = new ContainerData() {
-        @Override
-        public int get(int index) {
-            return switch (index) {
-                case 0 -> ResonanceCondenserBlockEntity.this.resonanceLevel;
-                case 1 -> ResonanceCondenserBlockEntity.this.maxResonanceLevel;
-                case 2 -> ResonanceCondenserBlockEntity.this.isActive ? 1 : 0;
-                default -> 0;
-            };
-        }
 
-        @Override
-        public void set(int index, int value) {
-            switch (index) {
-                case 0 -> ResonanceCondenserBlockEntity.this.resonanceLevel = value;
-                case 1 -> ResonanceCondenserBlockEntity.this.maxResonanceLevel = value;
-                case 2 -> ResonanceCondenserBlockEntity.this.isActive = (value == 1);
-            }
-        }
-
-        @Override
-        public int getCount() {
-            return 3; // resonanceLevel, maxResonanceLevel, isActive
-        }
-    };
     private int tickCounter = 0;
     private NonNullList<ItemStack> items = NonNullList.withSize(1, ItemStack.EMPTY); // Single output slot
+    
+    // Cached anomaly for efficiency
+    private BaseAnomalyEntity cachedAnomaly = null;
+    private int anomalyCheckCounter = 0;
     
     // Machine inventory - this is what the GUI actually uses
     private final net.minecraftforge.items.IItemHandler machineInventory = new net.minecraftforge.items.wrapper.InvWrapper(this);
     
     public ResonanceCondenserBlockEntity(BlockPos pos, BlockState state) {
         super(StrangeMatterMod.RESONANCE_CONDENSER_BLOCK_ENTITY.get(), pos, state, 1);
+        
+        // Configure energy system for Resonance Condenser
+        this.energyPerTick = 2;
+        this.maxEnergyStorage = 1000; // Store up to 5000 energy
+        this.energyStorage.setCapacity(maxEnergyStorage);
+        
+        // Configure energy input sides (all sides except front)
+        boolean[] inputSides = {true, true, true, true, true, true}; // All sides by default
+        this.setEnergyInputSides(inputSides);
+        
+        // No energy output by default
+        boolean[] outputSides = {false, false, false, false, false, false};
+        this.setEnergyOutputSides(outputSides);
     }
     
     public static void tick(Level level, BlockPos pos, BlockState state, ResonanceCondenserBlockEntity blockEntity) {
         blockEntity.tickCounter++;
         
-        // Every 20 ticks (1 second), process resonance
-        if (blockEntity.tickCounter >= 20) {
-            blockEntity.tickCounter = 0;
-            blockEntity.processResonance();
-        }
+        blockEntity.processResonance();
         
         // Spawn particles every 5 ticks (4 times per second)
         if (blockEntity.tickCounter % 5 == 0) {
@@ -86,32 +70,58 @@ public class ResonanceCondenserBlockEntity extends BaseMachineBlockEntity {
     
     private void processResonance() {
         if (!level.isClientSide) {
-            // Check for nearby anomalies within 10 block radius
-            BlockPos pos = this.getBlockPos();
-            boolean foundAnomaly = false;
-            
-            for (Entity entity : level.getEntitiesOfClass(Entity.class,
-                net.minecraft.world.phys.AABB.ofSize(pos.getCenter(), 20, 20, 20))) {
-
-                if (entity instanceof BaseAnomalyEntity) {
-                    foundAnomaly = true;
-                    break;
-                }
+            // Only search for anomalies every 20 ticks (1 second) to improve performance
+            anomalyCheckCounter++;
+            if (anomalyCheckCounter >= 20 || cachedAnomaly == null || !cachedAnomaly.isAlive()) {
+                anomalyCheckCounter = 0;
+                findNearbyAnomaly();
             }
             
-                if (foundAnomaly && resonanceLevel < maxResonanceLevel) {
-                    resonanceLevel = Math.min(resonanceLevel + 1, maxResonanceLevel);
-                    setChanged();
-                    syncToClient(); // Sync to client for GUI updates
+            // Only consume energy and operate if there's a valid cached anomaly
+            if (cachedAnomaly != null && cachedAnomaly.isAlive()) {
+                // Check if we have enough energy to operate
+                if (!hasEnergy() || !consumeEnergy(energyPerTick)) {
+                    setActive(false);
+                    return;
                 }
-            
-            // Generate shard when resonance level reaches maximum (moved outside the increment logic)
-            if (foundAnomaly && resonanceLevel >= maxResonanceLevel) {
-                generateShardFromNearbyAnomaly();
-                // Reset resonance level after generating shard
-                resonanceLevel = 0;
-                setChanged();
-                syncToClient();
+                setActive(true);
+                
+                if (this.tickCounter >= 15) {
+                    this.tickCounter = 0;
+                    // Progress increases only if an anomaly is found AND we have energy
+                    if (progressLevel < maxProgressLevel) {
+                        progressLevel = Math.min(progressLevel + 1, maxProgressLevel);
+                        setChanged();
+                        syncToClient(); // Sync to client for GUI updates
+                    }
+                    
+                    // Generate shard when progress level reaches maximum
+                    if (progressLevel >= maxProgressLevel) {
+                        generateShardFromNearbyAnomaly();
+                        // Reset progress level after generating shard
+                        progressLevel = 0;
+                        setChanged();
+                        syncToClient();
+                    }
+                }
+            } else {
+                // No valid anomaly nearby, stop operating
+                setActive(false);
+                cachedAnomaly = null; // Clear the cache
+            }
+        }
+    }
+    
+    private void findNearbyAnomaly() {
+        BlockPos pos = this.getBlockPos();
+        cachedAnomaly = null;
+        
+        for (Entity entity : level.getEntitiesOfClass(Entity.class,
+            net.minecraft.world.phys.AABB.ofSize(pos.getCenter(), 20, 20, 20))) {
+
+            if (entity instanceof BaseAnomalyEntity anomaly && anomaly.isAlive()) {
+                cachedAnomaly = anomaly;
+                break;
             }
         }
     }
@@ -120,7 +130,7 @@ public class ResonanceCondenserBlockEntity extends BaseMachineBlockEntity {
         if (level.isClientSide) {
             // Find nearby anomalies and spawn particles
         for (Entity entity : level.getEntitiesOfClass(Entity.class,
-            net.minecraft.world.phys.AABB.ofSize(pos.getCenter(), 20, 20, 20))) {
+            net.minecraft.world.phys.AABB.ofSize(pos.getCenter(), 16, 16, 16))) {
 
             if (entity instanceof BaseAnomalyEntity) {
                 spawnEnergyParticles(level, entity.position(), pos);
@@ -160,22 +170,17 @@ public class ResonanceCondenserBlockEntity extends BaseMachineBlockEntity {
             return;
         }
         
-        BlockPos pos = this.getBlockPos();
+        if (cachedAnomaly == null || !cachedAnomaly.isAlive()) {
+            return; // No valid cached anomaly
+        }
+        
         Item shardItem = null;
         
-        // Find the nearest anomaly and determine shard type based on research type
-        for (Entity entity : level.getEntitiesOfClass(Entity.class, 
-            net.minecraft.world.phys.AABB.ofSize(pos.getCenter(), 20, 20, 20))) {
-            
-            if (entity instanceof BaseAnomalyEntity) {
-                // Use ScannableObjectRegistry to get research type
-                var scannableOpt = ScannableObjectRegistry.getScannableForEntity(entity);
-                if (scannableOpt.isPresent()) {
-                    ResearchType researchType = scannableOpt.get().getResearchType();
-                    shardItem = getShardItemForResearchType(researchType);
-                    break;
-                }
-            }
+        // Use the cached anomaly to determine shard type based on research type
+        var scannableOpt = ScannableObjectRegistry.getScannableForEntity(cachedAnomaly);
+        if (scannableOpt.isPresent()) {
+            ResearchType researchType = scannableOpt.get().getResearchType();
+            shardItem = getShardItemForResearchType(researchType);
         }
         
         if (shardItem != null) {
@@ -290,30 +295,30 @@ public class ResonanceCondenserBlockEntity extends BaseMachineBlockEntity {
     // No server-side particle spawning needed
     
     
-    // Get energy level for GUI display
-    public int getEnergyLevel() {
-        return resonanceLevel;
+    // Get progress level for GUI display
+    public int getProgressLevel() {
+        return progressLevel;
     }
     
-    public int getMaxEnergyLevel() {
-        return maxResonanceLevel;
+    public int getMaxProgressLevel() {
+        return maxProgressLevel;
     }
     
     public ContainerData getDataAccess() {
         return dataAccess;
     }
     
-    // Override base packet methods to include resonance-specific data
+    // Override base packet methods to include progress-specific data
     @Override
     protected void writeAdditionalStateData(FriendlyByteBuf buffer) {
-        buffer.writeInt(resonanceLevel);
-        buffer.writeInt(maxResonanceLevel);
+        buffer.writeInt(progressLevel);
+        buffer.writeInt(maxProgressLevel);
     }
     
     @Override
     protected void readAdditionalStateData(FriendlyByteBuf buffer) {
-        resonanceLevel = buffer.readInt();
-        maxResonanceLevel = buffer.readInt();
+        progressLevel = buffer.readInt();
+        maxProgressLevel = buffer.readInt();
     }
     
     public void sendGuiNetworkData(AbstractContainerMenu container, Player player) {
@@ -342,12 +347,8 @@ public class ResonanceCondenserBlockEntity extends BaseMachineBlockEntity {
 
     
     
-    public int getResonanceLevel() {
-        return resonanceLevel;
-    }
-    
-    public void setResonanceLevel(int level) {
-        this.resonanceLevel = Math.max(0, Math.min(level, maxResonanceLevel));
+    public void setProgressLevel(int level) {
+        this.progressLevel = Math.max(0, Math.min(level, maxProgressLevel));
         setChanged();
     }
     
@@ -360,25 +361,26 @@ public class ResonanceCondenserBlockEntity extends BaseMachineBlockEntity {
         setChanged();
     }
     
-    public int getMaxResonanceLevel() {
-        return maxResonanceLevel;
-    }
-    
     @Override
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
-        tag.putInt("resonance_level", resonanceLevel);
+        tag.putInt("progress_level", progressLevel);
         tag.putBoolean("is_active", isActive);
         tag.putInt("tick_counter", tickCounter);
+        tag.putInt("anomaly_check_counter", anomalyCheckCounter);
         ContainerHelper.saveAllItems(tag, this.items);
     }
     
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
-        resonanceLevel = tag.getInt("resonance_level");
+        progressLevel = tag.getInt("progress_level");
         isActive = tag.getBoolean("is_active");
         tickCounter = tag.getInt("tick_counter");
+        anomalyCheckCounter = tag.getInt("anomaly_check_counter");
         ContainerHelper.loadAllItems(tag, this.items);
+        
+        // Clear cached anomaly on load since entity references don't persist
+        cachedAnomaly = null;
     }
 }

@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "strangematter:block/paradoxical_energy_cell"
+    },
+    "facing=east": {
+      "model": "strangematter:block/paradoxical_energy_cell"
+    },
+    "facing=south": {
+      "model": "strangematter:block/paradoxical_energy_cell"
+    },
+    "facing=west": {
+      "model": "strangematter:block/paradoxical_energy_cell"
+    }
+  }
+}

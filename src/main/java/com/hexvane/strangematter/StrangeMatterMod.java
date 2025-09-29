@@ -175,6 +175,12 @@ public class StrangeMatterMod
     public static final RegistryObject<BlockEntityType<ResonanceCondenserBlockEntity>> RESONANCE_CONDENSER_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("resonance_condenser", 
         () -> BlockEntityType.Builder.of((pos, state) -> new ResonanceCondenserBlockEntity(pos, state), RESONANCE_CONDENSER_BLOCK.get()).build(null));
 
+    // Paradoxical Energy Cell Block
+    public static final RegistryObject<Block> PARADOXICAL_ENERGY_CELL_BLOCK = BLOCKS.register("paradoxical_energy_cell", com.hexvane.strangematter.block.ParadoxicalEnergyCellBlock::new);
+    public static final RegistryObject<Item> PARADOXICAL_ENERGY_CELL_ITEM = ITEMS.register("paradoxical_energy_cell", () -> new com.hexvane.strangematter.item.ParadoxicalEnergyCellItem((com.hexvane.strangematter.block.ParadoxicalEnergyCellBlock) PARADOXICAL_ENERGY_CELL_BLOCK.get()));
+    public static final RegistryObject<BlockEntityType<com.hexvane.strangematter.block.ParadoxicalEnergyCellBlockEntity>> PARADOXICAL_ENERGY_CELL_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("paradoxical_energy_cell", 
+        () -> BlockEntityType.Builder.of((pos, state) -> new com.hexvane.strangematter.block.ParadoxicalEnergyCellBlockEntity(pos, state), PARADOXICAL_ENERGY_CELL_BLOCK.get()).build(null));
+
     // Particle Types
     public static final RegistryObject<net.minecraft.core.particles.SimpleParticleType> ENERGY_ABSORPTION_PARTICLE = PARTICLE_TYPES.register("energy_absorption", 
         () -> new net.minecraft.core.particles.SimpleParticleType(true));
@@ -271,6 +277,7 @@ public class StrangeMatterMod
                 output.accept(CRYSTALIZED_ECTOPLASM_ITEM.get());
                 output.accept(RESEARCH_MACHINE_ITEM.get());
                 output.accept(RESONANCE_CONDENSER_ITEM.get());
+                output.accept(PARADOXICAL_ENERGY_CELL_ITEM.get());
                 output.accept(ECTOPLASM.get());
                 output.accept(RESONITE_ORE_ITEM.get());
                 output.accept(RAW_RESONITE.get());
@@ -506,6 +513,7 @@ public class StrangeMatterMod
             event.accept(ANOMALOUS_GRASS_ITEM.get());
             event.accept(CRYSTALIZED_ECTOPLASM_ITEM.get());
             event.accept(RESONANCE_CONDENSER_ITEM.get());
+            event.accept(PARADOXICAL_ENERGY_CELL_ITEM.get());
         }
         if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES)
         {
