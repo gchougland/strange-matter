@@ -102,5 +102,17 @@
   "warp_gate_loop": {
     "sounds": ["strangematter:warp_gate_loop"],
     "subtitle": "Warp gate active"
+  },
+  "temporal_bloom_loop": {
+    "sounds": ["strangematter:temporal_bloom_loop"],
+    "subtitle": "Temporal bloom active"
+  },
+  "thoughtwell_loop": {
+    "sounds": ["strangematter:thoughtwell_loop"],
+    "subtitle": "Thoughtwell active"
+  },
+  "warp_gun_shoot": {
+    "sounds": ["strangematter:warp_gun_shoot"],
+    "subtitle": "Warp gun fires"
   }
 }

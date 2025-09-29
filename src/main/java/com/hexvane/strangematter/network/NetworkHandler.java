@@ -56,5 +56,10 @@ public class NetworkHandler {
             RequestResearchMachineStatePacket::encode,
             RequestResearchMachineStatePacket::decode,
             RequestResearchMachineStatePacket::handle);
+            
+        INSTANCE.registerMessage(packetId++, WarpGunShootPacket.class,
+            WarpGunShootPacket::encode,
+            WarpGunShootPacket::new,
+            WarpGunShootPacket::handle);
     }
 }

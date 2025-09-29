@@ -14,6 +14,8 @@
   "item.strangematter.shade_shard": "Shade Shard",
   "item.strangematter.insight_shard": "Insight Shard",
   "item.strangematter.energetic_shard": "Energetic Shard",
+  "item.strangematter.warp_gun": "Warp Gun",
+  "item.strangematter.warp_gun.tooltip": "Right-click to shoot a projectile that creates temporary mini warp gates.",
   "item.strangematter.gravitic_shard.tooltip": "A crystallized fragment of gravitational anomaly energy. Pulses with strange gravitational forces.",
   "item.strangematter.chrono_shard.tooltip": "A temporal crystal that seems to exist in multiple moments simultaneously. Time flows strangely around it.",
   "item.strangematter.spatial_shard.tooltip": "A dimensional fragment that bends space around itself. Reality seems to warp in its presence.",
