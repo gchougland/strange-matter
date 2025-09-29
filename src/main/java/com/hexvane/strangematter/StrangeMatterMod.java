@@ -38,6 +38,11 @@ import com.hexvane.strangematter.item.SpatialShardItem;
 import com.hexvane.strangematter.item.ShadeShardItem;
 import com.hexvane.strangematter.item.InsightShardItem;
 import com.hexvane.strangematter.item.EnergeticShardItem;
+import com.hexvane.strangematter.item.WarpGunItem;
+import com.hexvane.strangematter.entity.WarpProjectileEntity;
+import com.hexvane.strangematter.entity.MiniWarpGateEntity;
+import com.hexvane.strangematter.client.MiniWarpGateRenderer;
+import com.hexvane.strangematter.client.WarpProjectileRenderer;
 import com.hexvane.strangematter.worldgen.GravityAnomalyConfiguredFeature;
 import com.hexvane.strangematter.worldgen.EchoingShadowConfiguredFeature;
 import com.hexvane.strangematter.worldgen.ThoughtwellConfiguredFeature;
@@ -169,6 +174,9 @@ public class StrangeMatterMod
     public static final RegistryObject<Item> INSIGHT_SHARD = ITEMS.register("insight_shard", InsightShardItem::new);
     public static final RegistryObject<Item> ENERGETIC_SHARD = ITEMS.register("energetic_shard", EnergeticShardItem::new);
 
+    // Warp Gun Item
+    public static final RegistryObject<Item> WARP_GUN = ITEMS.register("warp_gun", WarpGunItem::new);
+
     // Resonance Condenser Block
     public static final RegistryObject<Block> RESONANCE_CONDENSER_BLOCK = BLOCKS.register("resonance_condenser", ResonanceCondenserBlock::new);
     public static final RegistryObject<Item> RESONANCE_CONDENSER_ITEM = ITEMS.register("resonance_condenser", () -> new ResonanceCondenserItem((ResonanceCondenserBlock) RESONANCE_CONDENSER_BLOCK.get()));
@@ -232,6 +240,18 @@ public class StrangeMatterMod
             .sized(1.0f, 1.0f) // Size of the entity
             .build("thoughtwell"));
 
+    // Warp Projectile Entity
+    public static final RegistryObject<EntityType<WarpProjectileEntity>> WARP_PROJECTILE_ENTITY = ENTITY_TYPES.register("warp_projectile", 
+        () -> EntityType.Builder.<WarpProjectileEntity>of(WarpProjectileEntity::new, MobCategory.MISC)
+            .sized(0.25f, 0.25f) // Small projectile
+            .build("warp_projectile"));
+
+    // Mini Warp Gate Entity
+    public static final RegistryObject<EntityType<MiniWarpGateEntity>> MINI_WARP_GATE_ENTITY = ENTITY_TYPES.register("mini_warp_gate", 
+        () -> EntityType.Builder.<MiniWarpGateEntity>of(MiniWarpGateEntity::new, MobCategory.MISC)
+            .sized(1.0f, 2.0f) // 1x1x2 hitbox
+            .build("mini_warp_gate"));
+
     // Sound Events are now registered in StrangeMatterSounds class
 
     // World Generation Features
@@ -288,6 +308,7 @@ public class StrangeMatterMod
                 output.accept(SHADE_SHARD.get());
                 output.accept(INSIGHT_SHARD.get());
                 output.accept(ENERGETIC_SHARD.get());
+                output.accept(WARP_GUN.get());
             }).build());
 
     public StrangeMatterMod()
@@ -558,6 +579,8 @@ public class StrangeMatterMod
                 net.minecraft.client.renderer.entity.EntityRenderers.register(WARP_GATE_ANOMALY_ENTITY.get(), WarpGateAnomalyRenderer::new);
                 net.minecraft.client.renderer.entity.EntityRenderers.register(TEMPORAL_BLOOM.get(), TemporalBloomRenderer::new);
                 net.minecraft.client.renderer.entity.EntityRenderers.register(THOUGHTWELL.get(), ThoughtwellRenderer::new);
+                net.minecraft.client.renderer.entity.EntityRenderers.register(WARP_PROJECTILE_ENTITY.get(), WarpProjectileRenderer::new);
+                net.minecraft.client.renderer.entity.EntityRenderers.register(MINI_WARP_GATE_ENTITY.get(), MiniWarpGateRenderer::new);
                 
                 // Register block entity renderer for crystalized ectoplasm
                 net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(CRYSTALIZED_ECTOPLASM_BLOCK_ENTITY.get(), CrystalizedEctoplasmRenderer::new);
