@@ -22,13 +22,22 @@ import com.hexvane.strangematter.block.CrystalizedEctoplasmBlock;
 import com.hexvane.strangematter.block.ResoniteOreBlock;
 import com.hexvane.strangematter.block.ResearchMachineBlock;
 import com.hexvane.strangematter.block.ResearchMachineBlockEntity;
+import com.hexvane.strangematter.block.ResonanceCondenserBlock;
+import com.hexvane.strangematter.block.ResonanceCondenserBlockEntity;
 import com.hexvane.strangematter.item.AnomalousGrassItem;
 import com.hexvane.strangematter.item.AnomalyResonatorItem;
 import com.hexvane.strangematter.item.EctoplasmItem;
 import com.hexvane.strangematter.item.FieldScannerItem;
 import com.hexvane.strangematter.item.RawResoniteItem;
 import com.hexvane.strangematter.item.ResoniteIngotItem;
+import com.hexvane.strangematter.item.ResonanceCondenserItem;
 import com.hexvane.strangematter.item.ResearchTabletItem;
+import com.hexvane.strangematter.item.GraviticShardItem;
+import com.hexvane.strangematter.item.ChronoShardItem;
+import com.hexvane.strangematter.item.SpatialShardItem;
+import com.hexvane.strangematter.item.ShadeShardItem;
+import com.hexvane.strangematter.item.InsightShardItem;
+import com.hexvane.strangematter.item.EnergeticShardItem;
 import com.hexvane.strangematter.worldgen.GravityAnomalyConfiguredFeature;
 import com.hexvane.strangematter.worldgen.EchoingShadowConfiguredFeature;
 import com.hexvane.strangematter.worldgen.ThoughtwellConfiguredFeature;
@@ -105,6 +114,10 @@ public class StrangeMatterMod
     public static final DeferredRegister<PlacementModifierType<?>> PLACEMENT_MODIFIERS = DeferredRegister.create(Registries.PLACEMENT_MODIFIER_TYPE, MODID);
     // Create a Deferred Register to hold StructureTypes
     public static final DeferredRegister<StructureType<?>> STRUCTURE_TYPES = DeferredRegister.create(Registries.STRUCTURE_TYPE, MODID);
+    // Create a Deferred Register to hold ParticleTypes
+    public static final DeferredRegister<net.minecraft.core.particles.ParticleType<?>> PARTICLE_TYPES = DeferredRegister.create(ForgeRegistries.PARTICLE_TYPES, MODID);
+    // Create a Deferred Register to hold MenuTypes
+    public static final DeferredRegister<net.minecraft.world.inventory.MenuType<?>> MENU_TYPES = DeferredRegister.create(ForgeRegistries.MENU_TYPES, MODID);
 
 
     // Creates a new research item with the id "strangematter:field_scanner"
@@ -148,6 +161,34 @@ public class StrangeMatterMod
     // Research Tablet Item
     public static final RegistryObject<Item> RESEARCH_TABLET = ITEMS.register("research_tablet", ResearchTabletItem::new);
 
+    // Anomaly Shard Items
+    public static final RegistryObject<Item> GRAVITIC_SHARD = ITEMS.register("gravitic_shard", GraviticShardItem::new);
+    public static final RegistryObject<Item> CHRONO_SHARD = ITEMS.register("chrono_shard", ChronoShardItem::new);
+    public static final RegistryObject<Item> SPATIAL_SHARD = ITEMS.register("spatial_shard", SpatialShardItem::new);
+    public static final RegistryObject<Item> SHADE_SHARD = ITEMS.register("shade_shard", ShadeShardItem::new);
+    public static final RegistryObject<Item> INSIGHT_SHARD = ITEMS.register("insight_shard", InsightShardItem::new);
+    public static final RegistryObject<Item> ENERGETIC_SHARD = ITEMS.register("energetic_shard", EnergeticShardItem::new);
+
+    // Resonance Condenser Block
+    public static final RegistryObject<Block> RESONANCE_CONDENSER_BLOCK = BLOCKS.register("resonance_condenser", ResonanceCondenserBlock::new);
+    public static final RegistryObject<Item> RESONANCE_CONDENSER_ITEM = ITEMS.register("resonance_condenser", () -> new ResonanceCondenserItem((ResonanceCondenserBlock) RESONANCE_CONDENSER_BLOCK.get()));
+    public static final RegistryObject<BlockEntityType<ResonanceCondenserBlockEntity>> RESONANCE_CONDENSER_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("resonance_condenser", 
+        () -> BlockEntityType.Builder.of((pos, state) -> new ResonanceCondenserBlockEntity(pos, state), RESONANCE_CONDENSER_BLOCK.get()).build(null));
+
+    // Paradoxical Energy Cell Block
+    public static final RegistryObject<Block> PARADOXICAL_ENERGY_CELL_BLOCK = BLOCKS.register("paradoxical_energy_cell", com.hexvane.strangematter.block.ParadoxicalEnergyCellBlock::new);
+    public static final RegistryObject<Item> PARADOXICAL_ENERGY_CELL_ITEM = ITEMS.register("paradoxical_energy_cell", () -> new com.hexvane.strangematter.item.ParadoxicalEnergyCellItem((com.hexvane.strangematter.block.ParadoxicalEnergyCellBlock) PARADOXICAL_ENERGY_CELL_BLOCK.get()));
+    public static final RegistryObject<BlockEntityType<com.hexvane.strangematter.block.ParadoxicalEnergyCellBlockEntity>> PARADOXICAL_ENERGY_CELL_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("paradoxical_energy_cell", 
+        () -> BlockEntityType.Builder.of((pos, state) -> new com.hexvane.strangematter.block.ParadoxicalEnergyCellBlockEntity(pos, state), PARADOXICAL_ENERGY_CELL_BLOCK.get()).build(null));
+
+    // Particle Types
+    public static final RegistryObject<net.minecraft.core.particles.SimpleParticleType> ENERGY_ABSORPTION_PARTICLE = PARTICLE_TYPES.register("energy_absorption", 
+        () -> new net.minecraft.core.particles.SimpleParticleType(true));
+
+    // Menu Types
+    public static final RegistryObject<net.minecraft.world.inventory.MenuType<com.hexvane.strangematter.menu.ResonanceCondenserMenu>> RESONANCE_CONDENSER_MENU = MENU_TYPES.register("resonance_condenser",
+        () -> net.minecraftforge.common.extensions.IForgeMenuType.create((windowId, inv, data) -> new com.hexvane.strangematter.menu.ResonanceCondenserMenu(windowId, inv, data)));
+        
     // Custom gravity attribute for low gravity effects
     public static final RegistryObject<Attribute> ENTITY_GRAVITY = ATTRIBUTES.register("entity_gravity", 
         () -> new RangedAttribute("strangematter.entity_gravity", 0.08D, -1.0D, 1.0D).setSyncable(true));
@@ -235,10 +276,18 @@ public class StrangeMatterMod
                 output.accept(ANOMALOUS_GRASS_ITEM.get());
                 output.accept(CRYSTALIZED_ECTOPLASM_ITEM.get());
                 output.accept(RESEARCH_MACHINE_ITEM.get());
+                output.accept(RESONANCE_CONDENSER_ITEM.get());
+                output.accept(PARADOXICAL_ENERGY_CELL_ITEM.get());
                 output.accept(ECTOPLASM.get());
                 output.accept(RESONITE_ORE_ITEM.get());
                 output.accept(RAW_RESONITE.get());
                 output.accept(RESONITE_INGOT.get());
+                output.accept(GRAVITIC_SHARD.get());
+                output.accept(CHRONO_SHARD.get());
+                output.accept(SPATIAL_SHARD.get());
+                output.accept(SHADE_SHARD.get());
+                output.accept(INSIGHT_SHARD.get());
+                output.accept(ENERGETIC_SHARD.get());
             }).build());
 
     public StrangeMatterMod()
@@ -276,6 +325,10 @@ public class StrangeMatterMod
         PLACEMENT_MODIFIERS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so structure types get registered
         STRUCTURE_TYPES.register(modEventBus); // Register structure types
+        // Register the Deferred Register to the mod event bus so particle types get registered
+        PARTICLE_TYPES.register(modEventBus);
+        // Register the Deferred Register to the mod event bus so menu types get registered
+        MENU_TYPES.register(modEventBus);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
@@ -459,6 +512,8 @@ public class StrangeMatterMod
         {
             event.accept(ANOMALOUS_GRASS_ITEM.get());
             event.accept(CRYSTALIZED_ECTOPLASM_ITEM.get());
+            event.accept(RESONANCE_CONDENSER_ITEM.get());
+            event.accept(PARADOXICAL_ENERGY_CELL_ITEM.get());
         }
         if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES)
         {

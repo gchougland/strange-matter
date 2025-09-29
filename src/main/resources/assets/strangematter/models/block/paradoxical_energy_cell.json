@@ -1,0 +1,7 @@
+{
+	"parent": "strangematter:block/energy_cell",
+	"textures": {
+		"0": "strangematter:block/paradoxical_energy_cell",
+		"particle": "strangematter:block/paradoxical_energy_cell"
+	}
+}

@@ -1,0 +1,5 @@
+{
+	"parent": "strangematter:block/paradoxical_energy_cell",
+	"render_type": "minecraft:cutout"
+}
+
