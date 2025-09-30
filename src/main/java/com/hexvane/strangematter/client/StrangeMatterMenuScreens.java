@@ -2,7 +2,9 @@ package com.hexvane.strangematter.client;
 
 import com.hexvane.strangematter.StrangeMatterMod;
 import com.hexvane.strangematter.block.ResonanceCondenserBlockEntity;
+import com.hexvane.strangematter.block.ResonantBurnerBlockEntity;
 import com.hexvane.strangematter.client.screen.ResonanceCondenserScreen;
+import com.hexvane.strangematter.client.screen.ResonantBurnerScreen;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraftforge.api.distmarker.Dist;
@@ -18,6 +20,9 @@ public class StrangeMatterMenuScreens {
         event.enqueueWork(() -> {
             MenuScreens.register(StrangeMatterMod.RESONANCE_CONDENSER_MENU.get(), ResonanceCondenserScreen::new);
             BlockEntityRenderers.register(StrangeMatterMod.RESONANCE_CONDENSER_BLOCK_ENTITY.get(), ResonanceCondenserRenderer::new);
+            
+            MenuScreens.register(StrangeMatterMod.RESONANT_BURNER_MENU.get(), ResonantBurnerScreen::new);
+            BlockEntityRenderers.register(StrangeMatterMod.RESONANT_BURNER_BLOCK_ENTITY.get(), com.hexvane.strangematter.client.ResonantBurnerRenderer::new);
         });
     }
 }

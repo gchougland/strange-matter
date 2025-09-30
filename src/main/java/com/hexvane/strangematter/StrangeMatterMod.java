@@ -182,6 +182,12 @@ public class StrangeMatterMod
     public static final RegistryObject<Item> RESONANCE_CONDENSER_ITEM = ITEMS.register("resonance_condenser", () -> new ResonanceCondenserItem((ResonanceCondenserBlock) RESONANCE_CONDENSER_BLOCK.get()));
     public static final RegistryObject<BlockEntityType<ResonanceCondenserBlockEntity>> RESONANCE_CONDENSER_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("resonance_condenser", 
         () -> BlockEntityType.Builder.of((pos, state) -> new ResonanceCondenserBlockEntity(pos, state), RESONANCE_CONDENSER_BLOCK.get()).build(null));
+    
+    // Resonant Burner
+    public static final RegistryObject<Block> RESONANT_BURNER_BLOCK = BLOCKS.register("resonant_burner", com.hexvane.strangematter.block.ResonantBurnerBlock::new);
+    public static final RegistryObject<Item> RESONANT_BURNER_ITEM = ITEMS.register("resonant_burner", () -> new BlockItem(RESONANT_BURNER_BLOCK.get(), new Item.Properties()));
+    public static final RegistryObject<BlockEntityType<com.hexvane.strangematter.block.ResonantBurnerBlockEntity>> RESONANT_BURNER_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("resonant_burner", 
+        () -> BlockEntityType.Builder.of((pos, state) -> new com.hexvane.strangematter.block.ResonantBurnerBlockEntity(pos, state), RESONANT_BURNER_BLOCK.get()).build(null));
 
     // Paradoxical Energy Cell Block
     public static final RegistryObject<Block> PARADOXICAL_ENERGY_CELL_BLOCK = BLOCKS.register("paradoxical_energy_cell", com.hexvane.strangematter.block.ParadoxicalEnergyCellBlock::new);
@@ -196,6 +202,10 @@ public class StrangeMatterMod
     // Menu Types
     public static final RegistryObject<net.minecraft.world.inventory.MenuType<com.hexvane.strangematter.menu.ResonanceCondenserMenu>> RESONANCE_CONDENSER_MENU = MENU_TYPES.register("resonance_condenser",
         () -> net.minecraftforge.common.extensions.IForgeMenuType.create((windowId, inv, data) -> new com.hexvane.strangematter.menu.ResonanceCondenserMenu(windowId, inv, data)));
+    
+    // Resonant Burner Menu
+    public static final RegistryObject<net.minecraft.world.inventory.MenuType<com.hexvane.strangematter.menu.ResonantBurnerMenu>> RESONANT_BURNER_MENU = MENU_TYPES.register("resonant_burner",
+        () -> net.minecraftforge.common.extensions.IForgeMenuType.create((windowId, inv, data) -> new com.hexvane.strangematter.menu.ResonantBurnerMenu(windowId, inv, data)));
         
     // Custom gravity attribute for low gravity effects
     public static final RegistryObject<Attribute> ENTITY_GRAVITY = ATTRIBUTES.register("entity_gravity", 

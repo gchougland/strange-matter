@@ -1,26 +1,26 @@
 package com.hexvane.strangematter.client.screen;
 
 import com.hexvane.strangematter.StrangeMatterMod;
-import com.hexvane.strangematter.menu.ResonanceCondenserMenu;
+import com.hexvane.strangematter.menu.ResonantBurnerMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
-public class ResonanceCondenserScreen extends BaseMachineScreen<ResonanceCondenserMenu> {
+public class ResonantBurnerScreen extends BaseMachineScreen<ResonantBurnerMenu> {
 
-    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/gui/resonance_condenser.png");
-    private static final ResourceLocation PROGRESS_TEXTURE = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/ui/condenser_bubbles.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/gui/resonant_burner.png");
+    private static final ResourceLocation PROGRESS_TEXTURE = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/ui/flame_progress.png");
     
     // Energy bar position (at the top of the screen)
     private static final int ENERGY_BAR_X = 8;
     private static final int ENERGY_BAR_Y = -18;
     
-    // Progress bar position (below the machine slot)
-    private static final int PROGRESS_BAR_X = 79;
-    private static final int PROGRESS_BAR_Y = 50;
+    // Flame progress bar position (below the fuel slot)
+    private static final int FLAME_PROGRESS_X = 80;
+    private static final int FLAME_PROGRESS_Y = 42;
 
-    public ResonanceCondenserScreen(ResonanceCondenserMenu menu, Inventory playerInventory, Component title) {
+    public ResonantBurnerScreen(ResonantBurnerMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, TEXTURE);
         this.imageWidth = 176;
         this.imageHeight = 148;
@@ -30,18 +30,18 @@ public class ResonanceCondenserScreen extends BaseMachineScreen<ResonanceCondens
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         super.renderBg(guiGraphics, partialTick, mouseX, mouseY);
         
-        // Render energy bar and progress bar using the reusable components
+        // Render energy bar and flame progress bar using the reusable components
         if (this.menu.getDataAccess() != null) {
             int energyStored = this.menu.getDataAccess().get(0);
             int maxEnergyStored = this.menu.getDataAccess().get(1);
-            int progressLevel = this.menu.getDataAccess().get(5);
-            int maxProgress = this.menu.getDataAccess().get(6);
+            int burnTime = this.menu.getDataAccess().get(5);
+            int burnDuration = this.menu.getDataAccess().get(6);
             
             int x = (this.width - this.imageWidth) / 2;
             int y = (this.height - this.imageHeight) / 2;
             
             renderEnergyBar(guiGraphics, x + ENERGY_BAR_X, y + ENERGY_BAR_Y, energyStored, maxEnergyStored);
-            renderProgressBar(guiGraphics, x + PROGRESS_BAR_X, y + PROGRESS_BAR_Y, progressLevel, maxProgress, PROGRESS_TEXTURE);
+            renderProgressBar(guiGraphics, x + FLAME_PROGRESS_X, y + FLAME_PROGRESS_Y, burnTime, burnDuration, PROGRESS_TEXTURE);
         }
     }
     
@@ -56,25 +56,26 @@ public class ResonanceCondenserScreen extends BaseMachineScreen<ResonanceCondens
 
     @Override
     protected void renderMachineLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        // No machine-specific labels needed - progress is now shown as a visual bar
+        // No machine-specific labels needed - progress is shown as a visual bar
     }
     
     @Override
     protected void renderTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         super.renderTooltip(guiGraphics, mouseX, mouseY);
         
-        // Check for energy bar and progress bar tooltips
+        // Check for energy bar and flame progress bar tooltips
         if (this.menu.getDataAccess() != null) {
             int energyStored = this.menu.getDataAccess().get(0);
             int maxEnergyStored = this.menu.getDataAccess().get(1);
-            int progressLevel = this.menu.getDataAccess().get(5);
-            int maxProgress = this.menu.getDataAccess().get(6);
+            int burnTime = this.menu.getDataAccess().get(5);
+            int burnDuration = this.menu.getDataAccess().get(6);
             
             int x = (this.width - this.imageWidth) / 2;
             int y = (this.height - this.imageHeight) / 2;
             
             renderEnergyBarTooltip(guiGraphics, mouseX, mouseY, x + ENERGY_BAR_X, y + ENERGY_BAR_Y, energyStored, maxEnergyStored);
-            renderProgressBarTooltip(guiGraphics, mouseX, mouseY, x + PROGRESS_BAR_X, y + PROGRESS_BAR_Y, progressLevel, maxProgress, null);
+            renderProgressBarTooltip(guiGraphics, mouseX, mouseY, x + FLAME_PROGRESS_X, y + FLAME_PROGRESS_Y, burnTime, burnDuration, 
+                Component.translatable("gui.strangematter.burn_progress", burnTime, burnDuration));
         }
     }
 }
