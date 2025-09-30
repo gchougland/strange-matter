@@ -90,17 +90,17 @@ public abstract class BaseMachineScreen<T extends BaseMachineMenu> extends Abstr
      * Render progress bar at the specified position using the reusable component.
      * This method can be called by subclasses to easily add progress bars to their screens.
      */
-    protected void renderProgressBar(GuiGraphics guiGraphics, int x, int y, int progressLevel, int maxProgressLevel) {
-        ProgressBarRenderer.renderProgressBar(guiGraphics, x, y, progressLevel, maxProgressLevel);
+    protected void renderProgressBar(GuiGraphics guiGraphics, int x, int y, int progressLevel, int maxProgressLevel, ResourceLocation texture) {
+        ProgressBarRenderer.renderProgressBar(guiGraphics, x, y, progressLevel, maxProgressLevel, texture);
     }
 
     /**
      * Check if mouse is over progress bar and render tooltip if so.
      * This method can be called by subclasses to handle progress bar tooltips.
      */
-    protected boolean renderProgressBarTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY, int x, int y, int progressLevel, int maxProgressLevel) {
+    protected boolean renderProgressBarTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY, int x, int y, int progressLevel, int maxProgressLevel, Component tooltipOverride) {
         if (ProgressBarRenderer.isMouseOverProgressBar(mouseX, mouseY, x, y)) {
-            Component tooltip = ProgressBarRenderer.getProgressBarTooltip(progressLevel, maxProgressLevel);
+            Component tooltip = tooltipOverride != null ? tooltipOverride : ProgressBarRenderer.getProgressBarTooltip(progressLevel, maxProgressLevel);
             guiGraphics.renderTooltip(this.font, tooltip, mouseX, mouseY);
             return true;
         }

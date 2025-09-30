@@ -33,6 +33,8 @@
   "block.strangematter.research_machine": "Research Machine",
   "block.strangematter.resonance_condenser": "Resonance Condenser",
   "block.strangematter.resonance_condenser.tooltip": "An advanced device that can extract and condense anomaly energy into crystallized shards. Place near anomalies to begin the absorption process.",
+  "block.strangematter.resonant_burner": "Resonant Burner",
+  "block.strangematter.resonant_burner.tooltip": "A powerful energy generator that burns fuel to produce resonance energy. Can accept any furnace fuel and outputs energy to adjacent machines.",
   "entity.strangematter.gravity_anomaly": "Gravity Anomaly",
   "entity.strangematter.energetic_rift": "Energetic Rift",
   "entity.strangematter.echoing_shadow": "Echoing Shadow",
@@ -125,5 +127,6 @@
   "item.strangematter.paradoxical_energy_cell": "Paradoxical Energy Cell",
   "block.strangematter.paradoxical_energy_cell.info": "Infinite Resonance Energy Source",
   "gui.strangematter.resonance_energy": "Resonance Energy: %d/%d",
-  "gui.strangematter.progress": "Progress: %d/%d"
+  "gui.strangematter.progress": "Progress: %d/%d",
+  "gui.strangematter.burn_progress": "Burn Progress: %d/%d"
 }

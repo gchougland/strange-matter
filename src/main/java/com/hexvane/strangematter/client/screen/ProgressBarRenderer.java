@@ -7,16 +7,14 @@ import net.minecraft.resources.ResourceLocation;
 
 public class ProgressBarRenderer {
 
-    private static final ResourceLocation PROGRESS_BAR_TEXTURE = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/ui/condenser_bubbles.png");
-
     // Progress bar dimensions (full texture is 32x16, but we only show 16x16)
     private static final int PROGRESS_BAR_WIDTH = 32;
     private static final int PROGRESS_BAR_HEIGHT = 16;
 
     /**
-     * Render the progress bar at the specified position
+     * Render the progress bar at the specified position with a custom texture
      */
-    public static void renderProgressBar(GuiGraphics guiGraphics, int x, int y, int progressLevel, int maxProgressLevel) {
+    public static void renderProgressBar(GuiGraphics guiGraphics, int x, int y, int progressLevel, int maxProgressLevel, ResourceLocation texture) {
         if (maxProgressLevel > 0) {
             float progressPercentage = (float) progressLevel / (float) maxProgressLevel;
             
@@ -24,7 +22,7 @@ public class ProgressBarRenderer {
             
             guiGraphics.enableScissor(x, y, x + 16, y + PROGRESS_BAR_HEIGHT);
 
-            guiGraphics.blit(PROGRESS_BAR_TEXTURE,
+            guiGraphics.blit(texture,
                 x, y,
                 0, 0, // Source X, Y (left 16x16 of texture)
                 32, 16, // Only render the left 16x16 portion
@@ -41,7 +39,7 @@ public class ProgressBarRenderer {
                     guiGraphics.enableScissor(x, y + (PROGRESS_BAR_HEIGHT - fillHeight), x + 16, y + PROGRESS_BAR_HEIGHT);
                     
                     // Render the full 32x16 texture (scissor will only show the right 16x16 portion)
-                    guiGraphics.blit(PROGRESS_BAR_TEXTURE,
+                    guiGraphics.blit(texture,
                         x, y, // Render at the original position
                         16, 0, // Source X, Y (full texture)
                         PROGRESS_BAR_WIDTH, PROGRESS_BAR_HEIGHT, // Full texture size
