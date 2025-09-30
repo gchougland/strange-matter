@@ -1,19 +1,19 @@
 {
     "variants": {
         "facing=north": {
-            "model": "strangematter:block/resonant_burner"
-        },
-        "facing=east": {
-            "model": "strangematter:block/resonant_burner",
-            "y": 90
-        },
-        "facing=south": {
             "model": "strangematter:block/resonant_burner",
             "y": 180
         },
-        "facing=west": {
+        "facing=east": {
             "model": "strangematter:block/resonant_burner",
             "y": 270
+        },
+        "facing=south": {
+            "model": "strangematter:block/resonant_burner"
+        },
+        "facing=west": {
+            "model": "strangematter:block/resonant_burner",
+            "y": 90
         }
     }
 }
