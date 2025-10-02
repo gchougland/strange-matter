@@ -23,6 +23,8 @@ public class StrangeMatterMenuScreens {
             
             MenuScreens.register(StrangeMatterMod.RESONANT_BURNER_MENU.get(), ResonantBurnerScreen::new);
             BlockEntityRenderers.register(StrangeMatterMod.RESONANT_BURNER_BLOCK_ENTITY.get(), com.hexvane.strangematter.client.ResonantBurnerRenderer::new);
+            
+            MenuScreens.register(StrangeMatterMod.REALITY_FORGE_MENU.get(), com.hexvane.strangematter.client.screen.RealityForgeScreen::new);
         });
     }
 }

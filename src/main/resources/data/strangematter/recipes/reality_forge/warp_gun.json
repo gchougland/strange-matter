@@ -1,0 +1,23 @@
+{
+  "type": "strangematter:reality_forge",
+  "pattern": [
+    " R ",
+    "RER",
+    " R "
+  ],
+  "key": {
+    "R": {
+      "item": "strangematter:resonite_ingot"
+    },
+    "E": {
+      "item": "minecraft:ender_pearl"
+    }
+  },
+  "shards": {
+    "spatial": 2,
+    "energetic": 2
+  },
+  "result": {
+    "item": "strangematter:warp_gun"
+  }
+}

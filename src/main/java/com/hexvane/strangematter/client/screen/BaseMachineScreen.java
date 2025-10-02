@@ -40,7 +40,7 @@ public abstract class BaseMachineScreen<T extends BaseMachineMenu> extends Abstr
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         // Render title
-        guiGraphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 0x404040, false);
+        guiGraphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 0x26bdba, false);
         
         // Render machine-specific labels (implemented by subclasses)
         renderMachineLabels(guiGraphics, mouseX, mouseY);

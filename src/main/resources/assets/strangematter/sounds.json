@@ -114,5 +114,13 @@
   "warp_gun_shoot": {
     "sounds": ["strangematter:warp_gun_shoot"],
     "subtitle": "Warp gun fires"
+  },
+  "reality_forge_craft": {
+    "sounds": ["strangematter:reality_forge_craft"],
+    "subtitle": "Reality Forge crafts"
+  },
+  "reality_forge_insert": {
+    "sounds": ["strangematter:reality_forge_insert"],
+    "subtitle": "Shard inserted"
   }
 }

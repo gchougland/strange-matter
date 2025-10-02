@@ -52,6 +52,10 @@ public class StrangeMatterSounds {
     
     // Warp Gun sounds
     public static final RegistryObject<SoundEvent> WARP_GUN_SHOOT = registerSoundEvent("warp_gun_shoot");
+    
+    // Reality Forge sounds
+    public static final RegistryObject<SoundEvent> REALITY_FORGE_CRAFT = registerSoundEvent("reality_forge_craft");
+    public static final RegistryObject<SoundEvent> REALITY_FORGE_INSERT = registerSoundEvent("reality_forge_insert");
 
     private static RegistryObject<SoundEvent> registerSoundEvent(String name) {
         return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(StrangeMatterMod.MODID, name)));
