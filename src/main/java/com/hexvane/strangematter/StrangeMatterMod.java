@@ -39,6 +39,9 @@ import com.hexvane.strangematter.item.ShadeShardItem;
 import com.hexvane.strangematter.item.InsightShardItem;
 import com.hexvane.strangematter.item.EnergeticShardItem;
 import com.hexvane.strangematter.item.WarpGunItem;
+import com.hexvane.strangematter.item.EchoVacuumItem;
+import com.hexvane.strangematter.item.ContainmentCapsuleItem;
+import com.hexvane.strangematter.network.EchoVacuumBeamPacket;
 import com.hexvane.strangematter.entity.WarpProjectileEntity;
 import com.hexvane.strangematter.entity.MiniWarpGateEntity;
 import com.hexvane.strangematter.client.MiniWarpGateRenderer;
@@ -178,6 +181,29 @@ public class StrangeMatterMod
 
     // Warp Gun Item
     public static final RegistryObject<Item> WARP_GUN = ITEMS.register("warp_gun", WarpGunItem::new);
+
+    // Echo Vacuum Item
+    public static final RegistryObject<Item> ECHO_VACUUM = ITEMS.register("echo_vacuum", EchoVacuumItem::new);
+
+    // Containment Capsule Items
+    public static final RegistryObject<Item> CONTAINMENT_CAPSULE = ITEMS.register("containment_capsule", () -> new ContainmentCapsuleItem(ContainmentCapsuleItem.AnomalyType.NONE));
+    public static final RegistryObject<Item> CONTAINMENT_CAPSULE_GRAVITY = ITEMS.register("containment_capsule_gravity", () -> new ContainmentCapsuleItem(ContainmentCapsuleItem.AnomalyType.GRAVITY));
+    public static final RegistryObject<Item> CONTAINMENT_CAPSULE_ENERGETIC = ITEMS.register("containment_capsule_energetic", () -> new ContainmentCapsuleItem(ContainmentCapsuleItem.AnomalyType.ENERGETIC));
+    public static final RegistryObject<Item> CONTAINMENT_CAPSULE_ECHOING_SHADOW = ITEMS.register("containment_capsule_echoing_shadow", () -> new ContainmentCapsuleItem(ContainmentCapsuleItem.AnomalyType.ECHOING_SHADOW));
+    public static final RegistryObject<Item> CONTAINMENT_CAPSULE_TEMPORAL_BLOOM = ITEMS.register("containment_capsule_temporal_bloom", () -> new ContainmentCapsuleItem(ContainmentCapsuleItem.AnomalyType.TEMPORAL_BLOOM));
+    public static final RegistryObject<Item> CONTAINMENT_CAPSULE_THOUGHTWELL = ITEMS.register("containment_capsule_thoughtwell", () -> new ContainmentCapsuleItem(ContainmentCapsuleItem.AnomalyType.THOUGHTWELL));
+    public static final RegistryObject<Item> CONTAINMENT_CAPSULE_WARP_GATE = ITEMS.register("containment_capsule_warp_gate", () -> new ContainmentCapsuleItem(ContainmentCapsuleItem.AnomalyType.WARP_GATE));
+
+    // Set static references for ContainmentCapsuleItem
+    static {
+        ContainmentCapsuleItem.EMPTY_CAPSULE = CONTAINMENT_CAPSULE;
+        ContainmentCapsuleItem.GRAVITY_CAPSULE = CONTAINMENT_CAPSULE_GRAVITY;
+        ContainmentCapsuleItem.ENERGETIC_CAPSULE = CONTAINMENT_CAPSULE_ENERGETIC;
+        ContainmentCapsuleItem.ECHOING_SHADOW_CAPSULE = CONTAINMENT_CAPSULE_ECHOING_SHADOW;
+        ContainmentCapsuleItem.TEMPORAL_BLOOM_CAPSULE = CONTAINMENT_CAPSULE_TEMPORAL_BLOOM;
+        ContainmentCapsuleItem.THOUGHTWELL_CAPSULE = CONTAINMENT_CAPSULE_THOUGHTWELL;
+        ContainmentCapsuleItem.WARP_GATE_CAPSULE = CONTAINMENT_CAPSULE_WARP_GATE;
+    }
 
     // Reality Forge Block
     public static final RegistryObject<Block> REALITY_FORGE_BLOCK = BLOCKS.register("reality_forge", com.hexvane.strangematter.block.RealityForgeBlock::new);
@@ -340,6 +366,14 @@ public class StrangeMatterMod
                 output.accept(INSIGHT_SHARD.get());
                 output.accept(ENERGETIC_SHARD.get());
                 output.accept(WARP_GUN.get());
+                output.accept(ECHO_VACUUM.get());
+                output.accept(CONTAINMENT_CAPSULE.get());
+                output.accept(CONTAINMENT_CAPSULE_GRAVITY.get());
+                output.accept(CONTAINMENT_CAPSULE_ENERGETIC.get());
+                output.accept(CONTAINMENT_CAPSULE_ECHOING_SHADOW.get());
+                output.accept(CONTAINMENT_CAPSULE_TEMPORAL_BLOOM.get());
+                output.accept(CONTAINMENT_CAPSULE_THOUGHTWELL.get());
+                output.accept(CONTAINMENT_CAPSULE_WARP_GATE.get());
             }).build());
 
     public StrangeMatterMod()
@@ -367,6 +401,7 @@ public class StrangeMatterMod
         BLOCK_ENTITY_TYPES.register(modEventBus);
         // Register StrangeMatterSounds
         StrangeMatterSounds.SOUND_EVENTS.register(modEventBus);
+        
         // Register the Deferred Register to the mod event bus so menu types get registered
         MENU_TYPES.register(modEventBus);
         // Register the Deferred Register to the mod event bus so recipe types get registered
@@ -465,6 +500,8 @@ public class StrangeMatterMod
                 }
             );
         });
+        
+        // Particle renderers would be registered here if needed
     }
 
     // Register commands
@@ -615,14 +652,35 @@ public class StrangeMatterMod
                 net.minecraft.client.renderer.entity.EntityRenderers.register(THOUGHTWELL.get(), ThoughtwellRenderer::new);
                 net.minecraft.client.renderer.entity.EntityRenderers.register(WARP_PROJECTILE_ENTITY.get(), WarpProjectileRenderer::new);
                 net.minecraft.client.renderer.entity.EntityRenderers.register(MINI_WARP_GATE_ENTITY.get(), MiniWarpGateRenderer::new);
-                
                 // Register block entity renderer for crystalized ectoplasm
                 net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(CRYSTALIZED_ECTOPLASM_BLOCK_ENTITY.get(), CrystalizedEctoplasmRenderer::new);
                 net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(RESEARCH_MACHINE_BLOCK_ENTITY.get(), ResearchMachineRenderer::new);
+                
+                // Register Echo Vacuum client handler for proper first/third person rendering
+                net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new com.hexvane.strangematter.client.EchoVacuumClientHandler());
                 
             });
         }
         
         
+    }
+    
+    // Beam state tracking for multiplayer visibility
+    private static final java.util.Map<net.minecraft.world.entity.player.Player, Boolean> playerBeamStates = new java.util.concurrent.ConcurrentHashMap<>();
+    
+    public static void setPlayerBeamState(net.minecraft.world.entity.player.Player player, boolean isActive) {
+        if (isActive) {
+            playerBeamStates.put(player, true);
+        } else {
+            playerBeamStates.remove(player);
+        }
+    }
+    
+    public static boolean isPlayerUsingBeam(net.minecraft.world.entity.player.Player player) {
+        return playerBeamStates.containsKey(player);
+    }
+    
+    public static java.util.Set<net.minecraft.world.entity.player.Player> getPlayersUsingBeam() {
+        return playerBeamStates.keySet();
     }
 }

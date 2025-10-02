@@ -26,9 +26,7 @@ public class CrystalizedEctoplasmRenderer implements BlockEntityRenderer<Crystal
         // Load the OBJ model
         try {
             this.crystalModel = OBJLoader.loadModel(CRYSTAL_OBJ);
-            System.out.println("Crystalized Ectoplasm OBJ model loaded successfully with " + crystalModel.faces.size() + " faces");
         } catch (Exception e) {
-            System.err.println("Failed to load crystalized ectoplasm OBJ model: " + e.getMessage());
             e.printStackTrace();
         }
     }

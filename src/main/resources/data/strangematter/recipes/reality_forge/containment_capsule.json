@@ -1,0 +1,23 @@
+{
+  "type": "strangematter:reality_forge",
+  "pattern": [
+    " R ",
+    " G ",
+    " R "
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "R": {
+      "item": "strangematter:resonite_ingot"
+    }
+  },
+  "shards": {
+    "spatial": 1,
+    "energetic": 1
+  },
+  "result": {
+    "item": "strangematter:containment_capsule"
+  }
+}

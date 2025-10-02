@@ -1,0 +1,24 @@
+{
+  "type": "strangematter:reality_forge",
+  "pattern": [
+    "   ",
+    "RGR",
+    "  R"
+  ],
+  "key": {
+    "R": {
+      "item": "strangematter:resonite_ingot"
+    },
+    "G": {
+      "item": "strangematter:energetic_shard"
+    }
+  },
+  "shards": {
+    "spatial": 3,
+    "energetic": 2,
+    "temporal": 1
+  },
+  "result": {
+    "item": "strangematter:echo_vacuum"
+  }
+}

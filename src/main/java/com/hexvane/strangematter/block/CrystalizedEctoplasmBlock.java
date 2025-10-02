@@ -67,11 +67,6 @@ public class CrystalizedEctoplasmBlock extends Block implements EntityBlock {
         // Get the direction the player is looking
         Direction facing = context.getClickedFace();
         
-        // Debug message for world generation
-        if (context.getLevel() != null) {
-            // System.out.println("Crystalized Ectoplasm placed at " + context.getClickedPos() + " facing " + facing);
-        }
-        
         // If placing on the top or bottom face, use the clicked face
         // If placing on a side face, use the opposite direction (so crystal points toward player)
         if (facing == Direction.UP || facing == Direction.DOWN) {
@@ -145,11 +140,6 @@ public class CrystalizedEctoplasmBlock extends Block implements EntityBlock {
     @Override
     public void animateTick(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull RandomSource random) {
         super.animateTick(state, level, pos, random);
-        
-        // Debug message to confirm blocks exist
-        if (random.nextInt(200) == 0) {
-            System.out.println("Crystalized Ectoplasm block exists at " + pos + " with facing " + state.getValue(FACING));
-        }
         
         // Spawn particles occasionally
         if (random.nextInt(15) == 0) {

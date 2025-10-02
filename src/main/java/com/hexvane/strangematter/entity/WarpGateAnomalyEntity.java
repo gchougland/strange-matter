@@ -671,7 +671,7 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    protected ResourceLocation getAnomalySound() {
+    public ResourceLocation getAnomalySound() {
         return com.hexvane.strangematter.sound.StrangeMatterSounds.WARP_GATE_LOOP.get().getLocation();
     }
     

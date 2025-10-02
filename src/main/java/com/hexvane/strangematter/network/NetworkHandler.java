@@ -66,5 +66,10 @@ public class NetworkHandler {
             EjectShardsPacket::encode,
             EjectShardsPacket::new,
             EjectShardsPacket::handle);
+            
+        INSTANCE.registerMessage(packetId++, EchoVacuumBeamPacket.class,
+            EchoVacuumBeamPacket::encode,
+            EchoVacuumBeamPacket::new,
+            EchoVacuumBeamPacket::handle);
     }
 }

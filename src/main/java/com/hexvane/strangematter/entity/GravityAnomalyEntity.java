@@ -226,7 +226,7 @@ public class GravityAnomalyEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    protected ResourceLocation getAnomalySound() {
+    public ResourceLocation getAnomalySound() {
         return com.hexvane.strangematter.sound.StrangeMatterSounds.GRAVITY_ANOMALY_LOOP.get().getLocation();
     }
     

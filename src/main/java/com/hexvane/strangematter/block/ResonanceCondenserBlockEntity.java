@@ -253,7 +253,6 @@ public class ResonanceCondenserBlockEntity extends BaseMachineBlockEntity {
         }
         setChanged();
         syncToClient();
-        System.out.println("setItem called: slot " + index + ", stack: " + (stack.isEmpty() ? "empty" : stack.toString()));
     }
     
     @Override

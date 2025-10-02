@@ -115,6 +115,23 @@
     "sounds": ["strangematter:warp_gun_shoot"],
     "subtitle": "Warp gun fires"
   },
+  "echo_vacuum_charge_up": {
+    "sounds": ["strangematter:echo_vacuum_charge_up"],
+    "subtitle": "Echo Vacuum charging up"
+  },
+  "echo_vacuum_fire_loop": {
+    "sounds": ["strangematter:echo_vacuum_fire_loop"],
+    "subtitle": "Echo Vacuum firing",
+    "stream": true
+  },
+  "echo_vacuum_charge_down": {
+    "sounds": ["strangematter:echo_vacuum_charge_down"],
+    "subtitle": "Echo Vacuum powering down"
+  },
+  "echo_vacuum_contain": {
+    "sounds": ["strangematter:echo_vacuum_contain"],
+    "subtitle": "Anomaly contained"
+  },
   "reality_forge_craft": {
     "sounds": ["strangematter:reality_forge_craft"],
     "subtitle": "Reality Forge crafts"
