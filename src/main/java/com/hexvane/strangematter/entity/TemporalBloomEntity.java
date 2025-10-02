@@ -398,7 +398,7 @@ public class TemporalBloomEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    protected ResourceLocation getAnomalySound() {
+    public ResourceLocation getAnomalySound() {
         return StrangeMatterSounds.TEMPORAL_BLOOM_LOOP.get().getLocation();
     }
     

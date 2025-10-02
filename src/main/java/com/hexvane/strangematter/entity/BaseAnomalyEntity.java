@@ -35,6 +35,7 @@ public abstract class BaseAnomalyEntity extends Entity {
     private static final EntityDataAccessor<Float> ROTATION = SynchedEntityData.defineId(BaseAnomalyEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> PULSE_INTENSITY = SynchedEntityData.defineId(BaseAnomalyEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Boolean> IS_CONTAINED = SynchedEntityData.defineId(BaseAnomalyEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Float> SCALE = SynchedEntityData.defineId(BaseAnomalyEntity.class, EntityDataSerializers.FLOAT);
     
     // Constants for anomaly behavior
     protected static final float ROTATION_SPEED = 0.5f;
@@ -65,6 +66,7 @@ public abstract class BaseAnomalyEntity extends Entity {
         this.entityData.define(ROTATION, 0.0f);
         this.entityData.define(PULSE_INTENSITY, 0.0f);
         this.entityData.define(IS_CONTAINED, false);
+        this.entityData.define(SCALE, 1.0f);
     }
     
     @Override
@@ -131,7 +133,7 @@ public abstract class BaseAnomalyEntity extends Entity {
     /**
      * Override this method to return the sound resource for this anomaly
      */
-    protected abstract ResourceLocation getAnomalySound();
+    public abstract ResourceLocation getAnomalySound();
     
     /**
      * Override this method to return the research type this anomaly provides
@@ -297,6 +299,14 @@ public abstract class BaseAnomalyEntity extends Entity {
         this.entityData.set(IS_CONTAINED, contained);
     }
     
+    public float getScale() {
+        return this.entityData.get(SCALE);
+    }
+    
+    public void setScale(float scale) {
+        this.entityData.set(SCALE, Math.max(0.1f, Math.min(2.0f, scale)));
+    }
+    
     @Override
     protected void readAdditionalSaveData(CompoundTag compound) {
         if (compound.contains("Rotation")) {
@@ -308,6 +318,9 @@ public abstract class BaseAnomalyEntity extends Entity {
         if (compound.contains("IsContained")) {
             this.entityData.set(IS_CONTAINED, compound.getBoolean("IsContained"));
         }
+        if (compound.contains("Scale")) {
+            this.entityData.set(SCALE, compound.getFloat("Scale"));
+        }
         if (compound.contains("TerrainModified")) {
             this.terrainModified = compound.getBoolean("TerrainModified");
         }
@@ -318,6 +331,7 @@ public abstract class BaseAnomalyEntity extends Entity {
         compound.putFloat("Rotation", this.entityData.get(ROTATION));
         compound.putFloat("PulseIntensity", this.entityData.get(PULSE_INTENSITY));
         compound.putBoolean("IsContained", this.entityData.get(IS_CONTAINED));
+        compound.putFloat("Scale", this.entityData.get(SCALE));
         compound.putBoolean("TerrainModified", this.terrainModified);
     }
     
@@ -338,5 +352,27 @@ public abstract class BaseAnomalyEntity extends Entity {
     public void registerAsScannable() {
         // This method is kept for compatibility but actual registration
         // should be done in ScannableObjectRegistry static block
+    }
+    
+    @Override
+    public void remove(Entity.RemovalReason reason) {
+        // Stop the anomaly's sound before removing the entity
+        if (isSoundActive) {
+            // This will be handled client-side, but we need to ensure cleanup
+            stopSoundEffects();
+        }
+        
+        // Call the parent remove method
+        super.remove(reason);
+    }
+    
+    /**
+     * Stop sound effects for this anomaly
+     * This should be called when the anomaly is removed or contained
+     */
+    protected void stopSoundEffects() {
+        // This method will be overridden by client-side code if needed
+        // For now, just mark that sound should be stopped
+        isSoundActive = false;
     }
 }

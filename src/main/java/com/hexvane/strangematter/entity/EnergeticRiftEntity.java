@@ -259,7 +259,7 @@ public class EnergeticRiftEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    protected ResourceLocation getAnomalySound() {
+    public ResourceLocation getAnomalySound() {
         return StrangeMatterSounds.ENERGETIC_RIFT_LOOP.get().getLocation();
     }
     

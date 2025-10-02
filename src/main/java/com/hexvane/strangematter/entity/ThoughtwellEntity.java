@@ -284,7 +284,7 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    protected ResourceLocation getAnomalySound() {
+    public ResourceLocation getAnomalySound() {
         return StrangeMatterSounds.THOUGHTWELL_LOOP.get().getLocation();
     }
     

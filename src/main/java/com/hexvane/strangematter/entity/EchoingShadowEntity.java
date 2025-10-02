@@ -361,7 +361,7 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    protected ResourceLocation getAnomalySound() {
+    public ResourceLocation getAnomalySound() {
         return com.hexvane.strangematter.sound.StrangeMatterSounds.ECHOING_SHADOW_LOOP.get().getLocation();
     }
     
