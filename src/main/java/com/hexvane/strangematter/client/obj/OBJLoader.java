@@ -40,7 +40,10 @@ public class OBJLoader {
             Map<String, List<Integer>> materialGroups = new HashMap<>();
             for (int i = 0; i < faces.size(); i++) {
                 String material = (i < faceMaterials.size()) ? faceMaterials.get(i) : "default";
-                materialGroups.computeIfAbsent(material, k -> new ArrayList<>()).add(i);
+                if (!materialGroups.containsKey(material)) {
+                    materialGroups.put(material, new ArrayList<>());
+                }
+                materialGroups.get(material).add(i);
             }
             
             // Render each material group

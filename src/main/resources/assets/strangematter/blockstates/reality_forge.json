@@ -1,0 +1,19 @@
+{
+    "variants": {
+        "facing=north": {
+            "model": "strangematter:block/reality_forge",
+            "y": 180
+        },
+        "facing=east": {
+            "model": "strangematter:block/reality_forge",
+            "y": 270
+        },
+        "facing=south": {
+            "model": "strangematter:block/reality_forge"
+        },
+        "facing=west": {
+            "model": "strangematter:block/reality_forge",
+            "y": 90
+        }
+    }
+}

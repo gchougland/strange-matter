@@ -109,8 +109,6 @@ public class StrangeMatterMod
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, MODID);
     // Create a Deferred Register to hold BlockEntityTypes
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MODID);
-    // Create a Deferred Register to hold SoundEvents
-    public static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, MODID);
     // Create a Deferred Register to hold Attributes
     public static final DeferredRegister<Attribute> ATTRIBUTES = DeferredRegister.create(ForgeRegistries.ATTRIBUTES, MODID);
     // Create a Deferred Register to hold Features
@@ -123,6 +121,10 @@ public class StrangeMatterMod
     public static final DeferredRegister<net.minecraft.core.particles.ParticleType<?>> PARTICLE_TYPES = DeferredRegister.create(ForgeRegistries.PARTICLE_TYPES, MODID);
     // Create a Deferred Register to hold MenuTypes
     public static final DeferredRegister<net.minecraft.world.inventory.MenuType<?>> MENU_TYPES = DeferredRegister.create(ForgeRegistries.MENU_TYPES, MODID);
+    // Create a Deferred Register to hold RecipeTypes
+    public static final DeferredRegister<net.minecraft.world.item.crafting.RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(ForgeRegistries.RECIPE_TYPES, MODID);
+    // Create a Deferred Register to hold RecipeSerializers
+    public static final DeferredRegister<net.minecraft.world.item.crafting.RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, MODID);
 
 
     // Creates a new research item with the id "strangematter:field_scanner"
@@ -177,6 +179,12 @@ public class StrangeMatterMod
     // Warp Gun Item
     public static final RegistryObject<Item> WARP_GUN = ITEMS.register("warp_gun", WarpGunItem::new);
 
+    // Reality Forge Block
+    public static final RegistryObject<Block> REALITY_FORGE_BLOCK = BLOCKS.register("reality_forge", com.hexvane.strangematter.block.RealityForgeBlock::new);
+    public static final RegistryObject<Item> REALITY_FORGE_ITEM = ITEMS.register("reality_forge", () -> new BlockItem(REALITY_FORGE_BLOCK.get(), new Item.Properties()));
+    public static final RegistryObject<BlockEntityType<com.hexvane.strangematter.block.RealityForgeBlockEntity>> REALITY_FORGE_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("reality_forge", 
+        () -> BlockEntityType.Builder.of((pos, state) -> new com.hexvane.strangematter.block.RealityForgeBlockEntity(pos, state), REALITY_FORGE_BLOCK.get()).build(null));
+
     // Resonance Condenser Block
     public static final RegistryObject<Block> RESONANCE_CONDENSER_BLOCK = BLOCKS.register("resonance_condenser", ResonanceCondenserBlock::new);
     public static final RegistryObject<Item> RESONANCE_CONDENSER_ITEM = ITEMS.register("resonance_condenser", () -> new ResonanceCondenserItem((ResonanceCondenserBlock) RESONANCE_CONDENSER_BLOCK.get()));
@@ -206,6 +214,17 @@ public class StrangeMatterMod
     // Resonant Burner Menu
     public static final RegistryObject<net.minecraft.world.inventory.MenuType<com.hexvane.strangematter.menu.ResonantBurnerMenu>> RESONANT_BURNER_MENU = MENU_TYPES.register("resonant_burner",
         () -> net.minecraftforge.common.extensions.IForgeMenuType.create((windowId, inv, data) -> new com.hexvane.strangematter.menu.ResonantBurnerMenu(windowId, inv, data)));
+
+    // Reality Forge Menu
+    public static final RegistryObject<net.minecraft.world.inventory.MenuType<com.hexvane.strangematter.menu.RealityForgeMenu>> REALITY_FORGE_MENU = MENU_TYPES.register("reality_forge",
+        () -> net.minecraftforge.common.extensions.IForgeMenuType.create((windowId, inv, data) -> new com.hexvane.strangematter.menu.RealityForgeMenu(windowId, inv, data)));
+
+    // Reality Forge Recipe Type and Serializer
+    public static final RegistryObject<net.minecraft.world.item.crafting.RecipeType<com.hexvane.strangematter.recipe.RealityForgeRecipe>> REALITY_FORGE_RECIPE_TYPE = RECIPE_TYPES.register("reality_forge",
+        () -> new net.minecraft.world.item.crafting.RecipeType<com.hexvane.strangematter.recipe.RealityForgeRecipe>() {});
+    public static final RegistryObject<net.minecraft.world.item.crafting.RecipeSerializer<com.hexvane.strangematter.recipe.RealityForgeRecipe>> REALITY_FORGE_RECIPE_SERIALIZER = RECIPE_SERIALIZERS.register("reality_forge",
+        () -> new com.hexvane.strangematter.recipe.RealityForgeRecipe.Serializer());
+
         
     // Custom gravity attribute for low gravity effects
     public static final RegistryObject<Attribute> ENTITY_GRAVITY = ATTRIBUTES.register("entity_gravity", 
@@ -306,6 +325,8 @@ public class StrangeMatterMod
                 output.accept(ANOMALOUS_GRASS_ITEM.get());
                 output.accept(CRYSTALIZED_ECTOPLASM_ITEM.get());
                 output.accept(RESEARCH_MACHINE_ITEM.get());
+                output.accept(REALITY_FORGE_ITEM.get());
+                output.accept(RESONANT_BURNER_ITEM.get());
                 output.accept(RESONANCE_CONDENSER_ITEM.get());
                 output.accept(PARADOXICAL_ENERGY_CELL_ITEM.get());
                 output.accept(ECTOPLASM.get());
@@ -344,10 +365,14 @@ public class StrangeMatterMod
         ENTITY_TYPES.register(modEventBus);
         // Register the Deferred Register to the mod event bus so block entity types get registered
         BLOCK_ENTITY_TYPES.register(modEventBus);
-        // Register the Deferred Register to the mod event bus so sound events get registered
-        SOUND_EVENTS.register(modEventBus);
         // Register StrangeMatterSounds
         StrangeMatterSounds.SOUND_EVENTS.register(modEventBus);
+        // Register the Deferred Register to the mod event bus so menu types get registered
+        MENU_TYPES.register(modEventBus);
+        // Register the Deferred Register to the mod event bus so recipe types get registered
+        RECIPE_TYPES.register(modEventBus);
+        // Register the Deferred Register to the mod event bus so recipe serializers get registered
+        RECIPE_SERIALIZERS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so attributes get registered
         ATTRIBUTES.register(modEventBus);
         // Register the Deferred Register to the mod event bus so features get registered
@@ -358,8 +383,6 @@ public class StrangeMatterMod
         STRUCTURE_TYPES.register(modEventBus); // Register structure types
         // Register the Deferred Register to the mod event bus so particle types get registered
         PARTICLE_TYPES.register(modEventBus);
-        // Register the Deferred Register to the mod event bus so menu types get registered
-        MENU_TYPES.register(modEventBus);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
@@ -544,6 +567,7 @@ public class StrangeMatterMod
             event.accept(ANOMALOUS_GRASS_ITEM.get());
             event.accept(CRYSTALIZED_ECTOPLASM_ITEM.get());
             event.accept(RESONANCE_CONDENSER_ITEM.get());
+            event.accept(REALITY_FORGE_ITEM.get());
             event.accept(PARADOXICAL_ENERGY_CELL_ITEM.get());
         }
         if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES)

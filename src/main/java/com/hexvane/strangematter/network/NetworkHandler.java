@@ -61,5 +61,10 @@ public class NetworkHandler {
             WarpGunShootPacket::encode,
             WarpGunShootPacket::new,
             WarpGunShootPacket::handle);
+            
+        INSTANCE.registerMessage(packetId++, EjectShardsPacket.class,
+            EjectShardsPacket::encode,
+            EjectShardsPacket::new,
+            EjectShardsPacket::handle);
     }
 }
