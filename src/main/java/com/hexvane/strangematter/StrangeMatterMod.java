@@ -401,7 +401,6 @@ public class StrangeMatterMod
         BLOCK_ENTITY_TYPES.register(modEventBus);
         // Register StrangeMatterSounds
         StrangeMatterSounds.SOUND_EVENTS.register(modEventBus);
-        
         // Register the Deferred Register to the mod event bus so menu types get registered
         MENU_TYPES.register(modEventBus);
         // Register the Deferred Register to the mod event bus so recipe types get registered
