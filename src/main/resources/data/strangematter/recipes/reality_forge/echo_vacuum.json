@@ -14,9 +14,12 @@
     }
   },
   "shards": {
-    "spatial": 3,
-    "energetic": 2,
-    "temporal": 1
+    "spatial": 1,
+    "energetic": 1,
+    "temporal": 1,
+    "shade": 1,
+    "gravitic": 1,
+    "insight": 1
   },
   "result": {
     "item": "strangematter:echo_vacuum"

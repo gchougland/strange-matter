@@ -1,16 +1,16 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "EEE",
+    " E ",
     "ELE",
-    "EEE"
+    " E "
   ],
   "key": {
     "E": {
-      "item": "strangematter:ectoplasm"
+      "item": "strangematter:resonite_ingot"
     },
     "L": {
-      "item": "minecraft:lapis_lazuli"
+      "item": "minecraft:purple_stained_glass_pane"
     }
   },
   "result": {

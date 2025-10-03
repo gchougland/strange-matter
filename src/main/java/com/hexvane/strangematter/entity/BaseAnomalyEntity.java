@@ -4,6 +4,8 @@ import com.hexvane.strangematter.StrangeMatterMod;
 import com.hexvane.strangematter.research.ScannableObject;
 import com.hexvane.strangematter.research.ScannableObjectRegistry;
 import com.hexvane.strangematter.research.ResearchType;
+import net.minecraft.world.level.block.Block;
+import net.minecraftforge.registries.RegistryObject;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -151,9 +153,32 @@ public abstract class BaseAnomalyEntity extends Entity {
     protected abstract String getAnomalyName();
     
     /**
+     * Get the corresponding shard ore block for this anomaly type
+     */
+    protected abstract RegistryObject<Block> getShardOreBlock();
+    
+    /**
+     * Check if a block can be replaced with ore
+     */
+    private boolean canReplaceWithOre(BlockState state) {
+        return state.is(Blocks.STONE) || state.is(Blocks.DEEPSLATE) || 
+               state.is(Blocks.ANDESITE) || state.is(Blocks.GRANITE) || state.is(Blocks.DIORITE) ||
+               state.is(Blocks.SANDSTONE) || state.is(Blocks.RED_SANDSTONE) ||
+               state.is(Blocks.TERRACOTTA) || state.is(Blocks.WHITE_TERRACOTTA) ||
+               state.is(Blocks.ORANGE_TERRACOTTA) || state.is(Blocks.MAGENTA_TERRACOTTA) ||
+               state.is(Blocks.LIGHT_BLUE_TERRACOTTA) || state.is(Blocks.YELLOW_TERRACOTTA) ||
+               state.is(Blocks.LIME_TERRACOTTA) || state.is(Blocks.PINK_TERRACOTTA) ||
+               state.is(Blocks.GRAY_TERRACOTTA) || state.is(Blocks.LIGHT_GRAY_TERRACOTTA) ||
+               state.is(Blocks.CYAN_TERRACOTTA) || state.is(Blocks.PURPLE_TERRACOTTA) ||
+               state.is(Blocks.BLUE_TERRACOTTA) || state.is(Blocks.BROWN_TERRACOTTA) ||
+               state.is(Blocks.GREEN_TERRACOTTA) || state.is(Blocks.RED_TERRACOTTA) ||
+               state.is(Blocks.BLACK_TERRACOTTA);
+    }
+    
+    /**
      * Modify terrain around the anomaly - spawn anomalous grass and resonite ore
      */
-    private void modifyTerrain() {
+    public void modifyTerrain() {
         BlockPos centerPos = this.blockPosition();
         
         // Create a patch of anomalous grass and resonite ore underneath
@@ -164,23 +189,97 @@ public abstract class BaseAnomalyEntity extends Entity {
                 if (distance <= TERRAIN_MODIFICATION_RADIUS) {
                     BlockPos pos = centerPos.offset(x, 0, z);
                     
-                    // Find the surface block
+                    // Find the surface block for grass placement
                     BlockPos surfacePos = findSurfaceBlock(pos);
                     if (surfacePos != null) {
-                        // Place anomalous grass on the surface
+                        // Check if we should place anomalous grass
                         BlockState currentState = this.level().getBlockState(surfacePos);
-                        if (currentState.is(Blocks.GRASS_BLOCK) || currentState.is(Blocks.DIRT)) {
-                            this.level().setBlock(surfacePos, StrangeMatterMod.ANOMALOUS_GRASS_BLOCK.get().defaultBlockState(), 3);
-                            modifiedBlocks.add(surfacePos);
+                        BlockPos targetPos = surfacePos;
+                        
+                        // If there's snow or vegetation on top, check the block underneath
+                        if (currentState.is(Blocks.SNOW) || currentState.is(Blocks.SNOW_BLOCK) ||
+                            currentState.is(Blocks.TALL_GRASS) || currentState.is(Blocks.FERN) ||
+                            currentState.is(Blocks.LARGE_FERN) || currentState.is(Blocks.DEAD_BUSH) ||
+                            currentState.is(Blocks.SWEET_BERRY_BUSH) || currentState.is(Blocks.GRASS)) {
+                            // Check the block underneath
+                            BlockPos belowPos = surfacePos.below();
+                            BlockState belowState = this.level().getBlockState(belowPos);
+                            if (belowState.is(Blocks.GRASS_BLOCK) || belowState.is(Blocks.DIRT) || 
+                                belowState.is(Blocks.COARSE_DIRT) || belowState.is(Blocks.PODZOL)) {
+                                targetPos = belowPos;
+                                currentState = belowState;
+                            }
                         }
                         
-                        // Place resonite ore underground (1-3 blocks below surface)
-                        int oreDepth = 1 + this.level().getRandom().nextInt(3);
-                        BlockPos orePos = surfacePos.below(oreDepth);
-                        BlockState oreState = this.level().getBlockState(orePos);
-                        if (oreState.is(Blocks.STONE) || oreState.is(Blocks.DEEPSLATE)) {
-                            this.level().setBlock(orePos, StrangeMatterMod.RESONITE_ORE_BLOCK.get().defaultBlockState(), 3);
-                            modifiedBlocks.add(orePos);
+                        // Place anomalous grass on suitable surface blocks
+                        if (currentState.is(Blocks.GRASS_BLOCK) || currentState.is(Blocks.DIRT) || 
+                            currentState.is(Blocks.COARSE_DIRT) || currentState.is(Blocks.PODZOL) ||
+                            currentState.is(Blocks.SAND) || currentState.is(Blocks.RED_SAND) ||
+                            currentState.is(Blocks.TERRACOTTA) || currentState.is(Blocks.WHITE_TERRACOTTA) ||
+                            currentState.is(Blocks.ORANGE_TERRACOTTA) || currentState.is(Blocks.MAGENTA_TERRACOTTA) ||
+                            currentState.is(Blocks.LIGHT_BLUE_TERRACOTTA) || currentState.is(Blocks.YELLOW_TERRACOTTA) ||
+                            currentState.is(Blocks.LIME_TERRACOTTA) || currentState.is(Blocks.PINK_TERRACOTTA) ||
+                            currentState.is(Blocks.GRAY_TERRACOTTA) || currentState.is(Blocks.LIGHT_GRAY_TERRACOTTA) ||
+                            currentState.is(Blocks.CYAN_TERRACOTTA) || currentState.is(Blocks.PURPLE_TERRACOTTA) ||
+                            currentState.is(Blocks.BLUE_TERRACOTTA) || currentState.is(Blocks.BROWN_TERRACOTTA) ||
+                            currentState.is(Blocks.GREEN_TERRACOTTA) || currentState.is(Blocks.RED_TERRACOTTA) ||
+                            currentState.is(Blocks.BLACK_TERRACOTTA) || currentState.is(Blocks.SNOW) ||
+                            currentState.is(Blocks.SNOW_BLOCK)) {
+                            this.level().setBlock(targetPos, StrangeMatterMod.ANOMALOUS_GRASS_BLOCK.get().defaultBlockState(), 3);
+                            modifiedBlocks.add(targetPos);
+                        }
+                    }
+                    
+                    // Place ore underground regardless of grass placement
+                    // Use surface position as reference for ore placement
+                    if (surfacePos != null) {
+                        int surfaceY = surfacePos.getY();
+                        int oreY = surfaceY - (1 + this.level().getRandom().nextInt(5)); // 1-5 blocks below surface
+                        
+                        // Place resonite ore (50% chance)
+                        if (this.level().getRandom().nextFloat() < 0.5f) { // 50% chance
+                            BlockPos orePos = new BlockPos(pos.getX(), oreY, pos.getZ());
+                            BlockState oreState = this.level().getBlockState(orePos);
+                            if (canReplaceWithOre(oreState)) {
+                                this.level().setBlock(orePos, StrangeMatterMod.RESONITE_ORE_BLOCK.get().defaultBlockState(), 3);
+                                modifiedBlocks.add(orePos);
+                            }
+                        }
+                        
+                        // Place corresponding shard ore (slightly less frequently than resonite)
+                        if (this.level().getRandom().nextFloat() < 0.2f) { // 20% chance vs 50% for resonite
+                            int shardOreY = surfaceY - (1 + this.level().getRandom().nextInt(5)); // 1-5 blocks below surface
+                            BlockPos shardOrePos = new BlockPos(pos.getX(), shardOreY, pos.getZ());
+                            BlockState shardOreState = this.level().getBlockState(shardOrePos);
+                            if (canReplaceWithOre(shardOreState)) {
+                                this.level().setBlock(shardOrePos, getShardOreBlock().get().defaultBlockState(), 3);
+                                modifiedBlocks.add(shardOrePos);
+                            }
+                        }
+                    } else {
+                        // Fallback: use anomaly position - 5 blocks if no surface found
+                        int anomalyY = centerPos.getY() - 5;
+                        int oreY = anomalyY - (1 + this.level().getRandom().nextInt(5)); // 1-5 blocks below anomaly
+                        
+                        // Place resonite ore (50% chance)
+                        if (this.level().getRandom().nextFloat() < 0.5f) { // 50% chance
+                            BlockPos orePos = new BlockPos(pos.getX(), oreY, pos.getZ());
+                            BlockState oreState = this.level().getBlockState(orePos);
+                            if (canReplaceWithOre(oreState)) {
+                                this.level().setBlock(orePos, StrangeMatterMod.RESONITE_ORE_BLOCK.get().defaultBlockState(), 3);
+                                modifiedBlocks.add(orePos);
+                            }
+                        }
+                        
+                        // Place corresponding shard ore (slightly less frequently than resonite)
+                        if (this.level().getRandom().nextFloat() < 0.2f) { // 20% chance vs 50% for resonite
+                            int shardOreY = anomalyY - (1 + this.level().getRandom().nextInt(5)); // 1-5 blocks below anomaly
+                            BlockPos shardOrePos = new BlockPos(pos.getX(), shardOreY, pos.getZ());
+                            BlockState shardOreState = this.level().getBlockState(shardOrePos);
+                            if (canReplaceWithOre(shardOreState)) {
+                                this.level().setBlock(shardOrePos, getShardOreBlock().get().defaultBlockState(), 3);
+                                modifiedBlocks.add(shardOrePos);
+                            }
                         }
                     }
                 }
@@ -199,14 +298,22 @@ public abstract class BaseAnomalyEntity extends Entity {
             BlockPos checkPos = new BlockPos(pos.getX(), y, pos.getZ());
             BlockState state = this.level().getBlockState(checkPos);
             
-            // Found a solid block that's not air
-            if (state.isSolid() && !state.isAir()) {
-                // Check if the block above is air (making this the surface)
-                BlockPos abovePos = checkPos.above();
-                BlockState aboveState = this.level().getBlockState(abovePos);
-                if (aboveState.isAir()) {
-                    return checkPos;
-                }
+            // Look for ground-level blocks (not leaves, logs, etc.)
+            if (state.is(Blocks.GRASS_BLOCK) || state.is(Blocks.DIRT) || 
+                state.is(Blocks.COARSE_DIRT) || state.is(Blocks.PODZOL) ||
+                state.is(Blocks.SAND) || state.is(Blocks.RED_SAND) ||
+                state.is(Blocks.STONE) || state.is(Blocks.SANDSTONE) ||
+                state.is(Blocks.RED_SANDSTONE) || state.is(Blocks.TERRACOTTA) ||
+                state.is(Blocks.WHITE_TERRACOTTA) || state.is(Blocks.ORANGE_TERRACOTTA) ||
+                state.is(Blocks.MAGENTA_TERRACOTTA) || state.is(Blocks.LIGHT_BLUE_TERRACOTTA) ||
+                state.is(Blocks.YELLOW_TERRACOTTA) || state.is(Blocks.LIME_TERRACOTTA) ||
+                state.is(Blocks.PINK_TERRACOTTA) || state.is(Blocks.GRAY_TERRACOTTA) ||
+                state.is(Blocks.LIGHT_GRAY_TERRACOTTA) || state.is(Blocks.CYAN_TERRACOTTA) ||
+                state.is(Blocks.PURPLE_TERRACOTTA) || state.is(Blocks.BLUE_TERRACOTTA) ||
+                state.is(Blocks.BROWN_TERRACOTTA) || state.is(Blocks.GREEN_TERRACOTTA) ||
+                state.is(Blocks.RED_TERRACOTTA) || state.is(Blocks.BLACK_TERRACOTTA) ||
+                state.is(Blocks.SNOW) || state.is(Blocks.SNOW_BLOCK)) {
+                return checkPos;
             }
         }
         

@@ -88,6 +88,10 @@ public class RealityForgeRecipe implements Recipe<Container> {
         return new HashMap<>(shardRequirements);
     }
     
+    public NonNullList<Ingredient> getIngredients() {
+        return ingredients;
+    }
+    
     public static class Serializer implements RecipeSerializer<RealityForgeRecipe> {
         
         @Override

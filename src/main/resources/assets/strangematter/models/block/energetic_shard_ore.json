@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "strangematter:block/energetic_shard_ore"
+  }
+}

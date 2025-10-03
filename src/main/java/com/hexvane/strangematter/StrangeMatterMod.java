@@ -20,6 +20,12 @@ import com.hexvane.strangematter.sound.StrangeMatterSounds;
 import com.hexvane.strangematter.block.AnomalousGrassBlock;
 import com.hexvane.strangematter.block.CrystalizedEctoplasmBlock;
 import com.hexvane.strangematter.block.ResoniteOreBlock;
+import com.hexvane.strangematter.block.GraviticShardOreBlock;
+import com.hexvane.strangematter.block.ChronoShardOreBlock;
+import com.hexvane.strangematter.block.SpatialShardOreBlock;
+import com.hexvane.strangematter.block.ShadeShardOreBlock;
+import com.hexvane.strangematter.block.InsightShardOreBlock;
+import com.hexvane.strangematter.block.EnergeticShardOreBlock;
 import com.hexvane.strangematter.block.ResearchMachineBlock;
 import com.hexvane.strangematter.block.ResearchMachineBlockEntity;
 import com.hexvane.strangematter.block.ResonanceCondenserBlock;
@@ -30,6 +36,10 @@ import com.hexvane.strangematter.item.EctoplasmItem;
 import com.hexvane.strangematter.item.FieldScannerItem;
 import com.hexvane.strangematter.item.RawResoniteItem;
 import com.hexvane.strangematter.item.ResoniteIngotItem;
+import com.hexvane.strangematter.item.ResoniteNuggetItem;
+import com.hexvane.strangematter.item.ResonantCoilItem;
+import com.hexvane.strangematter.item.StabilizedCoreItem;
+import com.hexvane.strangematter.item.ResonantCircuitItem;
 import com.hexvane.strangematter.item.ResonanceCondenserItem;
 import com.hexvane.strangematter.item.ResearchTabletItem;
 import com.hexvane.strangematter.item.GraviticShardItem;
@@ -155,18 +165,46 @@ public class StrangeMatterMod
     // Resonite Ore Block
     public static final RegistryObject<Block> RESONITE_ORE_BLOCK = BLOCKS.register("resonite_ore", ResoniteOreBlock::new);
     
+    // Shard Ore Blocks
+    public static final RegistryObject<Block> GRAVITIC_SHARD_ORE_BLOCK = BLOCKS.register("gravitic_shard_ore", GraviticShardOreBlock::new);
+    public static final RegistryObject<Block> CHRONO_SHARD_ORE_BLOCK = BLOCKS.register("chrono_shard_ore", ChronoShardOreBlock::new);
+    public static final RegistryObject<Block> SPATIAL_SHARD_ORE_BLOCK = BLOCKS.register("spatial_shard_ore", SpatialShardOreBlock::new);
+    public static final RegistryObject<Block> SHADE_SHARD_ORE_BLOCK = BLOCKS.register("shade_shard_ore", ShadeShardOreBlock::new);
+    public static final RegistryObject<Block> INSIGHT_SHARD_ORE_BLOCK = BLOCKS.register("insight_shard_ore", InsightShardOreBlock::new);
+    public static final RegistryObject<Block> ENERGETIC_SHARD_ORE_BLOCK = BLOCKS.register("energetic_shard_ore", EnergeticShardOreBlock::new);
+    
     // Research Machine - advanced research device
     public static final RegistryObject<Block> RESEARCH_MACHINE_BLOCK = BLOCKS.register("research_machine", ResearchMachineBlock::new);
     public static final RegistryObject<Item> RESEARCH_MACHINE_ITEM = ITEMS.register("research_machine", () -> new BlockItem(RESEARCH_MACHINE_BLOCK.get(), new Item.Properties()));
     public static final RegistryObject<BlockEntityType<ResearchMachineBlockEntity>> RESEARCH_MACHINE_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("research_machine", 
         () -> BlockEntityType.Builder.of((pos, state) -> new ResearchMachineBlockEntity(pos, state), RESEARCH_MACHINE_BLOCK.get()).build(null));
     public static final RegistryObject<Item> RESONITE_ORE_ITEM = ITEMS.register("resonite_ore", () -> new BlockItem(RESONITE_ORE_BLOCK.get(), new Item.Properties()));
+    
+    // Shard Ore Block Items
+    public static final RegistryObject<Item> GRAVITIC_SHARD_ORE_ITEM = ITEMS.register("gravitic_shard_ore", () -> new BlockItem(GRAVITIC_SHARD_ORE_BLOCK.get(), new Item.Properties()));
+    public static final RegistryObject<Item> CHRONO_SHARD_ORE_ITEM = ITEMS.register("chrono_shard_ore", () -> new BlockItem(CHRONO_SHARD_ORE_BLOCK.get(), new Item.Properties()));
+    public static final RegistryObject<Item> SPATIAL_SHARD_ORE_ITEM = ITEMS.register("spatial_shard_ore", () -> new BlockItem(SPATIAL_SHARD_ORE_BLOCK.get(), new Item.Properties()));
+    public static final RegistryObject<Item> SHADE_SHARD_ORE_ITEM = ITEMS.register("shade_shard_ore", () -> new BlockItem(SHADE_SHARD_ORE_BLOCK.get(), new Item.Properties()));
+    public static final RegistryObject<Item> INSIGHT_SHARD_ORE_ITEM = ITEMS.register("insight_shard_ore", () -> new BlockItem(INSIGHT_SHARD_ORE_BLOCK.get(), new Item.Properties()));
+    public static final RegistryObject<Item> ENERGETIC_SHARD_ORE_ITEM = ITEMS.register("energetic_shard_ore", () -> new BlockItem(ENERGETIC_SHARD_ORE_BLOCK.get(), new Item.Properties()));
 
     // Raw Resonite Item
     public static final RegistryObject<Item> RAW_RESONITE = ITEMS.register("raw_resonite", RawResoniteItem::new);
 
     // Resonite Ingot Item
     public static final RegistryObject<Item> RESONITE_INGOT = ITEMS.register("resonite_ingot", ResoniteIngotItem::new);
+
+    // Resonite Nugget Item
+    public static final RegistryObject<Item> RESONITE_NUGGET = ITEMS.register("resonite_nugget", ResoniteNuggetItem::new);
+
+    // Resonant Coil Item
+    public static final RegistryObject<Item> RESONANT_COIL = ITEMS.register("resonant_coil", ResonantCoilItem::new);
+
+    // Stabilized Core Item
+    public static final RegistryObject<Item> STABILIZED_CORE = ITEMS.register("stabilized_core", StabilizedCoreItem::new);
+
+    // Resonant Circuit Item
+    public static final RegistryObject<Item> RESONANT_CIRCUIT = ITEMS.register("resonant_circuit", ResonantCircuitItem::new);
 
     // Research Tablet Item
     public static final RegistryObject<Item> RESEARCH_TABLET = ITEMS.register("research_tablet", ResearchTabletItem::new);
@@ -357,8 +395,18 @@ public class StrangeMatterMod
                 output.accept(PARADOXICAL_ENERGY_CELL_ITEM.get());
                 output.accept(ECTOPLASM.get());
                 output.accept(RESONITE_ORE_ITEM.get());
+                output.accept(GRAVITIC_SHARD_ORE_ITEM.get());
+                output.accept(CHRONO_SHARD_ORE_ITEM.get());
+                output.accept(SPATIAL_SHARD_ORE_ITEM.get());
+                output.accept(SHADE_SHARD_ORE_ITEM.get());
+                output.accept(INSIGHT_SHARD_ORE_ITEM.get());
+                output.accept(ENERGETIC_SHARD_ORE_ITEM.get());
                 output.accept(RAW_RESONITE.get());
                 output.accept(RESONITE_INGOT.get());
+                output.accept(RESONITE_NUGGET.get());
+                output.accept(RESONANT_COIL.get());
+                output.accept(STABILIZED_CORE.get());
+                output.accept(RESONANT_CIRCUIT.get());
                 output.accept(GRAVITIC_SHARD.get());
                 output.accept(CHRONO_SHARD.get());
                 output.accept(SPATIAL_SHARD.get());
@@ -506,7 +554,12 @@ public class StrangeMatterMod
     // Register commands
     @SubscribeEvent
     public void registerCommands(net.minecraftforge.event.RegisterCommandsEvent event) {
-        AnomalyCommand.register(event.getDispatcher());
+        try {
+            AnomalyCommand.register(event.getDispatcher());
+        } catch (Exception e) {
+            System.err.println("Failed to register AnomalyCommand: " + e.getMessage());
+            e.printStackTrace();
+        }
         ResearchCommand.register(event.getDispatcher());
         
         // Register test command for gravity anomaly feature
