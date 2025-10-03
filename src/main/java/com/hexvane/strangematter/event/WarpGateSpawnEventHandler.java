@@ -4,7 +4,9 @@ import com.hexvane.strangematter.StrangeMatterMod;
 import com.hexvane.strangematter.entity.WarpGateAnomalyEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -16,7 +18,6 @@ public class WarpGateSpawnEventHandler {
     public static void onEntityJoinLevel(EntityJoinLevelEvent event) {
         // Check if this is a warp gate entity joining the level
         if (event.getEntity() instanceof WarpGateAnomalyEntity warpGate) {
-            
             // Schedule block placement for the next tick to ensure the entity is fully spawned
             if (event.getLevel() instanceof ServerLevel serverLevel) {
                 serverLevel.getServer().tell(new net.minecraft.server.TickTask(1, () -> {
@@ -26,75 +27,160 @@ public class WarpGateSpawnEventHandler {
         }
     }
     
+    /**
+     * Place anomalous grass and ore around the warp gate
+     */
     private static void placeAnomalousGrassAndOre(ServerLevel level, BlockPos centerPos) {
-        var random = level.getRandom();
+        final int TERRAIN_MODIFICATION_RADIUS = 8;
         
-        
-        // Generate anomalous grass in a patch underneath, following terrain contours
-        int radius = 5; // Same as manually created gates
-        for (int x = -radius; x <= radius; x++) {
-            for (int z = -radius; z <= radius; z++) {
-                if (x*x + z*z <= radius*radius) { // Circular pattern
-                    BlockPos checkPos = centerPos.offset(x, 0, z);
+        // Create a patch of anomalous grass and resonite ore underneath
+        for (int x = -TERRAIN_MODIFICATION_RADIUS; x <= TERRAIN_MODIFICATION_RADIUS; x++) {
+            for (int z = -TERRAIN_MODIFICATION_RADIUS; z <= TERRAIN_MODIFICATION_RADIUS; z++) {
+                // Only modify blocks within a circular radius
+                double distance = Math.sqrt(x * x + z * z);
+                if (distance <= TERRAIN_MODIFICATION_RADIUS) {
+                    BlockPos pos = centerPos.offset(x, 0, z);
                     
-                    // Find the surface height at this position
-                    BlockPos surfacePos = findSurfaceHeight(level, checkPos);
+                    // Find the surface block for grass placement
+                    BlockPos surfacePos = findSurfaceHeight(level, pos);
+                    if (surfacePos != null) {
+                        // Check if we should place anomalous grass
+                        BlockState currentState = level.getBlockState(surfacePos);
+                        BlockPos targetPos = surfacePos;
+                        
+                        // If there's snow or vegetation on top, check the block underneath
+                        if (currentState.is(Blocks.SNOW) || currentState.is(Blocks.SNOW_BLOCK) ||
+                            currentState.is(Blocks.TALL_GRASS) || currentState.is(Blocks.FERN) ||
+                            currentState.is(Blocks.LARGE_FERN) || currentState.is(Blocks.DEAD_BUSH) ||
+                            currentState.is(Blocks.SWEET_BERRY_BUSH) || currentState.is(Blocks.GRASS)) {
+                            // Check the block underneath
+                            BlockPos belowPos = surfacePos.below();
+                            BlockState belowState = level.getBlockState(belowPos);
+                            if (belowState.is(Blocks.GRASS_BLOCK) || belowState.is(Blocks.DIRT) ||
+                                belowState.is(Blocks.COARSE_DIRT) || belowState.is(Blocks.PODZOL)) {
+                                targetPos = belowPos;
+                                currentState = belowState;
+                            }
+                        }
+                        
+                        // Place anomalous grass on suitable surface blocks
+                        if (currentState.is(Blocks.GRASS_BLOCK) || currentState.is(Blocks.DIRT) || 
+                            currentState.is(Blocks.COARSE_DIRT) || currentState.is(Blocks.PODZOL) ||
+                            currentState.is(Blocks.SAND) || currentState.is(Blocks.RED_SAND) ||
+                            currentState.is(Blocks.TERRACOTTA) || currentState.is(Blocks.WHITE_TERRACOTTA) ||
+                            currentState.is(Blocks.ORANGE_TERRACOTTA) || currentState.is(Blocks.MAGENTA_TERRACOTTA) ||
+                            currentState.is(Blocks.LIGHT_BLUE_TERRACOTTA) || currentState.is(Blocks.YELLOW_TERRACOTTA) ||
+                            currentState.is(Blocks.LIME_TERRACOTTA) || currentState.is(Blocks.PINK_TERRACOTTA) ||
+                            currentState.is(Blocks.GRAY_TERRACOTTA) || currentState.is(Blocks.LIGHT_GRAY_TERRACOTTA) ||
+                            currentState.is(Blocks.CYAN_TERRACOTTA) || currentState.is(Blocks.PURPLE_TERRACOTTA) ||
+                            currentState.is(Blocks.BLUE_TERRACOTTA) || currentState.is(Blocks.BROWN_TERRACOTTA) ||
+                            currentState.is(Blocks.GREEN_TERRACOTTA) || currentState.is(Blocks.RED_TERRACOTTA) ||
+                            currentState.is(Blocks.BLACK_TERRACOTTA) || currentState.is(Blocks.SNOW) ||
+                            currentState.is(Blocks.SNOW_BLOCK)) {
+                            level.setBlock(targetPos, StrangeMatterMod.ANOMALOUS_GRASS_BLOCK.get().defaultBlockState(), 3);
+                        }
+                    }
                     
-                    // Check if we should place grass here (not always 100% chance)
-                    if (random.nextFloat() < 0.8f) {
-                        var currentBlock = level.getBlockState(surfacePos);
-                        if (currentBlock.is(Blocks.GRASS_BLOCK) || 
-                            currentBlock.is(Blocks.DIRT) ||
-                            currentBlock.is(Blocks.COARSE_DIRT) ||
-                            currentBlock.is(Blocks.PODZOL) ||
-                            currentBlock.is(Blocks.STONE)) {
-                            level.setBlock(surfacePos, StrangeMatterMod.ANOMALOUS_GRASS_BLOCK.get().defaultBlockState(), 3);
-                            
-                            // Place resonite ore underneath this grass block
-                            placeOreUnderGrass(level, surfacePos, random);
+                    // Place ore underground regardless of grass placement
+                    if (surfacePos != null) {
+                        int surfaceY = surfacePos.getY();
+                        int oreY = surfaceY - (1 + level.getRandom().nextInt(5)); // 1-5 blocks below surface
+                        
+                        // Place resonite ore (60% chance)
+                        if (level.getRandom().nextFloat() < 0.6f) {
+                            BlockPos orePos = new BlockPos(pos.getX(), oreY, pos.getZ());
+                            BlockState oreState = level.getBlockState(orePos);
+                            if (canReplaceWithOre(oreState)) {
+                                level.setBlock(orePos, StrangeMatterMod.RESONITE_ORE_BLOCK.get().defaultBlockState(), 3);
+                            }
+                        }
+                        
+                        // Place spatial shard ore (30% chance)
+                        if (level.getRandom().nextFloat() < 0.3f) {
+                            int shardOreY = surfaceY - (1 + level.getRandom().nextInt(5)); // 1-5 blocks below surface
+                            BlockPos shardOrePos = new BlockPos(pos.getX(), shardOreY, pos.getZ());
+                            BlockState shardOreState = level.getBlockState(shardOrePos);
+                            if (canReplaceWithOre(shardOreState)) {
+                                level.setBlock(shardOrePos, StrangeMatterMod.SPATIAL_SHARD_ORE_BLOCK.get().defaultBlockState(), 3);
+                            }
+                        }
+                    } else {
+                        // Fallback: use warp gate position - 5 blocks if no surface found
+                        int warpGateY = centerPos.getY() - 5;
+                        int oreY = warpGateY - (1 + level.getRandom().nextInt(5)); // 1-5 blocks below warp gate
+                        
+                        // Place resonite ore (60% chance)
+                        if (level.getRandom().nextFloat() < 0.5f) {
+                            BlockPos orePos = new BlockPos(pos.getX(), oreY, pos.getZ());
+                            BlockState oreState = level.getBlockState(orePos);
+                            if (canReplaceWithOre(oreState)) {
+                                level.setBlock(orePos, StrangeMatterMod.RESONITE_ORE_BLOCK.get().defaultBlockState(), 3);
+                            }
+                        }
+                        
+                        // Place spatial shard ore (30% chance)
+                        if (level.getRandom().nextFloat() < 0.2f) {
+                            int shardOreY = warpGateY - (1 + level.getRandom().nextInt(5)); // 1-5 blocks below warp gate
+                            BlockPos shardOrePos = new BlockPos(pos.getX(), shardOreY, pos.getZ());
+                            BlockState shardOreState = level.getBlockState(shardOrePos);
+                            if (canReplaceWithOre(shardOreState)) {
+                                level.setBlock(shardOrePos, StrangeMatterMod.SPATIAL_SHARD_ORE_BLOCK.get().defaultBlockState(), 3);
+                            }
                         }
                     }
                 }
             }
         }
-        
     }
     
-    private static BlockPos findSurfaceHeight(ServerLevel level, BlockPos pos) {
-        // Start from a reasonable height and work down to find the surface
-        int startY = Math.max(level.getMaxBuildHeight() - 10, pos.getY() + 50);
+    /**
+     * Find the surface height at the given x,z coordinates
+     */
+    private static BlockPos findSurfaceHeight(Level level, BlockPos pos) {
+        // Start from a reasonable height and work down
+        int startY = Math.min(pos.getY() + 10, level.getMaxBuildHeight() - 1);
         
         for (int y = startY; y >= level.getMinBuildHeight(); y--) {
             BlockPos checkPos = new BlockPos(pos.getX(), y, pos.getZ());
-            var blockState = level.getBlockState(checkPos);
+            BlockState state = level.getBlockState(checkPos);
             
-            // Found a solid block that could be the surface
-            if (blockState.isSolid() && !blockState.isAir()) {
+            // Look for ground-level blocks (not leaves, logs, etc.)
+            if (state.is(Blocks.GRASS_BLOCK) || state.is(Blocks.DIRT) || 
+                state.is(Blocks.COARSE_DIRT) || state.is(Blocks.PODZOL) ||
+                state.is(Blocks.SAND) || state.is(Blocks.RED_SAND) ||
+                state.is(Blocks.STONE) || state.is(Blocks.SANDSTONE) ||
+                state.is(Blocks.RED_SANDSTONE) || state.is(Blocks.TERRACOTTA) ||
+                state.is(Blocks.WHITE_TERRACOTTA) || state.is(Blocks.ORANGE_TERRACOTTA) ||
+                state.is(Blocks.MAGENTA_TERRACOTTA) || state.is(Blocks.LIGHT_BLUE_TERRACOTTA) ||
+                state.is(Blocks.YELLOW_TERRACOTTA) || state.is(Blocks.LIME_TERRACOTTA) ||
+                state.is(Blocks.PINK_TERRACOTTA) || state.is(Blocks.GRAY_TERRACOTTA) ||
+                state.is(Blocks.LIGHT_GRAY_TERRACOTTA) || state.is(Blocks.CYAN_TERRACOTTA) ||
+                state.is(Blocks.PURPLE_TERRACOTTA) || state.is(Blocks.BLUE_TERRACOTTA) ||
+                state.is(Blocks.BROWN_TERRACOTTA) || state.is(Blocks.GREEN_TERRACOTTA) ||
+                state.is(Blocks.RED_TERRACOTTA) || state.is(Blocks.BLACK_TERRACOTTA) ||
+                state.is(Blocks.SNOW) || state.is(Blocks.SNOW_BLOCK)) {
                 return checkPos;
             }
         }
         
-        // Fallback to original position if we can't find surface
-        return pos.below(1);
+        return null;
     }
     
-    private static void placeOreUnderGrass(ServerLevel level, BlockPos grassPos, net.minecraft.util.RandomSource random) {
-        // Place resonite ore sparsely - only directly under this grass block, going 10 layers deep
-        // Only place ore directly under this grass block (no spreading), and only 15% of the time
-        if (random.nextFloat() < 0.15f) { // 15% chance to place any ore at all
-            for (int y = 1; y <= 10; y++) { // 10 layers deep
-                BlockPos orePos = grassPos.below(y);
-                
-                // Only place ore if there's solid ground or anomalous grass above it
-                var blockAbove = level.getBlockState(orePos.above(y));
-                if (blockAbove.is(StrangeMatterMod.ANOMALOUS_GRASS_BLOCK.get()) || 
-                    blockAbove.isSolid()) {
-                    // Even if we decide to place ore, only 15% chance for each layer
-                    if (random.nextFloat() < 0.15f) {
-                        level.setBlock(orePos, StrangeMatterMod.RESONITE_ORE_BLOCK.get().defaultBlockState(), 3);
-                    }
-                }
-            }
-        }
+    /**
+     * Check if a block can be replaced with ore
+     */
+    private static boolean canReplaceWithOre(BlockState state) {
+        return state.is(Blocks.STONE) || state.is(Blocks.DEEPSLATE) ||
+               state.is(Blocks.ANDESITE) || state.is(Blocks.GRANITE) || state.is(Blocks.DIORITE) ||
+               state.is(Blocks.SANDSTONE) || state.is(Blocks.RED_SANDSTONE) ||
+               state.is(Blocks.TERRACOTTA) || state.is(Blocks.WHITE_TERRACOTTA) ||
+               state.is(Blocks.ORANGE_TERRACOTTA) || state.is(Blocks.MAGENTA_TERRACOTTA) ||
+               state.is(Blocks.LIGHT_BLUE_TERRACOTTA) || state.is(Blocks.YELLOW_TERRACOTTA) ||
+               state.is(Blocks.LIME_TERRACOTTA) || state.is(Blocks.PINK_TERRACOTTA) ||
+               state.is(Blocks.GRAY_TERRACOTTA) || state.is(Blocks.LIGHT_GRAY_TERRACOTTA) ||
+               state.is(Blocks.CYAN_TERRACOTTA) || state.is(Blocks.PURPLE_TERRACOTTA) ||
+               state.is(Blocks.BLUE_TERRACOTTA) || state.is(Blocks.BROWN_TERRACOTTA) ||
+               state.is(Blocks.GREEN_TERRACOTTA) || state.is(Blocks.RED_TERRACOTTA) ||
+               state.is(Blocks.BLACK_TERRACOTTA);
     }
 }

@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ICI",
+    "IFI",
+    "IRI"
+  ],
+  "key": {
+    "I": {
+      "item": "strangematter:resonite_ingot"
+    },
+    "C": {
+      "item": "strangematter:resonant_coil"
+    },
+    "F": {
+      "item": "minecraft:furnace"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "item": "strangematter:resonant_burner"
+  }
+}

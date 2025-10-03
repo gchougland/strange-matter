@@ -15,6 +15,8 @@ import net.minecraft.world.phys.Vec3;
 import com.hexvane.strangematter.StrangeMatterMod;
 import com.hexvane.strangematter.research.ResearchType;
 import com.hexvane.strangematter.world.ShadowLightProvider;
+import net.minecraft.world.level.block.Block;
+import net.minecraftforge.registries.RegistryObject;
 
 import java.util.List;
 import java.util.Set;
@@ -455,6 +457,11 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
     @Override
     protected String getAnomalyName() {
         return "Echoing Shadow";
+    }
+    
+    @Override
+    protected RegistryObject<Block> getShardOreBlock() {
+        return StrangeMatterMod.SHADE_SHARD_ORE_BLOCK;
     }
     
     @Override

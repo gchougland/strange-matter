@@ -2,6 +2,9 @@ package com.hexvane.strangematter.entity;
 
 import com.hexvane.strangematter.research.ResearchType;
 import com.hexvane.strangematter.sound.StrangeMatterSounds;
+import com.hexvane.strangematter.StrangeMatterMod;
+import net.minecraft.world.level.block.Block;
+import net.minecraftforge.registries.RegistryObject;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -276,6 +279,11 @@ public class EnergeticRiftEntity extends BaseAnomalyEntity {
     @Override
     protected String getAnomalyName() {
         return "Energetic Rift";
+    }
+    
+    @Override
+    protected RegistryObject<Block> getShardOreBlock() {
+        return StrangeMatterMod.ENERGETIC_SHARD_ORE_BLOCK;
     }
     
     @Override

@@ -2,6 +2,12 @@
   "replace": false,
   "values": [
     "strangematter:resonite_ore",
-    "strangematter:crystalized_ectoplasm"
+    "strangematter:crystalized_ectoplasm",
+    "strangematter:gravitic_shard_ore",
+    "strangematter:spatial_shard_ore",
+    "strangematter:chrono_shard_ore",
+    "strangematter:insight_shard_ore",
+    "strangematter:energetic_shard_ore",
+    "strangematter:shade_shard_ore"
   ]
 }

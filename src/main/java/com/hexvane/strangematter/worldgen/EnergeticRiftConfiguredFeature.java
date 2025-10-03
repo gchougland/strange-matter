@@ -67,44 +67,8 @@ public class EnergeticRiftConfiguredFeature extends Feature<NoneFeatureConfigura
         
         LOGGER.info("Surface Y: {}, Anomaly Y: {}, Final position: {}", surfaceY, anomalyY, anomalyPos);
         
-        // Place anomalous grass in a patchy circle following terrain contour
-        int radius = 3;
-        for (int x = -radius; x <= radius; x++) {
-            for (int z = -radius; z <= radius; z++) {
-                double distance = Math.sqrt(x * x + z * z);
-                
-                // Only place grass within the circle and with some randomness for patchiness
-                if (distance <= radius && random.nextFloat() < 0.7f) { // 70% chance for patchiness
-                    // Find the surface height at this offset position
-                    int offsetSurfaceY = level.getHeight(Heightmap.Types.WORLD_SURFACE, 
-                        origin.getX() + x, origin.getZ() + z);
-                    BlockPos offsetSurfacePos = new BlockPos(origin.getX() + x, offsetSurfaceY, origin.getZ() + z);
-                    
-                    // Find solid ground below this surface position
-                    BlockPos grassPos = offsetSurfacePos;
-                    while (grassPos.getY() > level.getMinBuildHeight() + 10) {
-                        var blockState = level.getBlockState(grassPos);
-                        if (blockState.isSolid() && !blockState.isAir() && 
-                            !blockState.getBlock().getDescriptionId().contains("leaves")) {
-                            break; // Found solid ground at this position
-                        }
-                        grassPos = grassPos.below();
-                    }
-                    
-                    // Only place grass if we found valid solid ground
-                    if (grassPos.getY() > level.getMinBuildHeight() + 10) {
-                        var blockState = level.getBlockState(grassPos);
-                        if (blockState.isSolid() && !blockState.isAir() && 
-                            !blockState.getBlock().getDescriptionId().contains("leaves")) {
-                            level.setBlock(grassPos, StrangeMatterMod.ANOMALOUS_GRASS_BLOCK.get().defaultBlockState(), 3);
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Generate resonite ore clumps underneath the anomaly
-        generateResoniteOreClumps(level, random, groundPos);
+        // Let the entity handle terrain generation using the base class method
+        // This ensures consistent behavior and includes shard ore spawning
         
         // Spawn the energetic rift entity above the surface
         EnergeticRiftEntity anomaly = new EnergeticRiftEntity(StrangeMatterMod.ENERGETIC_RIFT.get(), level.getLevel());
@@ -116,38 +80,4 @@ public class EnergeticRiftConfiguredFeature extends Feature<NoneFeatureConfigura
         return success;
     }
     
-    private void generateResoniteOreClumps(WorldGenLevel level, RandomSource random, BlockPos centerPos) {
-        // Generate 2-4 ore clumps directly under the anomaly
-        int clumpCount = 2 + random.nextInt(3); // 2-4 clumps
-        
-        for (int i = 0; i < clumpCount; i++) {
-            // Small offset around the center (within 3 blocks)
-            int offsetX = random.nextInt(7) - 3; // -3 to +3
-            int offsetZ = random.nextInt(7) - 3; // -3 to +3
-            
-            BlockPos clumpCenter = centerPos.offset(offsetX, 0, offsetZ);
-            
-            // Generate ore in a small clump (3-6 blocks)
-            int oreCount = 3 + random.nextInt(4); // 3-6 ores per clump
-            
-            for (int j = 0; j < oreCount; j++) {
-                // Random position within 2 blocks of clump center
-                int oreX = clumpCenter.getX() + random.nextInt(5) - 2; // -2 to +2
-                int oreZ = clumpCenter.getZ() + random.nextInt(5) - 2; // -2 to +2
-                
-                // Find a suitable Y position directly under the anomaly (within 16 blocks)
-                int oreY = centerPos.getY() - (1 + random.nextInt(16)); // 1-16 blocks below
-                BlockPos orePos = new BlockPos(oreX, oreY, oreZ);
-                
-                // Check if the position is valid and within world bounds
-                if (orePos.getY() >= level.getMinBuildHeight() + 10) {
-                    var blockState = level.getBlockState(orePos);
-                    if (blockState.is(net.minecraft.world.level.block.Blocks.STONE) || 
-                        blockState.is(net.minecraft.world.level.block.Blocks.DEEPSLATE)) {
-                        level.setBlock(orePos, StrangeMatterMod.RESONITE_ORE_BLOCK.get().defaultBlockState(), 3);
-                    }
-                }
-            }
-        }
-    }
 }

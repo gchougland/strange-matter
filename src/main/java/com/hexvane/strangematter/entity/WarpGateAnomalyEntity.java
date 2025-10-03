@@ -25,6 +25,8 @@ import net.minecraft.world.phys.Vec3;
 import com.hexvane.strangematter.research.ResearchType;
 import com.hexvane.strangematter.StrangeMatterMod;
 import com.hexvane.strangematter.data.WarpGateLocationData;
+import net.minecraft.world.level.block.Block;
+import net.minecraftforge.registries.RegistryObject;
 
 import java.util.List;
 import java.util.Random;
@@ -494,45 +496,9 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
     }
     
     public void spawnAnomalousGrassAndOre(ServerLevel serverLevel, BlockPos centerPos) {
-        var random = serverLevel.getRandom();
-        
-        // Generate anomalous grass in a patch underneath
-        int radius = 2;
-        for (int x = -radius; x <= radius; x++) {
-            for (int z = -radius; z <= radius; z++) {
-                BlockPos grassPos = centerPos.offset(x, -1, z);
-                
-                // Check if we should place grass here (not always 100% chance)
-                if (random.nextFloat() < 0.8f) {
-                    var currentBlock = serverLevel.getBlockState(grassPos);
-                    // Replace any solid ground block (grass, dirt, coarse dirt, podzol, stone, sand, snow, etc.)
-                    // Only exclude air, water, lava - replace everything else including tree blocks
-                    if (!currentBlock.isAir() && 
-                        !currentBlock.is(net.minecraft.world.level.block.Blocks.WATER) &&
-                        !currentBlock.is(net.minecraft.world.level.block.Blocks.LAVA)) {
-                        
-                        serverLevel.setBlock(grassPos, StrangeMatterMod.ANOMALOUS_GRASS_BLOCK.get().defaultBlockState(), 2);
-                    }
-                }
-            }
-        }
-        
-        // Generate resonite ore in a small area underneath the anomalous grass
-        for (int x = -1; x <= 1; x++) {
-            for (int z = -1; z <= 1; z++) {
-                for (int y = -3; y <= -1; y++) {
-                    BlockPos orePos = centerPos.offset(x, y, z);
-                    
-                    // Small chance to place ore
-                    if (random.nextFloat() < 0.15f) {
-                        if (serverLevel.getBlockState(orePos).is(net.minecraft.world.level.block.Blocks.STONE)) {
-                            serverLevel.setBlock(orePos, StrangeMatterMod.RESONITE_ORE_BLOCK.get().defaultBlockState(), 2);
-                        }
-                    }
-                }
-            }
-        }
-        
+        // Use the base class method for consistent terrain generation
+        // This will spawn both resonite ore and spatial shard ore
+        this.modifyTerrain();
     }
     
     private void spawnTeleportParticles(Vec3 pos) {
@@ -688,6 +654,11 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
     @Override
     protected String getAnomalyName() {
         return "WarpGate";
+    }
+    
+    @Override
+    protected RegistryObject<Block> getShardOreBlock() {
+        return StrangeMatterMod.SPATIAL_SHARD_ORE_BLOCK;
     }
     
     // Getters and setters

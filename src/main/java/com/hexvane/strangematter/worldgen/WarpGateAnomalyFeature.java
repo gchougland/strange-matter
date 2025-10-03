@@ -46,8 +46,7 @@ public class WarpGateAnomalyFeature extends Feature<NoneFeatureConfiguration> {
             newWarpGate.setActive(true);
             serverLevel.addFreshEntity(newWarpGate);
 
-            // Spawn anomalous grass and resonite ore
-            newWarpGate.spawnAnomalousGrassAndOre(serverLevel, surfacePos);
+            // Terrain generation will be handled by WarpGateSpawnEventHandler
 
             System.out.println("WarpGate Feature: Successfully spawned WarpGateAnomalyEntity at " + surfacePos);
             return true;

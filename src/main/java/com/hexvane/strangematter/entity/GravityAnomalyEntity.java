@@ -25,6 +25,8 @@ import com.hexvane.strangematter.client.sound.CustomSoundManager;
 import com.hexvane.strangematter.StrangeMatterMod;
 import com.hexvane.strangematter.GravityData;
 import com.hexvane.strangematter.research.ResearchType;
+import net.minecraft.world.level.block.Block;
+import net.minecraftforge.registries.RegistryObject;
 
 import java.util.List;
 import java.util.Set;
@@ -243,6 +245,11 @@ public class GravityAnomalyEntity extends BaseAnomalyEntity {
     @Override
     protected String getAnomalyName() {
         return "Gravity";
+    }
+    
+    @Override
+    protected RegistryObject<Block> getShardOreBlock() {
+        return StrangeMatterMod.GRAVITIC_SHARD_ORE_BLOCK;
     }
     
     public float getLevitationRadius() {
