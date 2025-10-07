@@ -47,6 +47,24 @@ public class RealityForgeRecipeRegistry {
         return new ArrayList<>(recipes);
     }
     
+    public static RealityForgeRecipe findRecipeByResult(ResourceLocation resultItemId, Level level) {
+        if (level == null) return null;
+        
+        var recipeManager = level.getRecipeManager();
+        var recipeType = com.hexvane.strangematter.StrangeMatterMod.REALITY_FORGE_RECIPE_TYPE.get();
+        
+        var allRecipes = recipeManager.getAllRecipesFor(recipeType);
+        
+        for (var recipe : allRecipes) {
+            ResourceLocation recipeResultId = net.minecraftforge.registries.ForgeRegistries.ITEMS.getKey(recipe.getResultItem(null).getItem());
+            if (recipeResultId != null && recipeResultId.equals(resultItemId)) {
+                return recipe;
+            }
+        }
+        
+        return null;
+    }
+    
     public static void clear() {
         recipes.clear();
     }

@@ -72,7 +72,7 @@ public class SpendResearchPointsPacket {
                         // Send success message
                         player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
                             "research.strangematter.note_received", 
-                            com.hexvane.strangematter.research.ResearchNodeRegistry.getNode(packet.researchId).getName()));
+                            com.hexvane.strangematter.research.ResearchNodeRegistry.getNode(packet.researchId).getDisplayName()));
                     } else {
                         // Inventory full - refund the points
                         for (Map.Entry<ResearchType, Integer> entry : packet.costs.entrySet()) {

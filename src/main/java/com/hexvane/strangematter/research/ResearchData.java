@@ -34,9 +34,13 @@ public class ResearchData {
     }
     
     private void initializeDefaultUnlockedResearch() {
-        // Unlock foundation and resonance scanner by default
-        unlockResearch("foundation");
-        unlockResearch("basic_scanner");
+        // Unlock default research nodes by default
+        unlockResearch("research");
+        unlockResearch("field_scanner");
+        unlockResearch("anomaly_shards");
+        unlockResearch("anomaly_types");
+        unlockResearch("resonite");
+        unlockResearch("resonant_energy");
     }
     
     public void setManager(ResearchDataManager manager, UUID playerId) {

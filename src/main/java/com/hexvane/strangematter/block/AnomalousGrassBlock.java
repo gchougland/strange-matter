@@ -37,6 +37,7 @@ public class AnomalousGrassBlock extends Block {
         return SoundType.GRASS;
     }
     
+    
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
         super.animateTick(state, level, pos, random);

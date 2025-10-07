@@ -67,6 +67,64 @@ public class ThoughtwellConfiguredFeature extends Feature<NoneFeatureConfigurati
         
         // Let the entity handle terrain generation using the base class method
         // This ensures consistent behavior and includes shard ore spawning
+
+        int radius = 3;
+        for (int x = -radius; x <= radius; x++) {
+            for (int z = -radius; z <= radius; z++) {
+                double distance = Math.sqrt(x * x + z * z);
+
+                if (distance <= radius && random.nextFloat() < 0.6f) { // 60% chance for patchiness
+                    // Find the surface height at this offset position
+                    int offsetSurfaceY = level.getHeight(Heightmap.Types.WORLD_SURFACE, 
+                        origin.getX() + x, origin.getZ() + z);
+                    BlockPos offsetSurfacePos = new BlockPos(origin.getX() + x, offsetSurfaceY, origin.getZ() + z);
+
+                    // Find solid ground below this surface position
+                    BlockPos grassPos = offsetSurfacePos;
+                    while (grassPos.getY() > level.getMinBuildHeight() + 10) {
+                        var blockState = level.getBlockState(grassPos);
+                        if (blockState.isSolid() && !blockState.isAir() && 
+                            !blockState.getBlock().getDescriptionId().contains("leaves")) {
+                            break; // Found solid ground at this position
+                        }
+                        grassPos = grassPos.below();
+                    }
+
+                    // Only place grass if we found valid solid ground
+                    if (grassPos.getY() > level.getMinBuildHeight() + 10) {
+                        var blockState = level.getBlockState(grassPos);
+                        if (blockState.isSolid() && !blockState.isAir() && 
+                            !blockState.getBlock().getDescriptionId().contains("leaves")) {
+                            // Occasionally place some cognitive-themed blocks above the grass
+                            if (random.nextFloat() < 0.4f) { // 40% chance for cognitive features
+                                BlockPos abovePos = grassPos.above();
+                                if (level.getBlockState(abovePos).isAir()) {
+                                    // Place some books or other cognitive-themed blocks
+                                    if (random.nextFloat() < 0.5f) {
+                                        level.setBlock(abovePos, net.minecraft.world.level.block.Blocks.BOOKSHELF.defaultBlockState(), 3);
+                                    } else if (random.nextFloat() < 0.3f) {
+                                        // Calculate direction from lectern to center of anomaly
+                                        int deltaX = origin.getX() - abovePos.getX();
+                                        int deltaZ = origin.getZ() - abovePos.getZ();
+                                        
+                                        // Determine the facing direction (lectern faces the opposite direction it's placed)
+                                        net.minecraft.core.Direction facing;
+                                        if (Math.abs(deltaX) > Math.abs(deltaZ)) {
+                                            facing = deltaX > 0 ? net.minecraft.core.Direction.WEST : net.minecraft.core.Direction.EAST;
+                                        } else {
+                                            facing = deltaZ > 0 ? net.minecraft.core.Direction.NORTH : net.minecraft.core.Direction.SOUTH;
+                                        }
+                                        
+                                        level.setBlock(abovePos, net.minecraft.world.level.block.Blocks.LECTERN.defaultBlockState()
+                                            .setValue(net.minecraft.world.level.block.LecternBlock.FACING, facing), 3);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         
         // Spawn the thoughtwell entity above the surface
         ThoughtwellEntity anomaly = new ThoughtwellEntity(StrangeMatterMod.THOUGHTWELL.get(), level.getLevel());

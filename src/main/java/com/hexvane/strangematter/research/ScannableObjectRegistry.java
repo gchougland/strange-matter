@@ -17,7 +17,7 @@ public class ScannableObjectRegistry {
     static {
         // Register gravity anomaly entity
         registerEntity(ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "gravity_anomaly"), 
-            ResearchType.GRAVITY, 15);
+            ResearchType.GRAVITY, 10);
         
         // Register warp gate anomaly entity
         registerEntity(ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "warp_gate_anomaly"), 
@@ -25,23 +25,19 @@ public class ScannableObjectRegistry {
         
         // Register energetic rift entity
         registerEntity(ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "energetic_rift"), 
-            ResearchType.ENERGY, 12);
+            ResearchType.ENERGY, 10);
         
         // Register echoing shadow entity
         registerEntity(ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "echoing_shadow"), 
-            ResearchType.SHADOW, 15);
+            ResearchType.SHADOW, 10);
 
         // Register temporal bloom entity
         registerEntity(ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "temporal_bloom"), 
-        ResearchType.TIME, 15);
+        ResearchType.TIME, 10);
         
         // Register thoughtwell entity
         registerEntity(ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "thoughtwell"), 
-            ResearchType.COGNITION, 15);
-        
-        // Register crystalized ectoplasm block
-        registerBlock(ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "crystalized_ectoplasm"), 
-            ResearchType.ENERGY, 3);
+            ResearchType.COGNITION, 10);
     }
     
     public static void registerEntity(ResourceLocation entityType, ResearchType researchType, int amount) {

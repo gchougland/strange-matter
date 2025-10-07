@@ -96,19 +96,16 @@ public class TemporalBloomConfiguredFeature extends Feature<NoneFeatureConfigura
                             !blockState.getBlock().getDescriptionId().contains("leaves")) {
                             level.setBlock(grassPos, StrangeMatterMod.ANOMALOUS_GRASS_BLOCK.get().defaultBlockState(), 3);
                             
-                            // Occasionally place tilled soil with wheat seeds above the grass
+                            // Occasionally place tilled soil with wheat seeds
                             if (random.nextFloat() < 0.7f) { // 70% chance for wheat fields
+                                // Place farmland (tilled soil)
+                                level.setBlock(grassPos, net.minecraft.world.level.block.Blocks.FARMLAND.defaultBlockState(), 3);
+                                
+                                // Place wheat seeds on the farmland
                                 BlockPos abovePos = grassPos.above();
                                 if (level.getBlockState(abovePos).isAir()) {
-                                    // Place farmland (tilled soil)
-                                    level.setBlock(abovePos, net.minecraft.world.level.block.Blocks.FARMLAND.defaultBlockState(), 3);
-                                    
-                                    // Place wheat seeds on the farmland
-                                    BlockPos wheatPos = abovePos.above();
-                                    if (level.getBlockState(wheatPos).isAir()) {
-                                        level.setBlock(wheatPos, net.minecraft.world.level.block.Blocks.WHEAT.defaultBlockState()
-                                            .setValue(net.minecraft.world.level.block.CropBlock.AGE, random.nextInt(3)), 3);
-                                    }
+                                    level.setBlock(abovePos, net.minecraft.world.level.block.Blocks.WHEAT.defaultBlockState()
+                                        .setValue(net.minecraft.world.level.block.CropBlock.AGE, random.nextInt(3)), 3);
                                 }
                             }
                         }

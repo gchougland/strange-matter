@@ -488,6 +488,11 @@ public class ResearchMachineScreen extends Screen {
         // EXIT button bounds
         exitButtonHovered = mouseX >= exitButtonX && mouseX < exitButtonX + 48 && 
                            mouseY >= exitButtonY && mouseY < exitButtonY + 16;
+        
+        // Debug: Log hover states occasionally
+        if (helpButtonHovered) {
+            System.out.println("Help button hovered! Mouse: " + mouseX + "," + mouseY + " Button: " + helpButtonX + "," + helpButtonY);
+        }
     }
     
     private void renderButton(GuiGraphics guiGraphics, int x, int y, String text, boolean hovered, boolean pressed) {
@@ -579,7 +584,17 @@ public class ResearchMachineScreen extends Screen {
             // Check help/exit buttons
             if (helpButtonHovered) {
                 helpButtonPressed = true;
-                // TODO: Open help dialog
+                
+                // Ensure research nodes are initialized
+                com.hexvane.strangematter.research.ResearchNodeRegistry.initializeDefaultNodes();
+                
+                // Open the research node info screen to the minigames page (page 2, 0-indexed)
+                com.hexvane.strangematter.research.ResearchNode researchNode = 
+                    com.hexvane.strangematter.research.ResearchNodeRegistry.getNode("research");
+                
+                if (researchNode != null) {
+                    this.minecraft.setScreen(new com.hexvane.strangematter.client.screen.ResearchNodeInfoScreen(researchNode, this, 2));
+                }
                 return true;
             } else if (exitButtonHovered) {
                 exitButtonPressed = true;

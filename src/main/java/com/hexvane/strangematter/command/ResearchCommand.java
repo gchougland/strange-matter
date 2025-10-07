@@ -41,7 +41,16 @@ public class ResearchCommand {
                 .then(Commands.argument("research_id", com.mojang.brigadier.arguments.StringArgumentType.string())
                     .executes(ResearchCommand::giveOwnResearchNote)
                     .then(Commands.argument("target", EntityArgument.players())
-                        .executes(ResearchCommand::givePlayerResearchNote)))));
+                        .executes(ResearchCommand::givePlayerResearchNote))))
+            .then(Commands.literal("unlock")
+                .then(Commands.argument("research_id", com.mojang.brigadier.arguments.StringArgumentType.string())
+                    .executes(ResearchCommand::unlockOwnResearch)
+                    .then(Commands.argument("target", EntityArgument.players())
+                        .executes(ResearchCommand::unlockPlayerResearch))))
+            .then(Commands.literal("unlock_all")
+                .executes(ResearchCommand::unlockAllOwnResearch)
+                .then(Commands.argument("target", EntityArgument.players())
+                    .executes(ResearchCommand::unlockAllPlayerResearch))));
     }
     
     private static int checkOwnResearch(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
@@ -168,11 +177,81 @@ public class ResearchCommand {
             
             // Add to player inventory
             if (player.getInventory().add(researchNote)) {
-                context.getSource().sendSuccess(() -> Component.literal("§aGave research notes for '" + node.getName() + "' to " + player.getName().getString()), true);
+                context.getSource().sendSuccess(() -> Component.literal("§aGave research notes for '" + node.getDisplayName().getString() + "' to " + player.getName().getString()), true);
                 result = 1;
             } else {
                 context.getSource().sendFailure(Component.literal("§cFailed to give research notes to " + player.getName().getString() + " (inventory full)"));
             }
+        }
+        
+        return result;
+    }
+    
+    private static int unlockOwnResearch(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = context.getSource().getPlayerOrException();
+        return unlockResearchForPlayers(context, java.util.List.of(player));
+    }
+    
+    private static int unlockPlayerResearch(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        Collection<ServerPlayer> players = EntityArgument.getPlayers(context, "target");
+        return unlockResearchForPlayers(context, players);
+    }
+    
+    private static int unlockResearchForPlayers(CommandContext<CommandSourceStack> context, Collection<ServerPlayer> players) throws CommandSyntaxException {
+        String researchId = context.getArgument("research_id", String.class);
+        
+        ResearchNode node = ResearchNodeRegistry.getNode(researchId);
+        if (node == null) {
+            context.getSource().sendFailure(Component.literal("§cInvalid research ID: " + researchId));
+            return 0;
+        }
+        
+        int result = 0;
+        for (ServerPlayer player : players) {
+            ResearchData researchData = ResearchData.get(player);
+            
+            if (researchData.hasUnlockedResearch(researchId)) {
+                context.getSource().sendFailure(Component.literal("§c" + player.getName().getString() + " has already unlocked '" + node.getDisplayName().getString() + "'"));
+            } else {
+                researchData.unlockResearch(researchId);
+                researchData.syncToClient(player);
+                
+                context.getSource().sendSuccess(() -> Component.literal("§aUnlocked '" + node.getDisplayName().getString() + "' for " + player.getName().getString()), true);
+                result = 1;
+            }
+        }
+        
+        return result;
+    }
+    
+    private static int unlockAllOwnResearch(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = context.getSource().getPlayerOrException();
+        return unlockAllResearchForPlayers(context, java.util.List.of(player));
+    }
+    
+    private static int unlockAllPlayerResearch(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        Collection<ServerPlayer> players = EntityArgument.getPlayers(context, "target");
+        return unlockAllResearchForPlayers(context, players);
+    }
+    
+    private static int unlockAllResearchForPlayers(CommandContext<CommandSourceStack> context, Collection<ServerPlayer> players) throws CommandSyntaxException {
+        // Get all research node IDs from the registry
+        Collection<ResearchNode> allNodes = ResearchNodeRegistry.getAllNodes();
+        java.util.Set<String> allResearchIds = new java.util.HashSet<>();
+        for (ResearchNode node : allNodes) {
+            allResearchIds.add(node.getId());
+        }
+        
+        int result = 0;
+        for (ServerPlayer player : players) {
+            ResearchData researchData = ResearchData.get(player);
+            
+            // Unlock all research
+            researchData.setUnlockedResearch(allResearchIds);
+            researchData.syncToClient(player);
+            
+            context.getSource().sendSuccess(() -> Component.literal("§aUnlocked all research for " + player.getName().getString() + " (" + allResearchIds.size() + " research nodes)"), true);
+            result = 1;
         }
         
         return result;
