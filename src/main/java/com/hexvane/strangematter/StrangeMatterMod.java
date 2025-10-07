@@ -10,15 +10,12 @@ import com.hexvane.strangematter.client.ThoughtwellRenderer;
 import com.hexvane.strangematter.client.EnergeticRiftRenderer;
 import com.hexvane.strangematter.client.EchoingShadowRenderer;
 import com.hexvane.strangematter.client.WarpGateAnomalyRenderer;
-import com.hexvane.strangematter.client.CrystalizedEctoplasmRenderer;
 import com.hexvane.strangematter.client.ResearchMachineRenderer;
-import com.hexvane.strangematter.block.CrystalizedEctoplasmBlockEntity;
 import com.hexvane.strangematter.client.sound.CustomSoundManager;
 import com.hexvane.strangematter.command.AnomalyCommand;
 import com.hexvane.strangematter.command.ResearchCommand;
 import com.hexvane.strangematter.sound.StrangeMatterSounds;
 import com.hexvane.strangematter.block.AnomalousGrassBlock;
-import com.hexvane.strangematter.block.CrystalizedEctoplasmBlock;
 import com.hexvane.strangematter.block.ResoniteOreBlock;
 import com.hexvane.strangematter.block.GraviticShardOreBlock;
 import com.hexvane.strangematter.block.ChronoShardOreBlock;
@@ -32,7 +29,6 @@ import com.hexvane.strangematter.block.ResonanceCondenserBlock;
 import com.hexvane.strangematter.block.ResonanceCondenserBlockEntity;
 import com.hexvane.strangematter.item.AnomalousGrassItem;
 import com.hexvane.strangematter.item.AnomalyResonatorItem;
-import com.hexvane.strangematter.item.EctoplasmItem;
 import com.hexvane.strangematter.item.FieldScannerItem;
 import com.hexvane.strangematter.item.RawResoniteItem;
 import com.hexvane.strangematter.item.ResoniteIngotItem;
@@ -59,7 +55,6 @@ import com.hexvane.strangematter.client.WarpProjectileRenderer;
 import com.hexvane.strangematter.worldgen.GravityAnomalyConfiguredFeature;
 import com.hexvane.strangematter.worldgen.EchoingShadowConfiguredFeature;
 import com.hexvane.strangematter.worldgen.ThoughtwellConfiguredFeature;
-import com.hexvane.strangematter.worldgen.CrystalizedEctoplasmConfiguredFeature;
 import com.hexvane.strangematter.worldgen.WarpGateAnomalyStructure;
 import com.hexvane.strangematter.worldgen.WarpGateAnomalyFeature;
 import com.hexvane.strangematter.network.NetworkHandler;
@@ -152,15 +147,6 @@ public class StrangeMatterMod
     // Anomalous Grass Block
     public static final RegistryObject<Block> ANOMALOUS_GRASS_BLOCK = BLOCKS.register("anomalous_grass", AnomalousGrassBlock::new);
     public static final RegistryObject<Item> ANOMALOUS_GRASS_ITEM = ITEMS.register("anomalous_grass", () -> new AnomalousGrassItem((AnomalousGrassBlock) ANOMALOUS_GRASS_BLOCK.get()));
-
-    // Crystalized Ectoplasm Block
-    public static final RegistryObject<Block> CRYSTALIZED_ECTOPLASM_BLOCK = BLOCKS.register("crystalized_ectoplasm", CrystalizedEctoplasmBlock::new);
-    public static final RegistryObject<Item> CRYSTALIZED_ECTOPLASM_ITEM = ITEMS.register("crystalized_ectoplasm", () -> new BlockItem(CRYSTALIZED_ECTOPLASM_BLOCK.get(), new Item.Properties()));
-    public static final RegistryObject<BlockEntityType<CrystalizedEctoplasmBlockEntity>> CRYSTALIZED_ECTOPLASM_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("crystalized_ectoplasm", 
-        () -> BlockEntityType.Builder.of((pos, state) -> new CrystalizedEctoplasmBlockEntity(pos, state), CRYSTALIZED_ECTOPLASM_BLOCK.get()).build(null));
-
-    // Ectoplasm Item
-    public static final RegistryObject<Item> ECTOPLASM = ITEMS.register("ectoplasm", EctoplasmItem::new);
 
     // Resonite Ore Block
     public static final RegistryObject<Block> RESONITE_ORE_BLOCK = BLOCKS.register("resonite_ore", ResoniteOreBlock::new);
@@ -363,9 +349,6 @@ public class StrangeMatterMod
     public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> THOUGHTWELL_FEATURE = FEATURES.register("thoughtwell", 
         () -> new com.hexvane.strangematter.worldgen.ThoughtwellConfiguredFeature());
     
-    public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> CRYSTALIZED_ECTOPLASM_FEATURE = FEATURES.register("crystalized_ectoplasm", 
-        () -> new CrystalizedEctoplasmConfiguredFeature());
-    
     public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> WARP_GATE_ANOMALY_FEATURE = FEATURES.register("warp_gate_anomaly_feature", 
         () -> new WarpGateAnomalyFeature(net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration.CODEC));
     
@@ -387,13 +370,11 @@ public class StrangeMatterMod
                 output.accept(RESEARCH_TABLET.get());
                 output.accept(RESEARCH_NOTES.get());
                 output.accept(ANOMALOUS_GRASS_ITEM.get());
-                output.accept(CRYSTALIZED_ECTOPLASM_ITEM.get());
                 output.accept(RESEARCH_MACHINE_ITEM.get());
                 output.accept(REALITY_FORGE_ITEM.get());
                 output.accept(RESONANT_BURNER_ITEM.get());
                 output.accept(RESONANCE_CONDENSER_ITEM.get());
                 output.accept(PARADOXICAL_ENERGY_CELL_ITEM.get());
-                output.accept(ECTOPLASM.get());
                 output.accept(RESONITE_ORE_ITEM.get());
                 output.accept(GRAVITIC_SHARD_ORE_ITEM.get());
                 output.accept(CHRONO_SHARD_ORE_ITEM.get());
@@ -654,7 +635,6 @@ public class StrangeMatterMod
         if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS)
         {
             event.accept(ANOMALOUS_GRASS_ITEM.get());
-            event.accept(CRYSTALIZED_ECTOPLASM_ITEM.get());
             event.accept(RESONANCE_CONDENSER_ITEM.get());
             event.accept(REALITY_FORGE_ITEM.get());
             event.accept(PARADOXICAL_ENERGY_CELL_ITEM.get());
@@ -704,8 +684,6 @@ public class StrangeMatterMod
                 net.minecraft.client.renderer.entity.EntityRenderers.register(THOUGHTWELL.get(), ThoughtwellRenderer::new);
                 net.minecraft.client.renderer.entity.EntityRenderers.register(WARP_PROJECTILE_ENTITY.get(), WarpProjectileRenderer::new);
                 net.minecraft.client.renderer.entity.EntityRenderers.register(MINI_WARP_GATE_ENTITY.get(), MiniWarpGateRenderer::new);
-                // Register block entity renderer for crystalized ectoplasm
-                net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(CRYSTALIZED_ECTOPLASM_BLOCK_ENTITY.get(), CrystalizedEctoplasmRenderer::new);
                 net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(RESEARCH_MACHINE_BLOCK_ENTITY.get(), ResearchMachineRenderer::new);
                 
                 // Register Echo Vacuum client handler for proper first/third person rendering

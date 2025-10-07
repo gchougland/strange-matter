@@ -75,7 +75,8 @@ public class ResearchTabletScreen extends Screen {
         this.dragOffsetX = 0; // Start at center horizontally
         this.dragOffsetY = 0; // Start at center vertically
         
-        createCategoryButtons();
+        // TODO: Re-enable category tabs when needed
+        // createCategoryButtons();
     }
     
     private void createCategoryButtons() {
@@ -184,9 +185,7 @@ public class ResearchTabletScreen extends Screen {
             int nodeX = draggableX + DRAGGABLE_AREA_WIDTH / 2 + node.getX() + dragOffsetX;
             int nodeY = draggableY + DRAGGABLE_AREA_HEIGHT / 2 + node.getY() + dragOffsetY;
             
-            // Check if this node is within visible area
-            boolean nodeVisible = nodeX + 32 >= draggableX && nodeX <= draggableX + DRAGGABLE_AREA_WIDTH &&
-                                 nodeY + 32 >= draggableY && nodeY <= draggableY + DRAGGABLE_AREA_HEIGHT;
+            // Node position for line calculations
             
             // Collect lines to prerequisite nodes
             for (String prerequisiteId : node.getPrerequisites()) {
@@ -195,37 +194,33 @@ public class ResearchTabletScreen extends Screen {
                     int prereqX = draggableX + DRAGGABLE_AREA_WIDTH / 2 + prerequisite.getX() + dragOffsetX;
                     int prereqY = draggableY + DRAGGABLE_AREA_HEIGHT / 2 + prerequisite.getY() + dragOffsetY;
                     
-                    // Check if prerequisite is within visible area
-                    boolean prereqVisible = prereqX + 32 >= draggableX && prereqX <= draggableX + DRAGGABLE_AREA_WIDTH &&
-                                           prereqY + 32 >= draggableY && prereqY <= draggableY + DRAGGABLE_AREA_HEIGHT;
+                    // Prerequisite position for line calculations
                     
-                    // Add line to collection if at least one of the connected nodes is visible
-                    if (nodeVisible || prereqVisible) {
-                        // Determine line color and priority based on unlock status
-                        boolean isUnlocked = researchData.getUnlockedResearch().contains(node.getId());
-                        boolean prereqUnlocked = researchData.getUnlockedResearch().contains(prerequisiteId);
-                        
-                        int lineColor;
-                        int priority; // Higher number = renders on top (drawn later)
-                        if (isUnlocked && prereqUnlocked) {
-                            lineColor = 0x41B280; // Teal for unlocked connections
-                            priority = 3; // Highest priority - renders on top (drawn last)
-                        } else if (prereqUnlocked) {
-                            lineColor = 0xFFFFFF; // White for partially unlocked
-                            priority = 2; // Middle priority
-                        } else {
-                            lineColor = 0x808080; // Grey for locked connections
-                            priority = 1; // Lowest priority - renders at bottom (drawn first)
-                        }
-                        
-                        // Add line to collection
-                        int centerX1 = prereqX + 16;
-                        int centerY1 = prereqY + 16;
-                        int centerX2 = nodeX + 16;
-                        int centerY2 = nodeY + 16;
-                        
-                        allLines.add(new ConnectionLine(centerX1, centerY1, centerX2, centerY2, lineColor, prerequisiteId, node.getId(), priority));
+                    // Always add line to collection (render lines at all times)
+                    // Determine line color and priority based on unlock status
+                    boolean isUnlocked = researchData.getUnlockedResearch().contains(node.getId());
+                    boolean prereqUnlocked = researchData.getUnlockedResearch().contains(prerequisiteId);
+                    
+                    int lineColor;
+                    int priority; // Higher number = renders on top (drawn later)
+                    if (isUnlocked && prereqUnlocked) {
+                        lineColor = 0x41B280; // Teal for unlocked connections
+                        priority = 3; // Highest priority - renders on top (drawn last)
+                    } else if (prereqUnlocked) {
+                        lineColor = 0xFFFFFF; // White for partially unlocked
+                        priority = 2; // Middle priority
+                    } else {
+                        lineColor = 0x808080; // Grey for locked connections
+                        priority = 1; // Lowest priority - renders at bottom (drawn first)
                     }
+                    
+                    // Add line to collection
+                    int centerX1 = prereqX + 16;
+                    int centerY1 = prereqY + 16;
+                    int centerX2 = nodeX + 16;
+                    int centerY2 = nodeY + 16;
+                    
+                    allLines.add(new ConnectionLine(centerX1, centerY1, centerX2, centerY2, lineColor, prerequisiteId, node.getId(), priority));
                 }
             }
         }
@@ -510,8 +505,10 @@ public class ResearchTabletScreen extends Screen {
                 
                 // Render node icon
                 if (node.hasIconItem()) {
-                    // Render item as texture using Minecraft's model system
-                    renderItemAsTexture(guiGraphics, node.getIconItem(), nodeX + 8, nodeY + 8);
+                    // Reset color to white before rendering item to avoid tinting
+                    RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+                    // Render item as 3D model like in inventory
+                    guiGraphics.renderItem(node.getIconItem(), nodeX + 8, nodeY + 8);
                 } else if (node.hasIconTexture()) {
                     RenderSystem.setShaderTexture(0, node.getIconTexture());
                     RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -527,47 +524,6 @@ public class ResearchTabletScreen extends Screen {
                 RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             }
         }
-    }
-    
-    private void renderResearchNodeIcons(GuiGraphics guiGraphics) {
-        List<ResearchNode> nodes = ResearchNodeRegistry.getNodesByCategory(selectedCategory);
-        int draggableX = guiX + 1 + (GUI_WIDTH - DRAGGABLE_AREA_WIDTH) / 2;
-        int draggableY = guiY + 15;
-        
-        for (ResearchNode node : nodes) {
-            int nodeX = draggableX + DRAGGABLE_AREA_WIDTH / 2 + node.getX() + dragOffsetX;
-            int nodeY = draggableY + DRAGGABLE_AREA_HEIGHT / 2 + node.getY() + dragOffsetY;
-            
-            // Check if node is within visible area
-            if (nodeX + 32 >= draggableX && nodeX <= draggableX + DRAGGABLE_AREA_WIDTH &&
-                nodeY + 32 >= draggableY && nodeY <= draggableY + DRAGGABLE_AREA_HEIGHT) {
-                
-                // Render only item icons (not textures)
-                if (node.hasIconItem()) {
-                    guiGraphics.renderItem(node.getIconItem(), nodeX + 8, nodeY + 8);
-                }
-            }
-        }
-    }
-    
-    private void renderItemAsTexture(GuiGraphics guiGraphics, ItemStack itemStack, int x, int y) {
-        if (itemStack == null || itemStack.isEmpty()) {
-            return;
-        }
-        
-        // Use the item atlas texture directly
-        RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_BLOCKS);
-        
-        Minecraft minecraft = Minecraft.getInstance();
-        ItemModelShaper itemModelShaper = minecraft.getItemRenderer().getItemModelShaper();
-        BakedModel model = itemModelShaper.getItemModel(itemStack);
-        
-        // Get the texture atlas sprite for the item
-        var sprite = model.getParticleIcon();
-        
-        // Render the sprite from the atlas
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        guiGraphics.blit(x, y, 0, 16, 16, sprite);
     }
     
     private void renderResearchNodeTooltips(GuiGraphics guiGraphics, int mouseX, int mouseY) {
@@ -630,15 +586,16 @@ public class ResearchTabletScreen extends Screen {
         }
         
         // Add description with text wrapping (show question marks if prerequisites not unlocked)
-        if (!node.getDescription().isEmpty()) {
+        String descriptionText = node.getDisplayDescription().getString();
+        if (!descriptionText.isEmpty()) {
             if (prerequisitesUnlocked || isUnlocked) {
-                List<Component> wrappedDescription = wrapText(Component.literal("§7" + node.getDescription()), 200);
+                List<Component> wrappedDescription = wrapText(Component.literal("§7" + descriptionText), 200);
                 for (Component descLine : wrappedDescription) {
                     tooltipLines.add(new TooltipLine(descLine, null));
                 }
             } else {
                 // Generate obfuscated text that respects word boundaries and wrapping
-                List<Component> wrappedObfuscatedText = generateWrappedObfuscatedText(node.getDescription(), 200);
+                List<Component> wrappedObfuscatedText = generateWrappedObfuscatedText(descriptionText, 200);
                 for (Component descLine : wrappedObfuscatedText) {
                     tooltipLines.add(new TooltipLine(descLine, null));
                 }

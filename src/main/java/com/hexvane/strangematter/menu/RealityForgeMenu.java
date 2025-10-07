@@ -33,6 +33,10 @@ public class RealityForgeMenu extends BaseMachineMenu {
         this.levelAccess = ContainerLevelAccess.create(playerInventory.player.level(), pos);
         this.dataAccess = this.blockEntity != null ? this.blockEntity.getDataAccess() : null;
         
+        // Set the current player for research requirement checks
+        if (this.blockEntity != null) {
+            this.blockEntity.setCurrentPlayer(playerInventory.player);
+        }
         
         // Add data synchronization for shard data
         if (this.dataAccess != null) {

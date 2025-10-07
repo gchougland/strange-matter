@@ -47,6 +47,9 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
     // Store the recipe being crafted
     private RealityForgeRecipe currentRecipe = null;
     
+    // Track the current player using the forge for research requirement checks
+    private Player currentPlayer = null;
+    
     // Data synchronization - includes base class data + shard-specific data
     private final net.minecraft.world.inventory.ContainerData shardDataAccess = new net.minecraft.world.inventory.ContainerData() {
         @Override
@@ -319,13 +322,40 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
     
     // Crafting logic
     public void attemptCraft() {
+        attemptCraft(null); // Try without specific player first
+    }
+    
+    public void attemptCraft(Player player) {
         if (isCrafting) return;
         
         // Check if we have a valid recipe
         RealityForgeRecipe recipe = RealityForgeRecipeRegistry.findMatchingRecipe(this);
         if (recipe != null) {
+            // Use the provided player or the tracked current player for research checks
+            Player checkPlayer = player != null ? player : currentPlayer;
+            
+            // If we have a player, check research requirements
+            if (checkPlayer != null && !recipe.canCraftByPlayer(checkPlayer)) {
+                // Player doesn't have required research - don't craft
+                return;
+            }
+            
             startCrafting(recipe);
         }
+    }
+    
+    /**
+     * Set the current player using the forge
+     */
+    public void setCurrentPlayer(Player player) {
+        this.currentPlayer = player;
+    }
+    
+    /**
+     * Get the current player using the forge
+     */
+    public Player getCurrentPlayer() {
+        return currentPlayer;
     }
     
     private void startCrafting(RealityForgeRecipe recipe) {

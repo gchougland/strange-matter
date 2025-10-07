@@ -17,7 +17,7 @@ public class LevelLightEngineMixin {
     // Test if mixin is being applied at all
     @Inject(method = "<init>", at = @At("RETURN"))
     private void onInit(CallbackInfo ci) {
-        System.out.println("MIXIN APPLIED: LevelLightEngine constructor called!");
+        // Mixin applied successfully
     }
     
     // Try targeting a method that's definitely called
@@ -32,7 +32,7 @@ public class LevelLightEngineMixin {
             
             if (modifiedLight != originalLight) {
                 cir.setReturnValue(modifiedLight);
-                System.out.println("LIGHT VALUE MODIFIED: " + originalLight + " -> " + modifiedLight + " at " + pos);
+                // Light value modified by shadow light provider
             }
         }
     }

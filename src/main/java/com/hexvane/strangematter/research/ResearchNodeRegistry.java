@@ -36,11 +36,55 @@ public class ResearchNodeRegistry {
         nodes.clear();
         nodesByCategory.clear();
         
-        // Foundation research - basic tools and understanding (unlocked by default)
+        /*
+         * RESEARCH TREE STRUCTURE
+         * 
+         * Mermaid Diagram Code:
+         * 
+         * graph TD
+         *     A["Research<br/>(unlocked)"] --> B["Field Scanner<br/>(unlocked)"]
+         *     A --> C["Anomaly Shards<br/>(unlocked)"]
+         *     A --> D["Anomaly Types<br/>(unlocked)"]
+         *     A --> E["Resonite<br/>(unlocked)"]
+         *     A --> F["Resonant Energy<br/>(unlocked)"]
+         *     
+         *     B --> G["Anomaly Resonator<br/>(locked)"]
+         *     
+         *     E --> H["Reality Forge<br/>(locked)"]
+         *     D --> H
+         *     
+         *     H --> I["Resonance Condenser<br/>(locked)"]
+         *     H --> J["Containment Basics<br/>(locked)"]
+         *     
+         *     H --> K["Warp Gun<br/>(locked)"]
+         *     
+         *     D --> L["Gravity Anomalies<br/>(locked)"]
+         *     D --> M["Temporal Anomalies<br/>(locked)"]
+         *     D --> N["Spatial Anomalies<br/>(locked)"]
+         *     D --> O["Energy Anomalies<br/>(locked)"]
+         *     D --> P["Shadow Anomalies<br/>(locked)"]
+         *     D --> Q["Cognitive Anomalies<br/>(locked)"]
+         *     
+         *     classDef unlocked fill:#41B280,stroke:#333,stroke-width:2px,color:#fff
+         *     classDef locked fill:#808080,stroke:#333,stroke-width:2px,color:#fff
+         *     classDef advanced fill:#FF6B6B,stroke:#333,stroke-width:2px,color:#fff
+         *     
+         *     class A,B,C,D,E,F unlocked
+         *     class G,I,J,K,L,M,N,O,P,Q locked
+         *     class H advanced
+         * 
+         * Research Tree Layout:
+         * - Default unlocked research forms a central hub around "Research"
+         * - Reality Forge is the gateway to advanced crafting
+         * - Anomaly type specializations branch from "Anomaly Types"
+         * - All connections are within reasonable distances to prevent line disappearing
+         */
+        
+        // ===== DEFAULT UNLOCKED RESEARCH (Center Group) =====
+        
+        // Main research introduction node (unlocked by default) - CENTER
         register(new ResearchNode(
-            "foundation",
-            "Foundation Research",
-            "Basic understanding of anomaly physics and containment principles.",
+            "research",
             "general",
             0, 0,
             Map.of(), // No costs - unlocked by default
@@ -50,102 +94,200 @@ public class ResearchNodeRegistry {
             List.of() // No prerequisites - this is the starting node
         ));
         
-        // Basic scanner research (unlocked by default)
+        // Field Scanner tool (unlocked by default) - LEFT
         register(new ResearchNode(
-            "basic_scanner",
-            "Resonance Scanner",
-            "A device for detecting and analyzing anomaly signatures in the field.",
+            "field_scanner",
             "general",
-            -100, -50,
+            -80, 0,
             Map.of(), // No costs - unlocked by default
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
-            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.ANOMALY_RESONATOR.get()),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.FIELD_SCANNER.get()),
             false,
-            List.of("foundation") // Requires foundation research
+            List.of("research") // Requires main research
         ));
         
-        // Gravity research branch
+        // Anomaly shard ore generation and collection (unlocked by default) - RIGHT
         register(new ResearchNode(
-            "gravity_control",
-            "Gravitational Manipulation",
-            "Understanding and controlling gravitational forces within anomaly fields.",
+            "anomaly_shards",
             "general",
-            -150, 100,
-            Map.of(ResearchType.GRAVITY, 20, ResearchType.ENERGY, 10),
+            80, 0,
+            Map.of(), // No costs - unlocked by default
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
-            new ItemStack(Items.IRON_INGOT),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.GRAVITIC_SHARD.get()),
             true,
-            List.of("foundation") // Requires foundation research
+            List.of("research") // Requires main research
         ));
         
-        // Time research branch
+        // Understanding different anomaly types (unlocked by default) - TOP
         register(new ResearchNode(
-            "temporal_stability",
-            "Temporal Stability",
-            "Methods for stabilizing temporal distortions and controlling time flow.",
+            "anomaly_types",
             "general",
-            150, 100,
-            Map.of(ResearchType.TIME, 25, ResearchType.SPACE, 15),
+            0, -80,
+            Map.of(), // No costs - unlocked by default
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
-            new ItemStack(Items.CLOCK),
+            new ItemStack(Items.BOOK),
             true,
-            List.of("foundation") // Requires foundation research
+            List.of("research") // Requires main research
         ));
         
-        // Space research branch
+        // Resonite ore collection and usage (unlocked by default) - BOTTOM LEFT
         register(new ResearchNode(
-            "spatial_anchoring",
-            "Spatial Anchoring",
-            "Techniques for anchoring spatial distortions and creating stable portals.",
+            "resonite",
             "general",
-            100, -100,
-            Map.of(ResearchType.SPACE, 20, ResearchType.ENERGY, 15),
+            -80, 80,
+            Map.of(), // No costs - unlocked by default
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
-            new ItemStack(Items.ENDER_PEARL),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.RAW_RESONITE.get()),
             true,
-            List.of("basic_scanner") // Requires basic scanner
+            List.of("research") // Requires main research
         ));
         
-        // Shadow research branch
-        register(new ResearchNode(
-            "shadow_manipulation",
-            "Shadow Manipulation",
-            "Understanding and harnessing shadow-based anomalies and perception effects.",
-            "general",
-            -100, -150,
-            Map.of(ResearchType.SHADOW, 18, ResearchType.COGNITION, 12),
-            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
-            new ItemStack(Items.INK_SAC),
-            true,
-            List.of("basic_scanner") // Requires basic scanner
-        ));
-        
-        // Energy research branch
+        // Resonant Power description and Resonant Burner power generation (unlocked by default) - BOTTOM RIGHT
         register(new ResearchNode(
             "resonant_energy",
-            "Resonant Energy Systems",
-            "Advanced systems for harnessing and stabilizing resonant energy from anomalies.",
             "general",
-            0, 150,
-            Map.of(ResearchType.ENERGY, 30, ResearchType.GRAVITY, 10),
+            80, 80,
+            Map.of(), // No costs - unlocked by default
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
-            new ItemStack(Items.GLOWSTONE),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.RESONANT_BURNER_ITEM.get()),
             true,
-            List.of("gravity_control", "temporal_stability") // Requires both gravity and temporal research
+            List.of("research") // Requires main research
         ));
         
-        // Cognition research branch
+        // ===== LOCKED RESEARCH (Connected to unlocked nodes) =====
+        
+        // Anomaly Resonator tool (locked) - Connected to field_scanner
         register(new ResearchNode(
-            "cognitive_interface",
-            "Cognitive Interface",
-            "Advanced mental interfaces for interacting with anomaly phenomena.",
+            "anomaly_resonator",
             "general",
-            -150, -100,
-            Map.of(ResearchType.COGNITION, 25, ResearchType.SHADOW, 10),
+            -160, 0,
+            Map.of(ResearchType.ENERGY, 15, ResearchType.SPACE, 10),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
-            new ItemStack(Items.EMERALD),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.ANOMALY_RESONATOR.get()),
             true,
-            List.of("shadow_manipulation") // Requires shadow manipulation
+            List.of("field_scanner") // Requires field scanner
+        ));
+        
+        // Resonance Condenser machine (locked) - Connected to reality_forge
+        register(new ResearchNode(
+            "resonance_condenser",
+            "general",
+            -160, 80,
+            Map.of(ResearchType.ENERGY, 25, ResearchType.SPACE, 15),
+            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.RESONANCE_CONDENSER_ITEM.get()),
+            true,
+            List.of("reality_forge") // Requires reality forge
+        ));
+        
+        // Echo Vacuum tool and Containment capsule system (locked) - Connected to reality_forge
+        register(new ResearchNode(
+            "containment_basics",
+            "general",
+            0, 160,
+            Map.of(ResearchType.ENERGY, 20, ResearchType.SHADOW, 15),
+            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.ECHO_VACUUM.get()),
+            true,
+            List.of("reality_forge") // Requires reality forge
+        ));
+        
+        // Reality Forge machine (locked) - Connected to resonite and anomaly_types
+        register(new ResearchNode(
+            "reality_forge",
+            "general",
+            -80, 200,
+            Map.of(ResearchType.ENERGY, 30, ResearchType.SPACE, 20, ResearchType.TIME, 15),
+            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.REALITY_FORGE_ITEM.get()),
+            true,
+            List.of("resonite") // Requires resonite and anomaly types
+        ));
+        
+        // Warp Gun weapon (locked) - Connected to reality_forge
+        register(new ResearchNode(
+            "warp_gun",
+            "general",
+            -80, 280,
+            Map.of(ResearchType.SPACE, 15, ResearchType.ENERGY, 10),
+            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.WARP_GUN.get()),
+            true,
+            List.of("reality_forge") // Requires reality forge
+        ));
+        
+        // ===== ANOMALY TYPES (SPECIALIZED RESEARCH) =====
+        
+        // Gravity anomaly research (locked) - Connected to anomaly_types
+        register(new ResearchNode(
+            "gravity_anomalies",
+            "general",
+            -80, -160,
+            Map.of(ResearchType.GRAVITY, 5),
+            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.GRAVITIC_SHARD.get()),
+            true,
+            List.of("anomaly_types") // Requires anomaly types
+        ));
+        
+        // Temporal anomaly research (locked) - Connected to anomaly_types
+        register(new ResearchNode(
+            "temporal_anomalies",
+            "general",
+            0, -160,
+            Map.of(ResearchType.TIME, 5),
+            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.CHRONO_SHARD.get()),
+            true,
+            List.of("anomaly_types") // Requires anomaly types
+        ));
+        
+        // Spatial anomaly research (locked) - Connected to anomaly_types
+        register(new ResearchNode(
+            "spatial_anomalies",
+            "general",
+            80, -160,
+            Map.of(ResearchType.SPACE, 5),
+            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.SPATIAL_SHARD.get()),
+            true,
+            List.of("anomaly_types") // Requires anomaly types
+        ));
+        
+        // Energy anomaly research (locked) - Connected to anomaly_types
+        register(new ResearchNode(
+            "energy_anomalies",
+            "general",
+            -80, -240,
+            Map.of(ResearchType.ENERGY, 5),
+            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.ENERGETIC_SHARD.get()),
+            true,
+            List.of("anomaly_types") // Requires anomaly types
+        ));
+        
+        // Shadow anomaly research (locked) - Connected to anomaly_types
+        register(new ResearchNode(
+            "shadow_anomalies",
+            "general",
+            0, -240,
+            Map.of(ResearchType.SHADOW, 5),
+            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.SHADE_SHARD.get()),
+            true,
+            List.of("anomaly_types") // Requires anomaly types
+        ));
+        
+        // Cognitive anomaly research (locked) - Connected to anomaly_types
+        register(new ResearchNode(
+            "cognitive_anomalies",
+            "general",
+            80, -240,
+            Map.of(ResearchType.COGNITION, 5),
+            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.INSIGHT_SHARD.get()),
+            true,
+            List.of("anomaly_types") // Requires anomaly types
         ));
     }
 }

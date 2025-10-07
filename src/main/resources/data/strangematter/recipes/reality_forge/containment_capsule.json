@@ -17,6 +17,7 @@
     "spatial": 1,
     "energetic": 1
   },
+  "required_research": "containment_basics",
   "result": {
     "item": "strangematter:containment_capsule"
   }

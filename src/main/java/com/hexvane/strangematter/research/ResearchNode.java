@@ -9,8 +9,6 @@ import java.util.Map;
 
 public class ResearchNode {
     private final String id;
-    private final String name;
-    private final String description;
     private final String category;
     private final int x;
     private final int y;
@@ -20,11 +18,9 @@ public class ResearchNode {
     private final boolean requiresMultipleAspects;
     private final List<String> prerequisites;
     
-    public ResearchNode(String id, String name, String description, String category, int x, int y, 
+    public ResearchNode(String id, String category, int x, int y, 
                        Map<ResearchType, Integer> researchCosts, ResourceLocation iconTexture, ItemStack iconItem, boolean requiresMultipleAspects, List<String> prerequisites) {
         this.id = id;
-        this.name = name;
-        this.description = description;
         this.category = category;
         this.x = x;
         this.y = y;
@@ -39,16 +35,8 @@ public class ResearchNode {
         return id;
     }
     
-    public String getName() {
-        return name;
-    }
-    
     public Component getDisplayName() {
         return Component.translatable("research.strangematter." + id + ".name");
-    }
-    
-    public String getDescription() {
-        return description;
     }
     
     public Component getDisplayDescription() {

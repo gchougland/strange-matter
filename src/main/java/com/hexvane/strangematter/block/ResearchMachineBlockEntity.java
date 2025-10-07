@@ -94,7 +94,7 @@ public class ResearchMachineBlockEntity extends BlockEntity {
                     // Send message that research was already unlocked (for testing purposes)
                     player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
                         "block.strangematter.research_machine.research_already_unlocked", 
-                        com.hexvane.strangematter.research.ResearchNodeRegistry.getNode(currentResearchId).getName()));
+                        com.hexvane.strangematter.research.ResearchNodeRegistry.getNode(currentResearchId).getDisplayName()));
                     
                     // Still play success sound and particles for consistency
                     level.playSound(null, worldPosition, StrangeMatterSounds.RESEARCH_MACHINE_SUCCESS.get(), 
@@ -107,7 +107,7 @@ public class ResearchMachineBlockEntity extends BlockEntity {
                     // Send success message
                     player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
                         "block.strangematter.research_machine.research_completed_success", 
-                        com.hexvane.strangematter.research.ResearchNodeRegistry.getNode(currentResearchId).getName()));
+                        com.hexvane.strangematter.research.ResearchNodeRegistry.getNode(currentResearchId).getDisplayName()));
                     
                     // Play success sound and particles at the machine location
                     level.playSound(null, worldPosition, StrangeMatterSounds.RESEARCH_MACHINE_SUCCESS.get(), 

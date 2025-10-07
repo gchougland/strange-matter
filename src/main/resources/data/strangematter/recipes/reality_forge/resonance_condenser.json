@@ -23,6 +23,7 @@
     "gravitic": 1,
     "energetic": 1
   },
+  "required_research": "resonance_condenser",
   "result": {
     "item": "strangematter:resonance_condenser"
   }

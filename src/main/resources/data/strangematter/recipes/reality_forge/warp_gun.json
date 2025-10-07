@@ -17,6 +17,7 @@
     "spatial": 2,
     "energetic": 2
   },
+  "required_research": "warp_gun",
   "result": {
     "item": "strangematter:warp_gun"
   }

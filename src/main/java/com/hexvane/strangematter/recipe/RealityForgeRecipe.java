@@ -8,6 +8,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
@@ -21,12 +22,14 @@ public class RealityForgeRecipe implements Recipe<Container> {
     private final ItemStack result;
     private final NonNullList<Ingredient> ingredients;
     private final Map<String, Integer> shardRequirements;
+    private final String requiredResearch;
     
-    public RealityForgeRecipe(ResourceLocation id, ItemStack result, NonNullList<Ingredient> ingredients, Map<String, Integer> shardRequirements) {
+    public RealityForgeRecipe(ResourceLocation id, ItemStack result, NonNullList<Ingredient> ingredients, Map<String, Integer> shardRequirements, String requiredResearch) {
         this.id = id;
         this.result = result;
         this.ingredients = ingredients;
         this.shardRequirements = shardRequirements;
+        this.requiredResearch = requiredResearch;
     }
     
     @Override
@@ -52,6 +55,20 @@ public class RealityForgeRecipe implements Recipe<Container> {
         }
         
         return true;
+    }
+    
+    /**
+     * Check if the recipe can be crafted by a specific player
+     */
+    public boolean canCraftByPlayer(Player player) {
+        // If no research requirement, anyone can craft
+        if (requiredResearch == null || requiredResearch.isEmpty()) {
+            return true;
+        }
+        
+        // Check if player has unlocked the required research
+        com.hexvane.strangematter.research.ResearchData researchData = com.hexvane.strangematter.research.ResearchData.get(player);
+        return researchData.hasUnlockedResearch(requiredResearch);
     }
     
     @Override
@@ -92,6 +109,10 @@ public class RealityForgeRecipe implements Recipe<Container> {
         return ingredients;
     }
     
+    public String getRequiredResearch() {
+        return requiredResearch;
+    }
+    
     public static class Serializer implements RecipeSerializer<RealityForgeRecipe> {
         
         @Override
@@ -130,7 +151,13 @@ public class RealityForgeRecipe implements Recipe<Container> {
                 }
             }
             
-            return new RealityForgeRecipe(recipeId, result, ingredients, shardRequirements);
+            // Get research requirement (optional field)
+            String requiredResearch = null;
+            if (json.has("required_research")) {
+                requiredResearch = GsonHelper.getAsString(json, "required_research");
+            }
+            
+            return new RealityForgeRecipe(recipeId, result, ingredients, shardRequirements, requiredResearch);
         }
         
         @Override
@@ -150,7 +177,13 @@ public class RealityForgeRecipe implements Recipe<Container> {
                 shardRequirements.put(shardType, amount);
             }
             
-            return new RealityForgeRecipe(recipeId, result, ingredients, shardRequirements);
+            // Read research requirement
+            String requiredResearch = null;
+            if (buffer.readBoolean()) {
+                requiredResearch = buffer.readUtf();
+            }
+            
+            return new RealityForgeRecipe(recipeId, result, ingredients, shardRequirements, requiredResearch);
         }
         
         @Override
@@ -165,6 +198,14 @@ public class RealityForgeRecipe implements Recipe<Container> {
             for (Map.Entry<String, Integer> entry : recipe.shardRequirements.entrySet()) {
                 buffer.writeUtf(entry.getKey());
                 buffer.writeInt(entry.getValue());
+            }
+            
+            // Write research requirement
+            if (recipe.requiredResearch != null) {
+                buffer.writeBoolean(true);
+                buffer.writeUtf(recipe.requiredResearch);
+            } else {
+                buffer.writeBoolean(false);
             }
         }
     }
