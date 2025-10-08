@@ -2,8 +2,8 @@
   "type": "strangematter:reality_forge",
   "pattern": [
     "   ",
-    "RGR",
-    "  R"
+    "RGC",
+    "  P"
   ],
   "key": {
     "R": {
@@ -11,10 +11,16 @@
     },
     "G": {
       "item": "strangematter:energetic_shard"
+    },
+    "C": {
+      "item": "strangematter:resonant_circuit"
+    },
+    "P": {
+      "tag": "minecraft:planks"
     }
   },
   "shards": {
-    "spatial": 3,
+    "spatial": 2,
     "energetic": 2,
     "temporal": 1
   },

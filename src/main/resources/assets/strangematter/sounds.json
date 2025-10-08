@@ -139,5 +139,13 @@
   "reality_forge_insert": {
     "sounds": ["strangematter:reality_forge_insert"],
     "subtitle": "Shard inserted"
+  },
+  "stasis_projector_on": {
+    "sounds": ["strangematter:stasis_projector_on"],
+    "subtitle": "Stasis Projector activated"
+  },
+  "stasis_projector_off": {
+    "sounds": ["strangematter:stasis_projector_off"],
+    "subtitle": "Stasis Projector deactivated"
   }
 }

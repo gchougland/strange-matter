@@ -63,6 +63,10 @@ public class StrangeMatterSounds {
     public static final RegistryObject<SoundEvent> REALITY_FORGE_CRAFT = registerSoundEvent("reality_forge_craft");
     public static final RegistryObject<SoundEvent> REALITY_FORGE_INSERT = registerSoundEvent("reality_forge_insert");
 
+    // Stasis Projector sounds
+    public static final RegistryObject<SoundEvent> STASIS_PROJECTOR_ON = registerSoundEvent("stasis_projector_on");
+    public static final RegistryObject<SoundEvent> STASIS_PROJECTOR_OFF = registerSoundEvent("stasis_projector_off");
+
     private static RegistryObject<SoundEvent> registerSoundEvent(String name) {
         return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(StrangeMatterMod.MODID, name)));
     }

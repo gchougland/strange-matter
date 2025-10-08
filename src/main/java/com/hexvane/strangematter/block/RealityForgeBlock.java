@@ -56,6 +56,8 @@ public class RealityForgeBlock extends Block implements EntityBlock {
         if (!level.isClientSide) {
             BlockEntity tile = level.getBlockEntity(pos);
             if (tile instanceof com.hexvane.strangematter.block.RealityForgeBlockEntity realityForge) {
+                // Sync shard data to client before opening GUI so shards render correctly
+                realityForge.syncToClient();
                 // Use NetworkHooks.openScreen like other machines
                 net.minecraftforge.network.NetworkHooks.openScreen((net.minecraft.server.level.ServerPlayer) player, realityForge, pos);
                 return InteractionResult.SUCCESS;

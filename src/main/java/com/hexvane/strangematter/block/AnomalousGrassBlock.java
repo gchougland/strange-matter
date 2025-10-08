@@ -4,11 +4,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -19,6 +21,7 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.BlockHitResult;
 
 public class AnomalousGrassBlock extends Block {
     
@@ -87,6 +90,43 @@ public class AnomalousGrassBlock extends Block {
                 level.setBlock(spreadPos, this.defaultBlockState(), 3);
             }
         }
+    }
+    
+    @Override
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean isMoving) {
+        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, isMoving);
+        
+        // Check if a block was placed on top of this anomalous grass
+        if (neighborPos.equals(pos.above())) {
+            BlockState aboveState = level.getBlockState(pos.above());
+            // If there's a solid block above, convert to dirt
+            if (aboveState.isSolidRender(level, pos.above())) {
+                level.setBlock(pos, Blocks.DIRT.defaultBlockState(), 3);
+            }
+        }
+    }
+    
+    @Override
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        ItemStack itemStack = player.getItemInHand(hand);
+        
+        // Check if the player is using a hoe
+        if (itemStack.getItem() instanceof HoeItem) {
+            // Convert anomalous grass to farmland
+            level.setBlock(pos, Blocks.FARMLAND.defaultBlockState(), 3);
+            
+            // Play the hoe sound
+            level.playSound(player, pos, net.minecraft.sounds.SoundEvents.HOE_TILL, net.minecraft.sounds.SoundSource.BLOCKS, 1.0F, 1.0F);
+            
+            // Damage the hoe slightly
+            if (!level.isClientSide) {
+                itemStack.hurtAndBreak(1, player, (p) -> p.broadcastBreakEvent(hand));
+            }
+            
+            return InteractionResult.sidedSuccess(level.isClientSide);
+        }
+        
+        return super.use(state, level, pos, player, hand, hit);
     }
     
     @Override

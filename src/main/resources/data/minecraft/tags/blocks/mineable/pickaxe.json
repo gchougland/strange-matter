@@ -2,11 +2,17 @@
   "replace": false,
   "values": [
     "strangematter:resonite_ore",
+    "strangematter:resonite_block",
     "strangematter:gravitic_shard_ore",
     "strangematter:chrono_shard_ore",
     "strangematter:spatial_shard_ore",
     "strangematter:shade_shard_ore",
     "strangematter:insight_shard_ore",
-    "strangematter:energetic_shard_ore"
+    "strangematter:energetic_shard_ore",
+    "strangematter:resonance_condenser",
+    "strangematter:resonant_burner",
+    "strangematter:research_machine",
+    "strangematter:reality_forge",
+    "strangematter:stasis_projector"
   ]
 }

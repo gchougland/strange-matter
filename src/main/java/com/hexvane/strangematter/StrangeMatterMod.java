@@ -17,6 +17,7 @@ import com.hexvane.strangematter.command.ResearchCommand;
 import com.hexvane.strangematter.sound.StrangeMatterSounds;
 import com.hexvane.strangematter.block.AnomalousGrassBlock;
 import com.hexvane.strangematter.block.ResoniteOreBlock;
+import com.hexvane.strangematter.block.ResoniteBlock;
 import com.hexvane.strangematter.block.GraviticShardOreBlock;
 import com.hexvane.strangematter.block.ChronoShardOreBlock;
 import com.hexvane.strangematter.block.SpatialShardOreBlock;
@@ -151,6 +152,10 @@ public class StrangeMatterMod
     // Resonite Ore Block
     public static final RegistryObject<Block> RESONITE_ORE_BLOCK = BLOCKS.register("resonite_ore", ResoniteOreBlock::new);
     
+    // Resonite Block
+    public static final RegistryObject<Block> RESONITE_BLOCK = BLOCKS.register("resonite_block", ResoniteBlock::new);
+    public static final RegistryObject<Item> RESONITE_BLOCK_ITEM = ITEMS.register("resonite_block", () -> new BlockItem(RESONITE_BLOCK.get(), new Item.Properties()));
+    
     // Shard Ore Blocks
     public static final RegistryObject<Block> GRAVITIC_SHARD_ORE_BLOCK = BLOCKS.register("gravitic_shard_ore", GraviticShardOreBlock::new);
     public static final RegistryObject<Block> CHRONO_SHARD_ORE_BLOCK = BLOCKS.register("chrono_shard_ore", ChronoShardOreBlock::new);
@@ -252,6 +257,12 @@ public class StrangeMatterMod
     public static final RegistryObject<Item> PARADOXICAL_ENERGY_CELL_ITEM = ITEMS.register("paradoxical_energy_cell", () -> new com.hexvane.strangematter.item.ParadoxicalEnergyCellItem((com.hexvane.strangematter.block.ParadoxicalEnergyCellBlock) PARADOXICAL_ENERGY_CELL_BLOCK.get()));
     public static final RegistryObject<BlockEntityType<com.hexvane.strangematter.block.ParadoxicalEnergyCellBlockEntity>> PARADOXICAL_ENERGY_CELL_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("paradoxical_energy_cell", 
         () -> BlockEntityType.Builder.of((pos, state) -> new com.hexvane.strangematter.block.ParadoxicalEnergyCellBlockEntity(pos, state), PARADOXICAL_ENERGY_CELL_BLOCK.get()).build(null));
+
+    // Stasis Projector Block
+    public static final RegistryObject<Block> STASIS_PROJECTOR_BLOCK = BLOCKS.register("stasis_projector", com.hexvane.strangematter.block.StasisProjectorBlock::new);
+    public static final RegistryObject<Item> STASIS_PROJECTOR_ITEM = ITEMS.register("stasis_projector", () -> new BlockItem(STASIS_PROJECTOR_BLOCK.get(), new Item.Properties()));
+    public static final RegistryObject<BlockEntityType<com.hexvane.strangematter.block.StasisProjectorBlockEntity>> STASIS_PROJECTOR_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("stasis_projector", 
+        () -> BlockEntityType.Builder.of((pos, state) -> new com.hexvane.strangematter.block.StasisProjectorBlockEntity(pos, state), STASIS_PROJECTOR_BLOCK.get()).build(null));
 
     // Particle Types
     public static final RegistryObject<net.minecraft.core.particles.SimpleParticleType> ENERGY_ABSORPTION_PARTICLE = PARTICLE_TYPES.register("energy_absorption", 
@@ -368,14 +379,15 @@ public class StrangeMatterMod
                 output.accept(FIELD_SCANNER.get());
                 output.accept(ANOMALY_RESONATOR.get());
                 output.accept(RESEARCH_TABLET.get());
-                output.accept(RESEARCH_NOTES.get());
                 output.accept(ANOMALOUS_GRASS_ITEM.get());
                 output.accept(RESEARCH_MACHINE_ITEM.get());
                 output.accept(REALITY_FORGE_ITEM.get());
                 output.accept(RESONANT_BURNER_ITEM.get());
                 output.accept(RESONANCE_CONDENSER_ITEM.get());
                 output.accept(PARADOXICAL_ENERGY_CELL_ITEM.get());
+                output.accept(STASIS_PROJECTOR_ITEM.get());
                 output.accept(RESONITE_ORE_ITEM.get());
+                output.accept(RESONITE_BLOCK_ITEM.get());
                 output.accept(GRAVITIC_SHARD_ORE_ITEM.get());
                 output.accept(CHRONO_SHARD_ORE_ITEM.get());
                 output.accept(SPATIAL_SHARD_ORE_ITEM.get());
@@ -643,7 +655,6 @@ public class StrangeMatterMod
         {
             event.accept(FIELD_SCANNER.get());
             event.accept(ANOMALY_RESONATOR.get());
-            event.accept(RESEARCH_NOTES.get());
             event.accept(RESEARCH_TABLET.get());
         }
     }
@@ -685,6 +696,7 @@ public class StrangeMatterMod
                 net.minecraft.client.renderer.entity.EntityRenderers.register(WARP_PROJECTILE_ENTITY.get(), WarpProjectileRenderer::new);
                 net.minecraft.client.renderer.entity.EntityRenderers.register(MINI_WARP_GATE_ENTITY.get(), MiniWarpGateRenderer::new);
                 net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(RESEARCH_MACHINE_BLOCK_ENTITY.get(), ResearchMachineRenderer::new);
+                net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(STASIS_PROJECTOR_BLOCK_ENTITY.get(), com.hexvane.strangematter.client.StasisProjectorRenderer::new);
                 
                 // Register Echo Vacuum client handler for proper first/third person rendering
                 net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new com.hexvane.strangematter.client.EchoVacuumClientHandler());

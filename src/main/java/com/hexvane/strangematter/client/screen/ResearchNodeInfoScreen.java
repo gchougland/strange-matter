@@ -79,6 +79,8 @@ public class ResearchNodeInfoScreen extends Screen {
             initializeContainmentBasicsPages();
         } else if (node.getId().equals("warp_gun")) {
             initializeWarpGunPages();
+        } else if (node.getId().equals("stasis_projector")) {
+            initializeStasisProjectorPages();
         } else if (node.getId().equals("gravity_anomalies")) {
             initializeGravityAnomaliesPages();
         } else if (node.getId().equals("temporal_anomalies")) {
@@ -410,6 +412,38 @@ public class ResearchNodeInfoScreen extends Screen {
         pages.add(mechanics);
     }
     
+    private void initializeStasisProjectorPages() {
+        // Page 1: Introduction with Recipe
+        InfoPage intro = new InfoPage();
+        intro.title = "research.strangematter.stasis_projector.intro.title";
+        intro.content = "research.strangematter.stasis_projector.intro.content";
+        intro.hasRecipes = true;
+        intro.hasScreenshots = false;
+        intro.recipeName = "stasis_projector";
+        intro.isRealityForgeRecipe = true;
+        pages.add(intro);
+
+        // Page 2: How It Works
+        InfoPage mechanics = new InfoPage();
+        mechanics.title = "research.strangematter.stasis_projector.mechanics.title";
+        mechanics.content = "research.strangematter.stasis_projector.mechanics.content";
+        mechanics.hasRecipes = false;
+        mechanics.hasScreenshots = false;
+        mechanics.recipeName = null;
+        mechanics.screenshotPath = null;
+        pages.add(mechanics);
+        
+        // Page 3: Applications
+        InfoPage applications = new InfoPage();
+        applications.title = "research.strangematter.stasis_projector.applications.title";
+        applications.content = "research.strangematter.stasis_projector.applications.content";
+        applications.hasRecipes = false;
+        applications.hasScreenshots = false;
+        applications.recipeName = null;
+        applications.screenshotPath = null;
+        pages.add(applications);
+    }
+    
     private void initializeGravityAnomaliesPages() {
         // Page 1: Gravity Anomaly Description with Screenshot
         InfoPage intro = new InfoPage();
@@ -734,13 +768,19 @@ public class ResearchNodeInfoScreen extends Screen {
         
         if (page.recipeName == null) return;
         
+        // Null safety check
+        if (this.minecraft == null || this.minecraft.level == null) {
+            guiGraphics.drawString(this.font, "Loading...", x, y, 0xFF666666);
+            return;
+        }
+        
         // Get the recipe from the registry
         ResourceLocation resultItemId = ResourceLocation.parse("strangematter:" + page.recipeName);
         com.hexvane.strangematter.recipe.RealityForgeRecipe recipe = 
             com.hexvane.strangematter.recipe.RealityForgeRecipeRegistry.findRecipeByResult(resultItemId, this.minecraft.level);
         
         if (recipe == null) {
-            guiGraphics.drawString(this.font, "Recipe not found", x, y, 0xFF666666);
+            guiGraphics.drawString(this.font, "Recipe not found: " + page.recipeName, x, y, 0xFF666666);
             return;
         }
         

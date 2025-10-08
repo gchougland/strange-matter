@@ -208,6 +208,12 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
                 shardOrder.add(shardOrderTag.getString(i));
             }
         }
+        
+        // Recalculate total shard count after loading
+        totalShardCount = 0;
+        for (int count : storedShards.values()) {
+            totalShardCount += count;
+        }
     }
     
     // Note: BaseMachineBlockEntity handles capability management
@@ -487,6 +493,37 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
         isCrafting = buffer.readBoolean();
         craftTicks = buffer.readInt();
         isCoalescing = buffer.readBoolean();
+        
+        // Update total shard count after reading
+        totalShardCount = 0;
+        for (int count : storedShards.values()) {
+            totalShardCount += count;
+        }
+    }
+    
+    // Minecraft's standard client sync methods
+    @Override
+    public net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket.create(this);
+    }
+    
+    @Override
+    public net.minecraft.nbt.CompoundTag getUpdateTag() {
+        CompoundTag tag = super.getUpdateTag();
+        saveAdditional(tag);
+        return tag;
+    }
+    
+    @Override
+    public void onDataPacket(net.minecraft.network.Connection net, net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket pkt) {
+        if (pkt.getTag() != null) {
+            load(pkt.getTag());
+        }
+    }
+    
+    @Override
+    public void handleUpdateTag(net.minecraft.nbt.CompoundTag tag) {
+        load(tag);
     }
     
     // Getters for GUI
@@ -515,12 +552,29 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
     }
     
     public void dropContents() {
+        // Drop all items from crafting grid
         for (int i = 0; i < getContainerSize(); i++) {
             ItemStack stack = getItem(i);
             if (!stack.isEmpty() && level != null) {
                 net.minecraft.world.entity.item.ItemEntity itemEntity = new net.minecraft.world.entity.item.ItemEntity(
                     level, worldPosition.getX() + 0.5, worldPosition.getY() + 0.5, worldPosition.getZ() + 0.5, stack);
                 level.addFreshEntity(itemEntity);
+            }
+        }
+        
+        // Drop all stored shards
+        if (level != null && !level.isClientSide) {
+            for (Map.Entry<String, Integer> entry : storedShards.entrySet()) {
+                String shardType = entry.getKey();
+                int count = entry.getValue();
+                if (count > 0) {
+                    ItemStack shardStack = createShardStack(shardType, count);
+                    if (!shardStack.isEmpty()) {
+                        net.minecraft.world.entity.item.ItemEntity itemEntity = new net.minecraft.world.entity.item.ItemEntity(
+                            level, worldPosition.getX() + 0.5, worldPosition.getY() + 0.5, worldPosition.getZ() + 0.5, shardStack);
+                        level.addFreshEntity(itemEntity);
+                    }
+                }
             }
         }
     }

@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "strangematter:resonite_block"
+    }
+  ],
+  "result": {
+    "item": "strangematter:resonite_ingot",
+    "count": 9
+  }
+}
+
