@@ -94,4 +94,16 @@ public class ResonantBurnerBlock extends Block implements EntityBlock {
     public VoxelShape getVisualShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return Shapes.block(); // Full block visual shape
     }
+    
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+        if (!state.is(newState.getBlock())) {
+            BlockEntity blockEntity = level.getBlockEntity(pos);
+            if (blockEntity instanceof ResonantBurnerBlockEntity burner) {
+                // Drop all items from inventory
+                net.minecraft.world.Containers.dropContents(level, pos, burner);
+            }
+            super.onRemove(state, level, pos, newState, isMoving);
+        }
+    }
 }

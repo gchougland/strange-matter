@@ -1,16 +1,19 @@
 {
   "type": "strangematter:reality_forge",
   "pattern": [
-    " R ",
+    "   ",
     "RER",
-    " R "
+    "  P"
   ],
   "key": {
     "R": {
       "item": "strangematter:resonite_ingot"
     },
     "E": {
-      "item": "minecraft:ender_pearl"
+      "item": "strangematter:containment_capsule_warp_gate"
+    },
+    "P": {
+      "tag": "minecraft:planks"
     }
   },
   "shards": {

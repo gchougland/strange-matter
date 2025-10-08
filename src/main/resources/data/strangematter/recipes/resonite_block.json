@@ -1,19 +1,17 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    " E ",
-    "ELE",
-    " E "
+    "RRR",
+    "RRR",
+    "RRR"
   ],
   "key": {
-    "E": {
+    "R": {
       "item": "strangematter:resonite_ingot"
-    },
-    "L": {
-      "tag": "minecraft:glass_pane"
     }
   },
   "result": {
-    "item": "strangematter:research_tablet"
+    "item": "strangematter:resonite_block"
   }
 }
+

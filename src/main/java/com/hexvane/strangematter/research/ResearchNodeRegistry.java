@@ -161,7 +161,7 @@ public class ResearchNodeRegistry {
             "anomaly_resonator",
             "general",
             -160, 0,
-            Map.of(ResearchType.ENERGY, 15, ResearchType.SPACE, 10),
+            Map.of(ResearchType.ENERGY, 10, ResearchType.SPACE, 10),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.ANOMALY_RESONATOR.get()),
             true,
@@ -197,7 +197,7 @@ public class ResearchNodeRegistry {
             "reality_forge",
             "general",
             -80, 200,
-            Map.of(ResearchType.ENERGY, 30, ResearchType.SPACE, 20, ResearchType.TIME, 15),
+            Map.of(ResearchType.ENERGY, 5, ResearchType.SPACE, 5, ResearchType.TIME, 5),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.REALITY_FORGE_ITEM.get()),
             true,
@@ -212,6 +212,18 @@ public class ResearchNodeRegistry {
             Map.of(ResearchType.SPACE, 15, ResearchType.ENERGY, 10),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.WARP_GUN.get()),
+            true,
+            List.of("reality_forge") // Requires reality forge
+        ));
+        
+        // Stasis Projector device (locked) - Connected to reality_forge
+        register(new ResearchNode(
+            "stasis_projector",
+            "general",
+            80, 280,
+            Map.of(ResearchType.GRAVITY, 5, ResearchType.TIME, 5),
+            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.STASIS_PROJECTOR_ITEM.get()),
             true,
             List.of("reality_forge") // Requires reality forge
         ));
