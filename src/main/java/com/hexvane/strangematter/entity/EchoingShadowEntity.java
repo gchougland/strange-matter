@@ -24,9 +24,19 @@ import java.util.HashSet;
 
 public class EchoingShadowEntity extends BaseAnomalyEntity {
     
-    // Constants for the echoing shadow anomaly
-    private static final float SHADOW_RADIUS = 12.0f;
-    private static final float LIGHT_ABSORPTION_RADIUS = 8.0f;
+    // Config-driven getters for echoing shadow parameters
+    private float getEffectRadius() {
+        return (float) com.hexvane.strangematter.Config.shadowEffectRadius;
+    }
+    
+    private double getLightAbsorption() {
+        return com.hexvane.strangematter.Config.shadowLightAbsorption;
+    }
+    
+    private double getMobSpawnBoost() {
+        return com.hexvane.strangematter.Config.shadowMobSpawnBoost;
+    }
+    
     private static final int LIGHT_LEVEL_REDUCTION = 8; // Reduce light level by this amount
     private static final int MOB_SPAWN_BOOST_TICKS = 20; // Boost mob spawning every 20 ticks
     private static final int MAX_SPAWNED_MOBS = 6;
@@ -54,8 +64,8 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
     
     @Override
     protected void applyAnomalyEffects() {
-        if (this.isContained()) {
-            return; // Don't apply effects if contained
+        if (this.isContained() || !com.hexvane.strangematter.Config.enableShadowEffects) {
+            return; // Don't apply effects if contained or effects disabled
         }
         
         // Apply light absorption effect
@@ -76,7 +86,8 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
         }
         
         BlockPos centerPos = this.blockPosition();
-        int radius = (int) LIGHT_ABSORPTION_RADIUS;
+        float effectRadius = getEffectRadius();
+        int radius = (int) effectRadius;
         
         // Clear previously affected positions
         affectedLightPositions.clear();
@@ -87,11 +98,11 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
                 for (int z = -radius; z <= radius; z++) {
                     double distance = Math.sqrt(x * x + y * y + z * z);
                     
-                    if (distance <= LIGHT_ABSORPTION_RADIUS) {
+                    if (distance <= effectRadius) {
                         BlockPos pos = centerPos.offset(x, y, z);
                         
                         // Calculate shadow intensity based on distance (stronger at center)
-                        double shadowFactor = 1.0 - (distance / LIGHT_ABSORPTION_RADIUS);
+                        double shadowFactor = (1.0 - (distance / effectRadius)) * getLightAbsorption();
                         int lightReduction = (int) (LIGHT_LEVEL_REDUCTION * shadowFactor);
                         
                         if (lightReduction > 0) {
@@ -160,7 +171,8 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
                         
                         // Calculate distance-based reduction - make it DRASTIC
                         double distance = this.position().distanceTo(new Vec3(testPos.getX() + 0.5, testPos.getY() + 0.5, testPos.getZ() + 0.5));
-                        double reductionFactor = 1.0 - (distance / LIGHT_ABSORPTION_RADIUS);
+                        float localEffectRadius = getEffectRadius();
+                        double reductionFactor = 1.0 - (distance / localEffectRadius);
                         
                         // Make the reduction much more dramatic - reduce to near 0
                         int newBlockLight = (int) (currentBlockLight * (1.0 - reductionFactor * 0.9)); // Reduce by 90% at center
@@ -194,7 +206,8 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
             return;
         }
         
-        AABB shadowBox = this.getBoundingBox().inflate(SHADOW_RADIUS);
+        float effectRadius = getEffectRadius();
+        AABB shadowBox = this.getBoundingBox().inflate(effectRadius);
         List<Entity> entitiesInRange = this.level().getEntities(this, shadowBox);
         
         // Count existing hostile mobs in the shadow area
@@ -217,7 +230,9 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
         cleanupDeadMobs();
         
         // Spawn mobs like a spawner - ignore light levels and time of day
-        if (spawnedMobs.size() < MAX_SPAWNED_MOBS && this.level().getRandom().nextFloat() < 0.25f) { // 25% chance per tick, max 6 spawned mobs
+        // Apply mob spawn boost from config
+        double spawnChance = 0.25 * (getMobSpawnBoost() / 2.0); // Base 25% * (boost / 2.0) - at 2.0 boost = 25%
+        if (spawnedMobs.size() < MAX_SPAWNED_MOBS && this.level().getRandom().nextFloat() < spawnChance) {
             attemptSpawnerLikeMobSpawn(serverLevel);
         }
     }
@@ -275,8 +290,9 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
         // Try multiple spawn attempts
         for (int attempt = 0; attempt < 5; attempt++) {
             // Pick a random position within the shadow radius
-            int x = centerPos.getX() + this.level().getRandom().nextInt((int)(SHADOW_RADIUS * 2)) - (int)SHADOW_RADIUS;
-            int z = centerPos.getZ() + this.level().getRandom().nextInt((int)(SHADOW_RADIUS * 2)) - (int)SHADOW_RADIUS;
+            float shadowRadius = getEffectRadius();
+            int x = centerPos.getX() + this.level().getRandom().nextInt((int)(shadowRadius * 2)) - (int)shadowRadius;
+            int z = centerPos.getZ() + this.level().getRandom().nextInt((int)(shadowRadius * 2)) - (int)shadowRadius;
             
             // Find a suitable Y position
             BlockPos spawnPos = new BlockPos(x, centerPos.getY(), z);
@@ -450,11 +466,6 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    protected int getResearchAmount() {
-        return 15; // Shadow research points
-    }
-    
-    @Override
     protected String getAnomalyName() {
         return "Echoing Shadow";
     }
@@ -514,8 +525,9 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
     public int getEffectiveLightLevel(BlockPos pos) {
         double distance = this.position().distanceTo(new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5));
         
-        if (distance <= LIGHT_ABSORPTION_RADIUS) {
-            double reductionFactor = 1.0 - (distance / LIGHT_ABSORPTION_RADIUS);
+        float effectRadius = getEffectRadius();
+        if (distance <= effectRadius) {
+            double reductionFactor = 1.0 - (distance / effectRadius);
             int lightReduction = (int) (LIGHT_LEVEL_REDUCTION * reductionFactor);
             
             // Get both block and sky light levels
@@ -545,14 +557,14 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
      */
     public boolean isInShadowRadius(BlockPos pos) {
         double distance = this.position().distanceTo(new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5));
-        return distance <= SHADOW_RADIUS;
+        return distance <= getEffectRadius();
     }
     
     /**
      * Get the light absorption radius for the custom light engine
      */
     public float getLightAbsorptionRadius() {
-        return LIGHT_ABSORPTION_RADIUS;
+        return getEffectRadius();
     }
     
     /**

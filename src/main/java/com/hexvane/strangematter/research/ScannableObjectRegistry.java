@@ -1,5 +1,6 @@
 package com.hexvane.strangematter.research;
 
+import com.hexvane.strangematter.Config;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -14,30 +15,34 @@ public class ScannableObjectRegistry {
     private static final Map<ResourceLocation, ScannableObject> entityScannables = new HashMap<>();
     private static final Map<ResourceLocation, ScannableObject> blockScannables = new HashMap<>();
     
-    static {
+    /**
+     * Initialize the registry. This is called during mod initialization.
+     * Research points are retrieved from config instead of being hardcoded.
+     */
+    public static void init() {
         // Register gravity anomaly entity
         registerEntity(ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "gravity_anomaly"), 
-            ResearchType.GRAVITY, 10);
+            ResearchType.GRAVITY, Config.gravityResearchPoints);
         
         // Register warp gate anomaly entity
         registerEntity(ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "warp_gate_anomaly"), 
-            ResearchType.SPACE, 10);
+            ResearchType.SPACE, Config.warpResearchPoints);
         
         // Register energetic rift entity
         registerEntity(ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "energetic_rift"), 
-            ResearchType.ENERGY, 10);
+            ResearchType.ENERGY, Config.energeticResearchPoints);
         
         // Register echoing shadow entity
         registerEntity(ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "echoing_shadow"), 
-            ResearchType.SHADOW, 10);
+            ResearchType.SHADOW, Config.shadowResearchPoints);
 
         // Register temporal bloom entity
         registerEntity(ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "temporal_bloom"), 
-        ResearchType.TIME, 10);
+            ResearchType.TIME, Config.temporalResearchPoints);
         
         // Register thoughtwell entity
         registerEntity(ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "thoughtwell"), 
-            ResearchType.COGNITION, 10);
+            ResearchType.COGNITION, Config.thoughtwellResearchPoints);
     }
     
     public static void registerEntity(ResourceLocation entityType, ResearchType researchType, int amount) {

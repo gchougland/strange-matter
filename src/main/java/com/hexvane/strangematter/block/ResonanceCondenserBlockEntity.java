@@ -43,9 +43,9 @@ public class ResonanceCondenserBlockEntity extends BaseMachineBlockEntity {
     public ResonanceCondenserBlockEntity(BlockPos pos, BlockState state) {
         super(StrangeMatterMod.RESONANCE_CONDENSER_BLOCK_ENTITY.get(), pos, state, 1);
         
-        // Configure energy system for Resonance Condenser
-        this.energyPerTick = 2;
-        this.maxEnergyStorage = 1000; // Store up to 5000 energy
+        // Configure energy system for Resonance Condenser from config
+        this.energyPerTick = com.hexvane.strangematter.Config.resonanceCondenserEnergyPerTick;
+        this.maxEnergyStorage = com.hexvane.strangematter.Config.resonanceCondenserEnergyStorage;
         this.energyStorage.setCapacity(maxEnergyStorage);
         
         // Configure energy input sides (all sides except front)
@@ -86,7 +86,8 @@ public class ResonanceCondenserBlockEntity extends BaseMachineBlockEntity {
                 }
                 setActive(true);
                 
-                if (this.tickCounter >= 15) {
+                int progressSpeed = com.hexvane.strangematter.Config.resonanceCondenserProgressSpeed;
+                if (this.tickCounter >= progressSpeed) {
                     this.tickCounter = 0;
                     // Progress increases only if an anomaly is found AND we have energy
                     if (progressLevel < maxProgressLevel) {

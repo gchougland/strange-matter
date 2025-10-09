@@ -39,7 +39,11 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
     // Crafting state
     private boolean isCrafting = false;
     private int craftTicks = 0;
-    private static final int CRAFT_TIME = 100; // 5 seconds at 20 TPS
+    
+    // Get craft time from config
+    private int getCraftTime() {
+        return com.hexvane.strangematter.Config.realityForgeCraftTime;
+    }
     
     // Visual feedback for coalescing animation (happens during crafting)
     private boolean isCoalescing = false;
@@ -115,7 +119,7 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
         // Reality Forge specific processing logic
         if (isCrafting) {
             craftTicks++;
-            if (craftTicks >= CRAFT_TIME) {
+            if (craftTicks >= getCraftTime()) {
                 completeCrafting();
             }
         }
@@ -132,7 +136,8 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
                 blockEntity.setChanged();
             }
 
-            if (blockEntity.craftTicks >= CRAFT_TIME) {
+            int craftTime = blockEntity.getCraftTime();
+            if (blockEntity.craftTicks >= craftTime) {
                 // Double-check that we're still crafting and have a recipe before completing
                 if (blockEntity.isCrafting && blockEntity.currentRecipe != null) {
                     blockEntity.completeCrafting();
@@ -540,7 +545,8 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
     }
     
     public int getCraftProgress() {
-        return isCrafting ? (craftTicks * 100) / CRAFT_TIME : 0;
+        int craftTime = getCraftTime();
+        return isCrafting ? (craftTicks * 100) / craftTime : 0;
     }
     
     public boolean isCoalescing() {
@@ -548,7 +554,8 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
     }
     
     public int getCoalesceProgress() {
-        return isCoalescing ? (craftTicks * 100) / CRAFT_TIME : 0;
+        int craftTime = getCraftTime();
+        return isCoalescing ? (craftTicks * 100) / craftTime : 0;
     }
     
     public void dropContents() {

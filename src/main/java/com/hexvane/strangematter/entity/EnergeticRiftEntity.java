@@ -32,12 +32,26 @@ import java.util.ArrayList;
  */
 public class EnergeticRiftEntity extends BaseAnomalyEntity {
     
-    // Constants for the energetic rift
-    private static final float ZAP_RADIUS = 6.0f;
-    private static final float LIGHTNING_ROD_RADIUS = 8.0f;
-    private static final float ZAP_DAMAGE = 1.0f; // 1 heart (reduced from 2.0f)
-    private static final int ZAP_COOLDOWN = 40; // 2 seconds (20 ticks = 1 second, so 40 = 2 seconds)
-    private static final int LIGHTNING_COOLDOWN = 200; // 10 seconds
+    // Config-driven getters for energetic rift parameters
+    private float getZapRadius() {
+        return (float) com.hexvane.strangematter.Config.energeticZapRadius;
+    }
+    
+    private float getLightningRodRadius() {
+        return (float) com.hexvane.strangematter.Config.energeticLightningRadius;
+    }
+    
+    private float getZapDamage() {
+        return (float) com.hexvane.strangematter.Config.energeticZapDamage;
+    }
+    
+    private int getZapCooldownMax() {
+        return com.hexvane.strangematter.Config.energeticZapCooldown;
+    }
+    
+    private int getLightningCooldownMax() {
+        return com.hexvane.strangematter.Config.energeticLightningCooldown;
+    }
     
     // Tracking for cooldowns
     private int zapCooldown = 0;
@@ -62,8 +76,8 @@ public class EnergeticRiftEntity extends BaseAnomalyEntity {
     
     @Override
     protected void applyAnomalyEffects() {
-        if (this.isContained()) {
-            return; // Don't apply effects if contained
+        if (this.isContained() || !com.hexvane.strangematter.Config.enableEnergeticEffects) {
+            return; // Don't apply effects if contained or effects disabled
         }
         
         // Update cooldowns
@@ -85,14 +99,15 @@ public class EnergeticRiftEntity extends BaseAnomalyEntity {
     }
     
     private void zapEntitiesInRange() {
-        AABB zapBox = this.getBoundingBox().inflate(ZAP_RADIUS);
+        float zapRadius = getZapRadius();
+        AABB zapBox = this.getBoundingBox().inflate(zapRadius);
         List<Entity> entitiesInRange = this.level().getEntities(this, zapBox);
         
         boolean foundTarget = false;
         for (Entity entity : entitiesInRange) {
             if (entity instanceof LivingEntity && !(entity instanceof Player && ((Player) entity).isCreative())) {
                 double distance = this.distanceTo(entity);
-                if (distance <= ZAP_RADIUS) {
+                if (distance <= zapRadius) {
                     zapEntity((LivingEntity) entity);
                     foundTarget = true;
                 }
@@ -101,14 +116,14 @@ public class EnergeticRiftEntity extends BaseAnomalyEntity {
         
         // Reset cooldown if we found a target
         if (foundTarget) {
-            zapCooldown = ZAP_COOLDOWN;
+            zapCooldown = getZapCooldownMax();
         }
     }
     
     private void zapEntity(LivingEntity entity) {
         // Deal electric damage
         DamageSource electricDamage = this.damageSources().lightningBolt();
-        entity.hurt(electricDamage, ZAP_DAMAGE);
+        entity.hurt(electricDamage, getZapDamage());
         
         // Create targeting spark for visual effect
         createTargetingSpark(entity);
@@ -124,16 +139,17 @@ public class EnergeticRiftEntity extends BaseAnomalyEntity {
         List<BlockPos> lightningRods = new java.util.ArrayList<>();
         
         // Find all lightning rods in range
+        float lightningRadius = getLightningRodRadius();
         BlockPos center = this.blockPosition();
-        for (int x = (int) -LIGHTNING_ROD_RADIUS; x <= LIGHTNING_ROD_RADIUS; x++) {
+        for (int x = (int) -lightningRadius; x <= lightningRadius; x++) {
             for (int y = -3; y <= 3; y++) {
-                for (int z = (int) -LIGHTNING_ROD_RADIUS; z <= LIGHTNING_ROD_RADIUS; z++) {
+                for (int z = (int) -lightningRadius; z <= lightningRadius; z++) {
                     BlockPos pos = center.offset(x, y, z);
                     BlockState state = this.level().getBlockState(pos);
                     
                     if (state.is(Blocks.LIGHTNING_ROD)) {
                         double distance = Math.sqrt(x * x + z * z);
-                        if (distance <= LIGHTNING_ROD_RADIUS) {
+                        if (distance <= lightningRadius) {
                             lightningRods.add(pos);
                         }
                     }
@@ -145,7 +161,7 @@ public class EnergeticRiftEntity extends BaseAnomalyEntity {
         if (!lightningRods.isEmpty()) {
             BlockPos targetRod = lightningRods.get(this.level().getRandom().nextInt(lightningRods.size()));
             strikeLightningRod(targetRod);
-            lightningCooldown = LIGHTNING_COOLDOWN;
+            lightningCooldown = getLightningCooldownMax();
         }
     }
     
@@ -187,7 +203,7 @@ public class EnergeticRiftEntity extends BaseAnomalyEntity {
     }
     
     private void spawnSwirlingParticles() {
-        double radius = ZAP_RADIUS * 0.6;
+        double radius = getZapRadius() * 0.6;
         double angle = (tickCount * 0.1) + (this.level().getRandom().nextDouble() * 0.5);
         double x = this.getX() + Math.cos(angle) * radius;
         double z = this.getZ() + Math.sin(angle) * radius;
@@ -207,7 +223,7 @@ public class EnergeticRiftEntity extends BaseAnomalyEntity {
         int sparkCount = 2 + random.nextInt(3); // 2-4 sparks
         
         for (int i = 0; i < sparkCount; i++) {
-            double radius = ZAP_RADIUS * (0.3 + random.nextDouble() * 0.7);
+            double radius = getZapRadius() * (0.3 + random.nextDouble() * 0.7);
             double angle = random.nextDouble() * 2 * Math.PI;
             double height = random.nextDouble() * 2.0 - 1.0;
             
@@ -269,11 +285,6 @@ public class EnergeticRiftEntity extends BaseAnomalyEntity {
     @Override
     protected ResearchType getResearchType() {
         return ResearchType.ENERGY;
-    }
-    
-    @Override
-    protected int getResearchAmount() {
-        return 3; // Provide 3 energy research points when scanned
     }
     
     @Override

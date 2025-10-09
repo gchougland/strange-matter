@@ -42,10 +42,24 @@ public class EnergyMinigame extends ResearchMinigame {
     // Alignment tracking
     private boolean isAligned = false;
     private int alignmentTicks = 0;
-    private int requiredAlignmentTicks = 100; // 5 seconds at 20 TPS
-    private int driftDelayTicks = 600; // 30 seconds delay before starting to drift
-    private int driftDelay = 100; // 5 seconds before drifting starts
     private int driftTicks = 0;
+    
+    // Config-driven getters
+    private int getRequiredAlignmentTicks() {
+        return com.hexvane.strangematter.Config.energyRequiredAlignmentTicks;
+    }
+    
+    private int getDriftDelayTicks() {
+        return com.hexvane.strangematter.Config.energyDriftDelayTicks;
+    }
+    
+    private double getAmplitudeStep() {
+        return com.hexvane.strangematter.Config.energyAmplitudeStep;
+    }
+    
+    private double getPeriodStep() {
+        return com.hexvane.strangematter.Config.energyPeriodStep;
+    }
     
     // Drift parameters
     private double amplitudeDrift = 0.0;
@@ -316,21 +330,23 @@ public class EnergyMinigame extends ResearchMinigame {
     
     private void adjustValues(int direction) {
         if (amplitudeDialActive) {
-            currentAmplitude += direction * 0.05;
+            double step = getAmplitudeStep();
+            currentAmplitude += direction * step;
             currentAmplitude = Math.max(MIN_AMPLITUDE, Math.min(MAX_AMPLITUDE, currentAmplitude));
             
             // Auto-match if close to target
-            if (Math.abs(currentAmplitude - targetAmplitude) < 0.08) {
+            if (Math.abs(currentAmplitude - targetAmplitude) < step * 1.6) {
                 currentAmplitude = targetAmplitude;
             }
         }
         
         if (periodDialActive) {
-            currentPeriod += direction * 0.05;
+            double step = getPeriodStep();
+            currentPeriod += direction * step;
             currentPeriod = Math.max(MIN_PERIOD, Math.min(MAX_PERIOD, currentPeriod));
             
             // Auto-match if close to target
-            if (Math.abs(currentPeriod - targetPeriod) < 0.08) {
+            if (Math.abs(currentPeriod - targetPeriod) < step * 1.6) {
                 currentPeriod = targetPeriod;
             }
         }
@@ -374,10 +390,12 @@ public class EnergyMinigame extends ResearchMinigame {
                 }
             } else {
                 alignmentTicks++;
-                if (alignmentTicks >= requiredAlignmentTicks) {
+                int requiredTicks = getRequiredAlignmentTicks();
+                if (alignmentTicks >= requiredTicks) {
                     // Been aligned long enough, start drifting
                     driftTicks++;
-                    if (driftTicks >= driftDelayTicks) {
+                    int driftDelay = getDriftDelayTicks();
+                    if (driftTicks >= driftDelay) {
                         applyDrift();
                     }
                     setState(MinigameState.STABLE);

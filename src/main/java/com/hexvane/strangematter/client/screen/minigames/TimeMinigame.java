@@ -23,9 +23,19 @@ public class TimeMinigame extends ResearchMinigame {
     
     // Speed and timing
     private static final double MAX_SPEED = 2.0; // Maximum speed multiplier
-    private static final double SPEED_ADJUSTMENT = 0.1; // How much speed changes per button press
-    private static final double AUTO_SNAP_THRESHOLD = 0.15; // Auto-snap when within this range of target speed
-    private static final int DRIFT_DELAY_TICKS = 200; // Ticks before drift starts (same as energy minigame)
+    
+    // Config-driven getters
+    private double getSpeedAdjustment() {
+        return com.hexvane.strangematter.Config.timeSpeedAdjustment;
+    }
+    
+    private double getSpeedThreshold() {
+        return com.hexvane.strangematter.Config.timeSpeedThreshold;
+    }
+    
+    private int getDriftDelayTicks() {
+        return com.hexvane.strangematter.Config.timeDriftDelayTicks;
+    }
     
     // Textures
     private static final ResourceLocation CLOCK_TEXTURE = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/ui/time_clock.png");
@@ -143,7 +153,7 @@ public class TimeMinigame extends ResearchMinigame {
                 mouseY >= buttonY && mouseY < buttonY + BUTTON_SIZE) {
                 
                 leftButtonPressed = true;
-                adjustSpeed(-SPEED_ADJUSTMENT);
+                adjustSpeed(-1.0); // Direction multiplied by config step in adjustSpeed()
                 buttonCooldown = BUTTON_COOLDOWN_TICKS;
                 
                 // Play click sound
@@ -157,7 +167,7 @@ public class TimeMinigame extends ResearchMinigame {
                 mouseY >= buttonY && mouseY < buttonY + BUTTON_SIZE) {
                 
                 rightButtonPressed = true;
-                adjustSpeed(SPEED_ADJUSTMENT);
+                adjustSpeed(1.0); // Direction multiplied by config step in adjustSpeed()
                 buttonCooldown = BUTTON_COOLDOWN_TICKS;
                 
                 // Play click sound
@@ -263,7 +273,8 @@ public class TimeMinigame extends ResearchMinigame {
     
     private void checkStability() {
         // Check if speed is close to target (1.0)
-        boolean speedMatch = Math.abs(clockSpeed - targetSpeed) < AUTO_SNAP_THRESHOLD;
+        double threshold = getSpeedThreshold();
+        boolean speedMatch = Math.abs(clockSpeed - targetSpeed) < threshold;
         
         if (speedMatch) {
             if (!isStable) {
@@ -281,7 +292,8 @@ public class TimeMinigame extends ResearchMinigame {
     }
     
     private void updateDrift() {
-        if (isStable && stableTicks >= DRIFT_DELAY_TICKS) {
+        int driftDelay = getDriftDelayTicks();
+        if (isStable && stableTicks >= driftDelay) {
             if (!isDrifting) {
                 isDrifting = true;
                 driftTicks = 0;
@@ -299,7 +311,8 @@ public class TimeMinigame extends ResearchMinigame {
     }
     
     private void adjustSpeed(double adjustment) {
-        clockSpeed += adjustment;
+        double step = getSpeedAdjustment();
+        clockSpeed += adjustment * step;
         clockSpeed = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, clockSpeed));
         
         // Reset drift when actively adjusting

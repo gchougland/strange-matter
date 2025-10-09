@@ -158,6 +158,13 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
     }
     
     /**
+     * Get the energy transfer rate for this machine (can be overridden)
+     */
+    protected int getEnergyTransferRate() {
+        return 1000; // Default 1000 RE/t
+    }
+    
+    /**
      * Try to receive energy from adjacent blocks
      */
     protected void tryReceiveEnergy() {
@@ -171,7 +178,8 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
                 if (adjacentEntity != null) {
                     adjacentEntity.getCapability(ForgeCapabilities.ENERGY, direction.getOpposite()).ifPresent(adjacentStorage -> {
                         if (adjacentStorage.canExtract() && energyStorage.canReceive()) {
-                            int energyToReceive = Math.min(energyStorage.getMaxEnergyStored() - energyStorage.getEnergyStored(), 1000);
+                            int transferRate = getEnergyTransferRate();
+                            int energyToReceive = Math.min(energyStorage.getMaxEnergyStored() - energyStorage.getEnergyStored(), transferRate);
                             if (energyToReceive > 0) {
                                 int energyReceived = adjacentStorage.extractEnergy(energyToReceive, false);
                                 if (energyReceived > 0) {
@@ -201,7 +209,8 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
                 if (adjacentEntity != null) {
                     adjacentEntity.getCapability(ForgeCapabilities.ENERGY, direction.getOpposite()).ifPresent(adjacentStorage -> {
                         if (adjacentStorage.canReceive() && energyStorage.canExtract()) {
-                            int energyToSend = Math.min(energyStorage.getEnergyStored(), 1000);
+                            int transferRate = getEnergyTransferRate();
+                            int energyToSend = Math.min(energyStorage.getEnergyStored(), transferRate);
                             if (energyToSend > 0) {
                                 int energySent = adjacentStorage.receiveEnergy(energyToSend, false);
                                 if (energySent > 0) {

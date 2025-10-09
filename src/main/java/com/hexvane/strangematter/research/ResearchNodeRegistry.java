@@ -1,5 +1,6 @@
 package com.hexvane.strangematter.research;
 
+import com.hexvane.strangematter.Config;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -13,6 +14,57 @@ public class ResearchNodeRegistry {
     public static void register(ResearchNode node) {
         nodes.put(node.getId(), node);
         nodesByCategory.computeIfAbsent(node.getCategory(), k -> new ArrayList<>()).add(node);
+    }
+    
+    /**
+     * Apply config multiplier and overrides to research costs
+     */
+    private static Map<ResearchType, Integer> applyConfigCosts(String nodeId, Map<ResearchType, Integer> defaultCosts) {
+        if (defaultCosts.isEmpty()) {
+            return defaultCosts; // Don't modify unlocked nodes
+        }
+        
+        // Check for individual override first
+        int overrideCost = getIndividualCostOverride(nodeId);
+        Map<ResearchType, Integer> costs = new HashMap<>(defaultCosts);
+        
+        if (overrideCost > 0) {
+            // Apply individual override - distribute evenly among research types
+            int costPerType = Math.max(1, overrideCost / costs.size());
+            for (ResearchType type : costs.keySet()) {
+                costs.put(type, costPerType);
+            }
+        } else {
+            // Apply global multiplier
+            double multiplier = Config.researchCostMultiplier;
+            for (Map.Entry<ResearchType, Integer> entry : costs.entrySet()) {
+                int newCost = Math.max(1, (int) Math.round(entry.getValue() * multiplier));
+                costs.put(entry.getKey(), newCost);
+            }
+        }
+        
+        return costs;
+    }
+    
+    /**
+     * Get individual cost override for a specific node
+     */
+    private static int getIndividualCostOverride(String nodeId) {
+        return switch (nodeId) {
+            case "anomaly_resonator" -> Config.anomalyResonatorCost;
+            case "resonance_condenser" -> Config.resonanceCondenserCost;
+            case "containment_basics" -> Config.containmentBasicsCost;
+            case "reality_forge" -> Config.realityForgeCost;
+            case "warp_gun" -> Config.warpGunCost;
+            case "stasis_projector" -> Config.stasisProjectorCost;
+            case "gravity_anomalies" -> Config.gravityAnomaliesCost;
+            case "temporal_anomalies" -> Config.temporalAnomaliesCost;
+            case "spatial_anomalies" -> Config.spatialAnomaliesCost;
+            case "energy_anomalies" -> Config.energyAnomaliesCost;
+            case "shadow_anomalies" -> Config.shadowAnomaliesCost;
+            case "cognitive_anomalies" -> Config.cognitiveAnomaliesCost;
+            default -> -1; // Use default
+        };
     }
     
     public static ResearchNode getNode(String id) {
@@ -161,7 +213,7 @@ public class ResearchNodeRegistry {
             "anomaly_resonator",
             "general",
             -160, 0,
-            Map.of(ResearchType.ENERGY, 10, ResearchType.SPACE, 10),
+            applyConfigCosts("anomaly_resonator", Map.of(ResearchType.ENERGY, 10, ResearchType.SPACE, 10)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.ANOMALY_RESONATOR.get()),
             true,
@@ -173,7 +225,7 @@ public class ResearchNodeRegistry {
             "resonance_condenser",
             "general",
             -160, 80,
-            Map.of(ResearchType.ENERGY, 25, ResearchType.SPACE, 15),
+            applyConfigCosts("resonance_condenser", Map.of(ResearchType.ENERGY, 25, ResearchType.SPACE, 15)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.RESONANCE_CONDENSER_ITEM.get()),
             true,
@@ -185,7 +237,7 @@ public class ResearchNodeRegistry {
             "containment_basics",
             "general",
             0, 160,
-            Map.of(ResearchType.ENERGY, 20, ResearchType.SHADOW, 15),
+            applyConfigCosts("containment_basics", Map.of(ResearchType.ENERGY, 20, ResearchType.SHADOW, 15)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.ECHO_VACUUM.get()),
             true,
@@ -197,7 +249,7 @@ public class ResearchNodeRegistry {
             "reality_forge",
             "general",
             -80, 200,
-            Map.of(ResearchType.ENERGY, 5, ResearchType.SPACE, 5, ResearchType.TIME, 5),
+            applyConfigCosts("reality_forge", Map.of(ResearchType.ENERGY, 5, ResearchType.SPACE, 5, ResearchType.TIME, 5)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.REALITY_FORGE_ITEM.get()),
             true,
@@ -209,7 +261,7 @@ public class ResearchNodeRegistry {
             "warp_gun",
             "general",
             -80, 280,
-            Map.of(ResearchType.SPACE, 15, ResearchType.ENERGY, 10),
+            applyConfigCosts("warp_gun", Map.of(ResearchType.SPACE, 15, ResearchType.ENERGY, 10)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.WARP_GUN.get()),
             true,
@@ -221,7 +273,7 @@ public class ResearchNodeRegistry {
             "stasis_projector",
             "general",
             80, 280,
-            Map.of(ResearchType.GRAVITY, 5, ResearchType.TIME, 5),
+            applyConfigCosts("stasis_projector", Map.of(ResearchType.GRAVITY, 5, ResearchType.TIME, 5)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.STASIS_PROJECTOR_ITEM.get()),
             true,
@@ -235,7 +287,7 @@ public class ResearchNodeRegistry {
             "gravity_anomalies",
             "general",
             -80, -160,
-            Map.of(ResearchType.GRAVITY, 5),
+            applyConfigCosts("gravity_anomalies", Map.of(ResearchType.GRAVITY, 5)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.GRAVITIC_SHARD.get()),
             true,
@@ -247,7 +299,7 @@ public class ResearchNodeRegistry {
             "temporal_anomalies",
             "general",
             0, -160,
-            Map.of(ResearchType.TIME, 5),
+            applyConfigCosts("temporal_anomalies", Map.of(ResearchType.TIME, 5)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.CHRONO_SHARD.get()),
             true,
@@ -259,7 +311,7 @@ public class ResearchNodeRegistry {
             "spatial_anomalies",
             "general",
             80, -160,
-            Map.of(ResearchType.SPACE, 5),
+            applyConfigCosts("spatial_anomalies", Map.of(ResearchType.SPACE, 5)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.SPATIAL_SHARD.get()),
             true,
@@ -271,7 +323,7 @@ public class ResearchNodeRegistry {
             "energy_anomalies",
             "general",
             -80, -240,
-            Map.of(ResearchType.ENERGY, 5),
+            applyConfigCosts("energy_anomalies", Map.of(ResearchType.ENERGY, 5)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.ENERGETIC_SHARD.get()),
             true,
@@ -283,7 +335,7 @@ public class ResearchNodeRegistry {
             "shadow_anomalies",
             "general",
             0, -240,
-            Map.of(ResearchType.SHADOW, 5),
+            applyConfigCosts("shadow_anomalies", Map.of(ResearchType.SHADOW, 5)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.SHADE_SHARD.get()),
             true,
@@ -295,7 +347,7 @@ public class ResearchNodeRegistry {
             "cognitive_anomalies",
             "general",
             80, -240,
-            Map.of(ResearchType.COGNITION, 5),
+            applyConfigCosts("cognitive_anomalies", Map.of(ResearchType.COGNITION, 5)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.INSIGHT_SHARD.get()),
             true,

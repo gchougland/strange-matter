@@ -2,8 +2,8 @@
   "feature": "strangematter:thoughtwell",
   "placement": [
     {
-      "type": "minecraft:rarity_filter",
-      "chance": 400
+      "type": "strangematter:configured_rarity_filter",
+      "feature_type": "thoughtwell"
     },
     {
       "type": "minecraft:in_square"

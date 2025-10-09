@@ -29,8 +29,15 @@ import java.util.List;
  */
 public class ThoughtwellEntity extends BaseAnomalyEntity {
     
-    // Constants for the thoughtwell
-    private static final float EFFECT_RADIUS = 10.0f;
+    // Config-driven getters for thoughtwell parameters
+    private float getEffectRadius() {
+        return (float) com.hexvane.strangematter.Config.thoughtwellEffectRadius;
+    }
+    
+    private int getConfusionDuration() {
+        return com.hexvane.strangematter.Config.thoughtwellConfusionDuration;
+    }
+    
     private static final int NAUSEA_COOLDOWN = 100; // 5 seconds
     private static final int CONFUSION_COOLDOWN = 200; // 10 seconds
     private static final int PARTICLE_BURST_COOLDOWN = 40; // 2 seconds
@@ -63,8 +70,8 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
     
     @Override
     protected void applyAnomalyEffects() {
-        if (this.isContained()) {
-            return; // Don't apply effects if contained
+        if (this.isContained() || !com.hexvane.strangematter.Config.enableThoughtwellEffects) {
+            return; // Don't apply effects if contained or effects disabled
         }
         
         // Update cooldowns
@@ -99,9 +106,10 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
     
     private void affectNearbyPlayers() {
         // Create a large bounding box centered on the entity's position for effect detection
+        float effectRadius = getEffectRadius();
         AABB effectBox = new AABB(
-            this.getX() - EFFECT_RADIUS, this.getY() - EFFECT_RADIUS, this.getZ() - EFFECT_RADIUS,
-            this.getX() + EFFECT_RADIUS, this.getY() + EFFECT_RADIUS, this.getZ() + EFFECT_RADIUS
+            this.getX() - effectRadius, this.getY() - effectRadius, this.getZ() - effectRadius,
+            this.getX() + effectRadius, this.getY() + effectRadius, this.getZ() + effectRadius
         );
         List<Entity> entitiesInRange = this.level().getEntities(this, effectBox);
         
@@ -109,9 +117,9 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
         for (Entity entity : entitiesInRange) {
             if (entity instanceof Player player) {
                 double distance = this.distanceTo(player);
-                if (distance <= EFFECT_RADIUS) {
+                if (distance <= effectRadius) {
                     // Apply slight nausea effect - intensity based on distance
-                    float intensity = 1.0f - (float)(distance / EFFECT_RADIUS);
+                    float intensity = 1.0f - (float)(distance / effectRadius);
                     int duration = 100 + (int)(intensity * 100); // 5-10 seconds
                     int amplifier = intensity > 0.7f ? 1 : 0; // Level 1 nausea if very close
                     
@@ -130,9 +138,10 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
     
     private void confuseNearbyMobs() {
         // Create a large bounding box centered on the entity's position for effect detection
+        float effectRadius = getEffectRadius();
         AABB confusionBox = new AABB(
-            this.getX() - EFFECT_RADIUS, this.getY() - EFFECT_RADIUS, this.getZ() - EFFECT_RADIUS,
-            this.getX() + EFFECT_RADIUS, this.getY() + EFFECT_RADIUS, this.getZ() + EFFECT_RADIUS
+            this.getX() - effectRadius, this.getY() - effectRadius, this.getZ() - effectRadius,
+            this.getX() + effectRadius, this.getY() + effectRadius, this.getZ() + effectRadius
         );
         List<Entity> entitiesInRange = this.level().getEntities(this, confusionBox);
         
@@ -140,7 +149,7 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
         for (Entity entity : entitiesInRange) {
             if (entity instanceof Mob mob && !(entity instanceof Player)) {
                 double distance = this.distanceTo(mob);
-                if (distance <= EFFECT_RADIUS) {
+                if (distance <= effectRadius) {
                     confuseMob(mob);
                     foundMob = true;
                 }
@@ -155,7 +164,8 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
     
     private void confuseMob(Mob mob) {
         // Apply confusion effect to the mob
-        mob.addEffect(new MobEffectInstance(net.minecraft.world.effect.MobEffects.CONFUSION, 200, 0, false, true));
+        int confusionDuration = getConfusionDuration();
+        mob.addEffect(new MobEffectInstance(net.minecraft.world.effect.MobEffects.CONFUSION, confusionDuration, 0, false, true));
         
         // Apply cognitive disguise effect - make mobs appear as different random mobs
         applyCognitiveDisguise(mob);
@@ -171,7 +181,7 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
     
     private void createCyanBurst() {
         // Create a burst of cyan energy particles
-        double radius = EFFECT_RADIUS * 0.8;
+        double radius = getEffectRadius() * 0.8;
         int particleCount = 12 + this.level().getRandom().nextInt(8); // 12-19 particles
         
         for (int i = 0; i < particleCount; i++) {
@@ -294,11 +304,6 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
     @Override
     protected ResearchType getResearchType() {
         return ResearchType.COGNITION;
-    }
-    
-    @Override
-    protected int getResearchAmount() {
-        return 5; // Provide 5 cognition research points when scanned
     }
     
     @Override

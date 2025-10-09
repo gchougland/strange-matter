@@ -1,5 +1,6 @@
 package com.hexvane.strangematter.entity;
 
+import com.hexvane.strangematter.Config;
 import com.hexvane.strangematter.StrangeMatterMod;
 import com.hexvane.strangematter.research.ScannableObject;
 import com.hexvane.strangematter.research.ScannableObjectRegistry;
@@ -143,9 +144,13 @@ public abstract class BaseAnomalyEntity extends Entity {
     protected abstract ResearchType getResearchType();
     
     /**
-     * Override this method to return the research amount this anomaly provides
+     * Get the research amount this anomaly provides by looking it up from the ScannableObjectRegistry
      */
-    protected abstract int getResearchAmount();
+    protected int getResearchAmount() {
+        return com.hexvane.strangematter.research.ScannableObjectRegistry.getScannableForEntity(this)
+            .map(com.hexvane.strangematter.research.ScannableObject::getResearchAmount)
+            .orElse(0);
+    }
     
     /**
      * Override this method to return the anomaly name for display
@@ -211,8 +216,9 @@ public abstract class BaseAnomalyEntity extends Entity {
                             }
                         }
                         
-                        // Place anomalous grass on suitable surface blocks
-                        if (currentState.is(Blocks.GRASS_BLOCK) || currentState.is(Blocks.DIRT) || 
+                        // Place anomalous grass on suitable surface blocks (if enabled in config)
+                        if (Config.enableAnomalousGrass && 
+                            (currentState.is(Blocks.GRASS_BLOCK) || currentState.is(Blocks.DIRT) || 
                             currentState.is(Blocks.COARSE_DIRT) || currentState.is(Blocks.PODZOL) ||
                             currentState.is(Blocks.SAND) || currentState.is(Blocks.RED_SAND) ||
                             currentState.is(Blocks.TERRACOTTA) || currentState.is(Blocks.WHITE_TERRACOTTA) ||
@@ -224,7 +230,7 @@ public abstract class BaseAnomalyEntity extends Entity {
                             currentState.is(Blocks.BLUE_TERRACOTTA) || currentState.is(Blocks.BROWN_TERRACOTTA) ||
                             currentState.is(Blocks.GREEN_TERRACOTTA) || currentState.is(Blocks.RED_TERRACOTTA) ||
                             currentState.is(Blocks.BLACK_TERRACOTTA) || currentState.is(Blocks.SNOW) ||
-                            currentState.is(Blocks.SNOW_BLOCK)) {
+                            currentState.is(Blocks.SNOW_BLOCK))) {
                             this.level().setBlock(targetPos, StrangeMatterMod.ANOMALOUS_GRASS_BLOCK.get().defaultBlockState(), 3);
                             modifiedBlocks.add(targetPos);
                         }
@@ -236,8 +242,8 @@ public abstract class BaseAnomalyEntity extends Entity {
                         int surfaceY = surfacePos.getY();
                         int oreY = surfaceY - (1 + this.level().getRandom().nextInt(5)); // 1-5 blocks below surface
                         
-                        // Place resonite ore (50% chance)
-                        if (this.level().getRandom().nextFloat() < 0.5f) { // 50% chance
+                        // Place resonite ore (configurable chance)
+                        if (this.level().getRandom().nextFloat() < Config.resoniteOreSpawnChanceNearAnomaly) {
                             BlockPos orePos = new BlockPos(pos.getX(), oreY, pos.getZ());
                             BlockState oreState = this.level().getBlockState(orePos);
                             if (canReplaceWithOre(oreState)) {
@@ -246,8 +252,8 @@ public abstract class BaseAnomalyEntity extends Entity {
                             }
                         }
                         
-                        // Place corresponding shard ore (slightly less frequently than resonite)
-                        if (this.level().getRandom().nextFloat() < 0.2f) { // 20% chance vs 50% for resonite
+                        // Place corresponding shard ore (configurable chance)
+                        if (this.level().getRandom().nextFloat() < Config.shardOreSpawnChanceNearAnomaly) {
                             int shardOreY = surfaceY - (1 + this.level().getRandom().nextInt(5)); // 1-5 blocks below surface
                             BlockPos shardOrePos = new BlockPos(pos.getX(), shardOreY, pos.getZ());
                             BlockState shardOreState = this.level().getBlockState(shardOrePos);
@@ -261,8 +267,8 @@ public abstract class BaseAnomalyEntity extends Entity {
                         int anomalyY = centerPos.getY() - 5;
                         int oreY = anomalyY - (1 + this.level().getRandom().nextInt(5)); // 1-5 blocks below anomaly
                         
-                        // Place resonite ore (50% chance)
-                        if (this.level().getRandom().nextFloat() < 0.5f) { // 50% chance
+                        // Place resonite ore (configurable chance)
+                        if (this.level().getRandom().nextFloat() < Config.resoniteOreSpawnChanceNearAnomaly) {
                             BlockPos orePos = new BlockPos(pos.getX(), oreY, pos.getZ());
                             BlockState oreState = this.level().getBlockState(orePos);
                             if (canReplaceWithOre(oreState)) {
@@ -271,8 +277,8 @@ public abstract class BaseAnomalyEntity extends Entity {
                             }
                         }
                         
-                        // Place corresponding shard ore (slightly less frequently than resonite)
-                        if (this.level().getRandom().nextFloat() < 0.2f) { // 20% chance vs 50% for resonite
+                        // Place corresponding shard ore (configurable chance)
+                        if (this.level().getRandom().nextFloat() < Config.shardOreSpawnChanceNearAnomaly) {
                             int shardOreY = anomalyY - (1 + this.level().getRandom().nextInt(5)); // 1-5 blocks below anomaly
                             BlockPos shardOrePos = new BlockPos(pos.getX(), shardOreY, pos.getZ());
                             BlockState shardOreState = this.level().getBlockState(shardOrePos);

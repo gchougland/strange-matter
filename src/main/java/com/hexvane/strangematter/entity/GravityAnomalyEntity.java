@@ -34,10 +34,16 @@ import java.util.HashSet;
 
 public class GravityAnomalyEntity extends BaseAnomalyEntity {
     
-    // Constants for the gravity anomaly
-    private static final float LEVITATION_RADIUS = 8.0f;
+    // Constants for the gravity anomaly (now read from config)
+    private float getLevitationRadius() {
+        return (float) com.hexvane.strangematter.Config.gravityLevitationRadius;
+    }
+    
+    private float getLevitationForce() {
+        return (float) com.hexvane.strangematter.Config.gravityLevitationForce;
+    }
+    
     private static final float AURA_RADIUS = 2.0f;
-    private static final float LEVITATION_FORCE = 0.1f;
     
     // Track affected players and their modifiers
     private Set<Player> affectedPlayers = new HashSet<>();
@@ -51,17 +57,18 @@ public class GravityAnomalyEntity extends BaseAnomalyEntity {
     
     @Override
     protected void applyAnomalyEffects() {
-        if (this.isContained()) {
-            return; // Don't apply levitation if contained
+        if (this.isContained() || !com.hexvane.strangematter.Config.enableGravityEffects) {
+            return; // Don't apply levitation if contained or effects disabled
         }
         
-        AABB levitationBox = this.getBoundingBox().inflate(LEVITATION_RADIUS);
+        float levitationRadius = getLevitationRadius();
+        AABB levitationBox = this.getBoundingBox().inflate(levitationRadius);
         List<Entity> entitiesInRange = this.level().getEntities(this, levitationBox);
         
         // Clean up players who are no longer in range
         affectedPlayers.removeIf(player -> {
             double distance = this.distanceTo(player);
-            if (distance > LEVITATION_RADIUS) {
+            if (distance > levitationRadius) {
                 // Player left the area, remove gravity data
                 GravityData.removePlayerGravityForce(player.getUUID());
                 player.getPersistentData().remove("strangematter.gravity_force");
@@ -77,7 +84,7 @@ public class GravityAnomalyEntity extends BaseAnomalyEntity {
             
             // Calculate distance from anomaly center
             double distance = this.distanceTo(entity);
-            if (distance <= LEVITATION_RADIUS) {
+            if (distance <= levitationRadius) {
                 applyLowGravityEffect(entity, distance);
             }
         }
@@ -85,7 +92,8 @@ public class GravityAnomalyEntity extends BaseAnomalyEntity {
     
     private void applyLowGravityEffect(Entity entity, double distance) {
         // Calculate force multiplier based on distance (stronger closer to center)
-        double forceMultiplier = 1.0 - (distance / LEVITATION_RADIUS);
+        float levitationRadius = getLevitationRadius();
+        double forceMultiplier = 1.0 - (distance / levitationRadius);
         forceMultiplier = Math.max(0.1, forceMultiplier); // Minimum effect even at edge
         
         Vec3 currentVelocity = entity.getDeltaMovement();
@@ -172,7 +180,8 @@ public class GravityAnomalyEntity extends BaseAnomalyEntity {
     
     private void applyGenericLowGravity(Entity entity, Vec3 currentVelocity, double forceMultiplier) {
         // Generic entities get basic low gravity effect
-        Vec3 upwardForce = new Vec3(0, LEVITATION_FORCE * forceMultiplier * 0.6, 0);
+        float levitationForce = getLevitationForce();
+        Vec3 upwardForce = new Vec3(0, levitationForce * forceMultiplier * 0.6, 0);
         Vec3 newVelocity = currentVelocity.add(upwardForce);
         
         // Reduce downward velocity
@@ -189,7 +198,7 @@ public class GravityAnomalyEntity extends BaseAnomalyEntity {
         
         // Spawn levitation particles
         if (tickCount % (20 / PARTICLE_SPAWN_RATE) == 0) {
-            double radius = LEVITATION_RADIUS * 0.8;
+            double radius = getLevitationRadius() * 0.8;
             double angle = this.level().random.nextDouble() * 2 * Math.PI;
             double x = this.getX() + Math.cos(angle) * radius * this.level().random.nextDouble();
             double z = this.getZ() + Math.sin(angle) * radius * this.level().random.nextDouble();
@@ -238,11 +247,6 @@ public class GravityAnomalyEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    protected int getResearchAmount() {
-        return 15; // Gravity research points
-    }
-    
-    @Override
     protected String getAnomalyName() {
         return "Gravity";
     }
@@ -250,10 +254,6 @@ public class GravityAnomalyEntity extends BaseAnomalyEntity {
     @Override
     protected RegistryObject<Block> getShardOreBlock() {
         return StrangeMatterMod.GRAVITIC_SHARD_ORE_BLOCK;
-    }
-    
-    public float getLevitationRadius() {
-        return LEVITATION_RADIUS;
     }
     
     public float getAuraRadius() {
