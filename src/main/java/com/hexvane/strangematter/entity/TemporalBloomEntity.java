@@ -32,10 +32,23 @@ import java.util.List;
  */
 public class TemporalBloomEntity extends BaseAnomalyEntity {
     
-    // Constants for the temporal bloom
-    private static final float EFFECT_RADIUS = 8.0f;
-    private static final int CROP_EFFECT_COOLDOWN = 100; // 5 seconds
-    private static final int MOB_TRANSFORM_COOLDOWN = 200; // 10 seconds
+    // Config-driven getters for temporal bloom parameters
+    private float getEffectRadius() {
+        return (float) com.hexvane.strangematter.Config.temporalEffectRadius;
+    }
+    
+    private int getCropCooldownMax() {
+        return com.hexvane.strangematter.Config.temporalCropCooldown;
+    }
+    
+    private int getMobCooldownMax() {
+        return com.hexvane.strangematter.Config.temporalMobCooldown;
+    }
+    
+    private int getCropGrowthStages() {
+        return com.hexvane.strangematter.Config.temporalCropGrowthStages;
+    }
+    
     private static final int PARTICLE_BURST_COOLDOWN = 40; // 2 seconds
     
     // Tracking for cooldowns
@@ -57,8 +70,8 @@ public class TemporalBloomEntity extends BaseAnomalyEntity {
     
     @Override
     protected void applyAnomalyEffects() {
-        if (this.isContained()) {
-            return; // Don't apply effects if contained
+        if (this.isContained() || !com.hexvane.strangematter.Config.enableTemporalEffects) {
+            return; // Don't apply effects if contained or effects disabled
         }
         
         // Update cooldowns
@@ -86,10 +99,11 @@ public class TemporalBloomEntity extends BaseAnomalyEntity {
         BlockPos center = this.blockPosition();
         
         // Find crops in a circular area around the anomaly
-        for (int x = (int) -EFFECT_RADIUS; x <= EFFECT_RADIUS; x++) {
-            for (int z = (int) -EFFECT_RADIUS; z <= EFFECT_RADIUS; z++) {
+        float effectRadius = getEffectRadius();
+        for (int x = (int) -effectRadius; x <= effectRadius; x++) {
+            for (int z = (int) -effectRadius; z <= effectRadius; z++) {
                 double distance = Math.sqrt(x * x + z * z);
-                if (distance <= EFFECT_RADIUS) {
+                if (distance <= effectRadius) {
                     BlockPos pos = center.offset(x, 0, z);
                     
                     // Check multiple Y levels for crops
@@ -105,7 +119,7 @@ public class TemporalBloomEntity extends BaseAnomalyEntity {
             }
         }
         
-        cropEffectCooldown = CROP_EFFECT_COOLDOWN;
+        cropEffectCooldown = getCropCooldownMax();
     }
     
     private void affectCrop(BlockPos pos, BlockState state, CropBlock cropBlock) {
@@ -135,13 +149,14 @@ public class TemporalBloomEntity extends BaseAnomalyEntity {
         // Randomly add or remove growth stages
         net.minecraft.util.RandomSource random = this.level().getRandom();
         int ageChange = 0;
+        int maxStages = getCropGrowthStages();
         
         if (random.nextBoolean()) {
             // Add growth (age up)
-            ageChange = 1 + random.nextInt(2); // 1-2 stages
+            ageChange = 1 + random.nextInt(maxStages);
         } else {
             // Remove growth (age down)
-            ageChange = -(1 + random.nextInt(2)); // -1 to -2 stages
+            ageChange = -(1 + random.nextInt(maxStages));
         }
         
         int newAge = Math.max(0, Math.min(maxAge, currentAge + ageChange));
@@ -160,14 +175,15 @@ public class TemporalBloomEntity extends BaseAnomalyEntity {
     }
     
     private void transformNearbyMobs() {
-        AABB transformBox = this.getBoundingBox().inflate(EFFECT_RADIUS);
+        float effectRadius = getEffectRadius();
+        AABB transformBox = this.getBoundingBox().inflate(effectRadius);
         List<Entity> entitiesInRange = this.level().getEntities(this, transformBox);
         
         boolean foundTarget = false;
         for (Entity entity : entitiesInRange) {
             if (entity instanceof LivingEntity && !(entity instanceof Player)) {
                 double distance = this.distanceTo(entity);
-                if (distance <= EFFECT_RADIUS) {
+                if (distance <= effectRadius) {
                     transformMob((LivingEntity) entity);
                     foundTarget = true;
                 }
@@ -176,7 +192,7 @@ public class TemporalBloomEntity extends BaseAnomalyEntity {
         
         // Reset cooldown if we found a target
         if (foundTarget) {
-            mobTransformCooldown = MOB_TRANSFORM_COOLDOWN;
+            mobTransformCooldown = getMobCooldownMax();
         }
     }
     
@@ -231,7 +247,7 @@ public class TemporalBloomEntity extends BaseAnomalyEntity {
     
     private void createTemporalBurst() {
         // Create a burst of temporal energy particles
-        double radius = EFFECT_RADIUS * 0.8;
+        double radius = getEffectRadius() * 0.8;
         int particleCount = 15 + this.level().getRandom().nextInt(10); // 15-24 particles
         
         for (int i = 0; i < particleCount; i++) {
@@ -295,7 +311,7 @@ public class TemporalBloomEntity extends BaseAnomalyEntity {
     private void spawnEnergyRipples() {
         // Create energy ripples that expand outward
         double rippleRadius = (tickCount % 60) * 0.2; // Expand over 3 seconds
-        if (rippleRadius > EFFECT_RADIUS) return;
+        if (rippleRadius > getEffectRadius()) return;
         
         for (int i = 0; i < 8; i++) {
             double angle = (i * Math.PI * 2) / 8.0;
@@ -408,11 +424,6 @@ public class TemporalBloomEntity extends BaseAnomalyEntity {
     @Override
     protected ResearchType getResearchType() {
         return ResearchType.TIME;
-    }
-    
-    @Override
-    protected int getResearchAmount() {
-        return 4; // Provide 4 time research points when scanned
     }
     
     @Override

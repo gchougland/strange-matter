@@ -45,10 +45,22 @@ public class ResearchMachineBlockEntity extends BlockEntity {
         if (com.hexvane.strangematter.item.ResearchNoteItem.isValidResearchNote(researchNote)) {
             currentResearchId = com.hexvane.strangematter.item.ResearchNoteItem.getResearchId(researchNote);
             activeResearchTypes = com.hexvane.strangematter.item.ResearchNoteItem.getResearchTypes(researchNote);
+            playerId = player.getUUID();
+            
+            // Check if minigames are disabled in config
+            if (!com.hexvane.strangematter.Config.enableMinigames) {
+                // Instant unlock - skip minigames entirely
+                if (!level.isClientSide) {
+                    // Use the same completion flow as normal research
+                    handleResearchCompletion();
+                }
+                return true;
+            }
+            
+            // Normal mode - require minigames
             currentState = MachineState.READY;
             instabilityLevel = 0.5f; // Start at halfway
             researchTicks = 0;
-            playerId = player.getUUID();
             setChanged();
             
             // Play insert sound

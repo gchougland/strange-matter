@@ -20,10 +20,17 @@ public class CognitionMinigame extends ResearchMinigame {
     private static final int TOTAL_GRID_SIZE = (SYMBOL_SIZE + GRID_SPACING) * GRID_SIZE - GRID_SPACING; // Total grid size
     
     // Game mechanics
-    private static final int PATTERN_LENGTH = 3; // Always 3 symbols
-    private static final int DISPLAY_DURATION_TICKS = 60; // 3 seconds at 20 TPS
     private static final int PATTERN_REDISPLAY_TICKS = 100; // 5 seconds between pattern displays
     private static final int DRIFT_DELAY_TICKS = 600; // 30 seconds before drift starts
+    
+    // Config-driven getters
+    private int getMatchDuration() {
+        return com.hexvane.strangematter.Config.cognitionMatchDuration;
+    }
+    
+    private int getDifficulty() {
+        return com.hexvane.strangematter.Config.cognitionDifficulty;
+    }
     
     // Enchanting symbols - using more visually distinct runic symbols
     private static final String[] ENCHANTING_SYMBOLS = {
@@ -48,7 +55,6 @@ public class CognitionMinigame extends ResearchMinigame {
     // Sequential pattern display
     private int currentSymbolIndex = 0; // Which symbol in the pattern is currently being shown
     private int symbolDisplayTicks = 0; // How long the current symbol has been displayed
-    private static final int SYMBOL_DISPLAY_DURATION = 20; // 1 second per symbol at 20 TPS
     private Random random = new Random();
     
     // Button states
@@ -90,7 +96,8 @@ public class CognitionMinigame extends ResearchMinigame {
         // Update sequential pattern display
         if (patternDisplayed) {
             symbolDisplayTicks++;
-            if (symbolDisplayTicks >= SYMBOL_DISPLAY_DURATION) {
+            int symbolDuration = getMatchDuration();
+            if (symbolDisplayTicks >= symbolDuration) {
                 // Move to next symbol
                 currentSymbolIndex++;
                 symbolDisplayTicks = 0;
@@ -240,13 +247,15 @@ public class CognitionMinigame extends ResearchMinigame {
         targetPattern.clear();
         playerInput.clear();
         
-        // Generate a random 3-symbol pattern with no duplicates
+        int patternLength = getDifficulty();
+        
+        // Generate a random pattern with no duplicates
         List<Integer> availableSymbols = new ArrayList<>();
         for (int i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
             availableSymbols.add(i);
         }
         
-        for (int i = 0; i < PATTERN_LENGTH; i++) {
+        for (int i = 0; i < patternLength; i++) {
             int randomIndex = random.nextInt(availableSymbols.size());
             int symbol = availableSymbols.remove(randomIndex);
             targetPattern.add(symbol);

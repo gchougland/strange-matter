@@ -17,9 +17,19 @@ public class SpaceMinigame extends ResearchMinigame {
     
     // Warp parameters
     private static final double MAX_WARP = 1.0; // Maximum warp amount
-    private static final double WARP_ADJUSTMENT = 0.05; // How much warp changes per control input
-    private static final double STABILITY_THRESHOLD = 0.1; // How close to 0 warp is considered stable
-    private static final int DRIFT_DELAY_TICKS = 100; // Ticks before drift starts (reduced for more activity)
+    
+    // Config-driven getters
+    private double getWarpAdjustment() {
+        return com.hexvane.strangematter.Config.spaceWarpAdjustment;
+    }
+    
+    private double getStabilityThreshold() {
+        return com.hexvane.strangematter.Config.spaceStabilityThreshold;
+    }
+    
+    private int getDriftDelayTicks() {
+        return com.hexvane.strangematter.Config.spaceDriftDelayTicks;
+    }
     
     // Textures
     private static final ResourceLocation SPACE_IMAGE_TEXTURE = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/ui/space_image.png");
@@ -132,7 +142,7 @@ public class SpaceMinigame extends ResearchMinigame {
                 mouseY >= controlsY && mouseY < controlsY + CONTROL_SIZE) {
                 
                 leftButtonPressed = true;
-                adjustWarp(-WARP_ADJUSTMENT);
+                adjustWarp(-1.0); // Direction multiplied by config step in adjustWarp()
                 buttonCooldown = BUTTON_COOLDOWN_TICKS;
                 
                 // Play click sound
@@ -147,7 +157,7 @@ public class SpaceMinigame extends ResearchMinigame {
                 mouseY >= controlsY && mouseY < controlsY + CONTROL_SIZE) {
                 
                 rightButtonPressed = true;
-                adjustWarp(WARP_ADJUSTMENT);
+                adjustWarp(1.0); // Direction multiplied by config step in adjustWarp()
                 buttonCooldown = BUTTON_COOLDOWN_TICKS;
                 
                 // Play click sound
@@ -215,7 +225,8 @@ public class SpaceMinigame extends ResearchMinigame {
     
     private void checkStability() {
         // Check if warp is close to target (0.0)
-        boolean warpMatch = Math.abs(warpAmount - targetWarp) < STABILITY_THRESHOLD;
+        double threshold = getStabilityThreshold();
+        boolean warpMatch = Math.abs(warpAmount - targetWarp) < threshold;
         
         if (warpMatch) {
             if (!isStable) {
@@ -233,7 +244,8 @@ public class SpaceMinigame extends ResearchMinigame {
     }
     
     private void updateDrift() {
-        if (isStable && stableTicks >= DRIFT_DELAY_TICKS) {
+        int driftDelay = getDriftDelayTicks();
+        if (isStable && stableTicks >= driftDelay) {
             if (!isDrifting) {
                 isDrifting = true;
                 driftTicks = 0;
@@ -252,7 +264,8 @@ public class SpaceMinigame extends ResearchMinigame {
     }
     
     private void adjustWarp(double adjustment) {
-        warpAmount += adjustment;
+        double step = getWarpAdjustment();
+        warpAmount += adjustment * step;
         warpAmount = Math.max(0.0, Math.min(MAX_WARP, warpAmount));
         
         // Reset drift when actively adjusting

@@ -22,9 +22,9 @@ public class ResonantBurnerBlockEntity extends BaseMachineBlockEntity {
     private int burnDuration = 0;
     private int fuelSlot = 0; // Single fuel slot
     
-    // Energy generation
-    private int energyPerTick = 20; // Generate 20 energy per tick when burning
-    private int maxEnergyStorage = 10000; // Store up to 10,000 energy
+    // Energy generation (now read from config)
+    private int energyPerTick;
+    private int maxEnergyStorage;
     
     // Machine inventory - fuel slot only
     private final NonNullList<ItemStack> items = NonNullList.withSize(1, ItemStack.EMPTY);
@@ -67,9 +67,9 @@ public class ResonantBurnerBlockEntity extends BaseMachineBlockEntity {
     public ResonantBurnerBlockEntity(BlockPos pos, BlockState state) {
         super(StrangeMatterMod.RESONANT_BURNER_BLOCK_ENTITY.get(), pos, state, 1);
         
-        // Configure energy system for Resonant Burner
-        this.energyPerTick = 20;
-        this.maxEnergyStorage = 10000;
+        // Configure energy system for Resonant Burner from config
+        this.energyPerTick = com.hexvane.strangematter.Config.resonantBurnerEnergyPerTick;
+        this.maxEnergyStorage = com.hexvane.strangematter.Config.resonantBurnerEnergyStorage;
         this.energyStorage.setCapacity(maxEnergyStorage);
         
         // Configure energy input sides (all sides by default)
@@ -79,6 +79,11 @@ public class ResonantBurnerBlockEntity extends BaseMachineBlockEntity {
         // Configure energy output sides (all sides for power distribution)
         boolean[] outputSides = {true, true, true, true, true, true};
         this.setEnergyOutputSides(outputSides);
+    }
+    
+    @Override
+    protected int getEnergyTransferRate() {
+        return com.hexvane.strangematter.Config.resonantBurnerTransferRate;
     }
     
     public static void tick(Level level, BlockPos pos, BlockState state, ResonantBurnerBlockEntity blockEntity) {

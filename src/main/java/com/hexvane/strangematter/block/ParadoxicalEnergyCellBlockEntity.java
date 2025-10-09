@@ -52,7 +52,8 @@ public class ParadoxicalEnergyCellBlockEntity extends BlockEntity {
                 adjacentEntity.getCapability(ForgeCapabilities.ENERGY, direction.getOpposite()).ifPresent(adjacentStorage -> {
                     if (adjacentStorage.canReceive()) {
                         // Try to transfer energy
-                        int energyToTransfer = Math.min(1000, adjacentStorage.getMaxEnergyStored() - adjacentStorage.getEnergyStored());
+                        int transferRate = com.hexvane.strangematter.Config.paradoxicalCellTransferRate;
+                        int energyToTransfer = Math.min(transferRate, adjacentStorage.getMaxEnergyStored() - adjacentStorage.getEnergyStored());
                         if (energyToTransfer > 0) {
                             int energyTransferred = adjacentStorage.receiveEnergy(energyToTransfer, false);
                             if (energyTransferred > 0) {

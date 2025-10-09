@@ -42,10 +42,16 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
     private static final EntityDataAccessor<String> PAIRED_GATE_ID = SynchedEntityData.defineId(WarpGateAnomalyEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<Boolean> IS_ACTIVE = SynchedEntityData.defineId(WarpGateAnomalyEntity.class, EntityDataSerializers.BOOLEAN);
     
-    // Constants for the warp gate
-    private static final float TELEPORT_RADIUS = 2.0f; // Must be very close to center
+    // Config-driven getters for warp gate parameters
+    private float getTeleportRadius() {
+        return (float) com.hexvane.strangematter.Config.warpTeleportRadius;
+    }
+    
+    private int getTeleportCooldownMax() {
+        return com.hexvane.strangematter.Config.warpTeleportCooldown;
+    }
+    
     private static final float AURA_RADIUS = 4.0f;
-    private static final int TELEPORT_COOLDOWN = 100; // 5 seconds at 20 TPS
     
     // Sound system - using StrangeMatterSounds for consistency
     
@@ -112,11 +118,12 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
     
     @Override
     protected void applyAnomalyEffects() {
-        if (!this.isActive() || this.isContained()) {
-            return; // Don't apply teleportation if not active or contained
+        if (!this.isActive() || this.isContained() || !com.hexvane.strangematter.Config.enableWarpEffects) {
+            return; // Don't apply teleportation if not active, contained, or effects disabled
         }
         
-        AABB teleportBox = this.getBoundingBox().inflate(TELEPORT_RADIUS);
+        float teleportRadius = getTeleportRadius();
+        AABB teleportBox = this.getBoundingBox().inflate(teleportRadius);
         List<Entity> entitiesInRange = this.level().getEntities(this, teleportBox);
         
         
@@ -127,7 +134,7 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
             
             // Allow creative players for testing, but add a message
             
-            if (distance <= TELEPORT_RADIUS && teleportCooldown <= 0) {
+            if (distance <= teleportRadius && teleportCooldown <= 0) {
                 teleportEntity(entity);
             } else {
                 // Check per-player cooldown
@@ -191,8 +198,9 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
         
         // Set cooldown to prevent rapid teleportation (per-entity, not per-gate)
         if (entity instanceof Player) {
-            teleportCooldown = TELEPORT_COOLDOWN;
-            pairedGate.teleportCooldown = TELEPORT_COOLDOWN;
+            int cooldownMax = getTeleportCooldownMax();
+            teleportCooldown = cooldownMax;
+            pairedGate.teleportCooldown = cooldownMax;
         }
         
         // Play teleportation sound
@@ -647,11 +655,6 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    protected int getResearchAmount() {
-        return 20; // Space research points
-    }
-    
-    @Override
     protected String getAnomalyName() {
         return "WarpGate";
     }
@@ -688,10 +691,6 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
     
     public void setPairedGateUUID(UUID uuid) {
         this.pairedGateUUID = uuid;
-    }
-    
-    public float getTeleportRadius() {
-        return TELEPORT_RADIUS;
     }
     
     public float getAuraRadius() {

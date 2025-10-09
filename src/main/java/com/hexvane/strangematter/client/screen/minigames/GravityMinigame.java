@@ -40,14 +40,21 @@ public class GravityMinigame extends ResearchMinigame {
     private static final double AUTO_SNAP_THRESHOLD = 0.1; // Auto-snap when within this range of target (30% of total range for more forgiving)
     
     // Equilibrium detection
-    private static final double EQUILIBRIUM_THRESHOLD = 0.15; // Increased from 0.05 to 0.15 for more forgiving stability detection
     private static final double CENTER_POSITION = 0.5; // Center of the tube
+    
+    // Config-driven getters
+    private double getBalanceThreshold() {
+        return com.hexvane.strangematter.Config.gravityBalanceThreshold;
+    }
+    
+    private int getDriftDelayTicks() {
+        return com.hexvane.strangematter.Config.gravityDriftDelayTicks;
+    }
     
     // Stability tracking
     private boolean isInEquilibrium = false;
     private int equilibriumTicks = 0;
     private int requiredEquilibriumTicks = 100; // 5 seconds at 20 TPS
-    private int driftDelayTicks = 600; // 30 seconds delay before starting to drift
     private int driftTicks = 0;
     private boolean isDrifting = false;
     
@@ -99,7 +106,8 @@ public class GravityMinigame extends ResearchMinigame {
     
     private boolean checkEquilibrium() {
         // Check if cube is in the center zone (between the purple lines)
-        return Math.abs(cubePosition - CENTER_POSITION) < EQUILIBRIUM_THRESHOLD;
+        double threshold = getBalanceThreshold();
+        return Math.abs(cubePosition - CENTER_POSITION) < threshold;
     }
     
     private void updatePhysics() {
@@ -231,7 +239,8 @@ public class GravityMinigame extends ResearchMinigame {
             if (equilibriumTicks >= requiredEquilibriumTicks) {
                 // Been in equilibrium long enough, start drift timer
                 driftTicks++;
-                if (driftTicks >= driftDelayTicks && !isDrifting) {
+                int driftDelay = getDriftDelayTicks();
+                if (driftTicks >= driftDelay && !isDrifting) {
                     isDrifting = true;
                 }
             }

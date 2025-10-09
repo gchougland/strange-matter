@@ -2,8 +2,8 @@
   "feature": "strangematter:energetic_rift",
   "placement": [
     {
-      "type": "minecraft:rarity_filter",
-      "chance": 500
+      "type": "strangematter:configured_rarity_filter",
+      "feature_type": "energetic_rift"
     },
     {
       "type": "minecraft:in_square"

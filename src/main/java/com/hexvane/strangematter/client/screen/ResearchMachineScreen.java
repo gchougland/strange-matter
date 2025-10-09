@@ -757,10 +757,15 @@ public class ResearchMachineScreen extends Screen {
         float oldInstability = blockEntity.getInstabilityLevel();
         if (allStable && !anyUnstable) {
             // All minigames are stable, decrease instability
-            blockEntity.setClientInstabilityLevel(Math.max(0.0f, oldInstability - 0.004f));
+            float decreaseRate = (float) com.hexvane.strangematter.Config.instabilityDecreaseRate;
+            blockEntity.setClientInstabilityLevel(Math.max(0.0f, oldInstability - decreaseRate));
         } else if (anyUnstable) {
             // At least one minigame is unstable, increase instability
-            blockEntity.setClientInstabilityLevel(Math.min(1.0f, oldInstability + 0.001f));
+            // More active minigames = SLOWER increase (divide by number of active minigames)
+            int activeMinigameCount = blockEntity.getActiveResearchTypes().size();
+            float baseIncreaseRate = (float) com.hexvane.strangematter.Config.instabilityBaseIncreaseRate;
+            float actualIncreaseRate = activeMinigameCount > 0 ? baseIncreaseRate / activeMinigameCount : baseIncreaseRate;
+            blockEntity.setClientInstabilityLevel(Math.min(1.0f, oldInstability + actualIncreaseRate));
         }
         
         // Instability warning sounds removed per user request

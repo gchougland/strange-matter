@@ -2,6 +2,134 @@
 
 All notable changes to Strange Matter will be documented in this file.
 
+## [0.1.2] - 2025-10-09
+
+### Added
+
+#### Configuration
+- **Comprehensive configuration system** for all major mod features
+  - All configuration files are located in `config/strangematter-common.toml`
+  - Hot-reloadable configuration with `/reload` command
+
+##### World Generation
+- **Anomaly Spawn Rates**
+  - Enable/disable individual anomaly types
+  - Configure spawn rarity for each anomaly (1 in X chunks)
+  - Gravity Anomaly (default: 1/500)
+  - Temporal Bloom (default: 1/500)
+  - Warp Gate (default: 1/500)
+  - Energetic Rift (default: 1/500)
+  - Echoing Shadow (default: 1/500)
+  - Thoughtwell (default: 1/500)
+- **Ore Generation**
+  - Enable/disable Resonite ore generation
+  - Resonite ore veins per chunk (default: 3)
+- **Terrain Modification**
+  - Enable/disable Anomalous grass spawning
+  - Resonite ore spawn chance near anomalies (default: 15%)
+  - Anomaly shard ore spawn rates near anomalies
+
+##### Anomaly Effects
+- **Gravity Anomaly**
+  - Enable/disable levitation effects
+  - Levitation radius (default: 8 blocks)
+  - Levitation force strength (default: 0.1)
+  - Research points granted when scanned
+- **Temporal Bloom**
+  - Enable/disable temporal effects
+  - Effect radius (default: 8 blocks)
+  - Crop growth/de-growth stages (default: ±1-2)
+  - Crop effect cooldown (default: 5 seconds)
+  - Mob transformation cooldown (default: 10 seconds)
+  - Research points granted
+- **Energetic Rift**
+  - Enable/disable energy effects
+  - Zap radius (default: 6 blocks)
+  - Lightning rod radius (default: 8 blocks)
+  - Zap damage (default: 1.0 hearts)
+  - Zap cooldown (default: 2 seconds)
+  - Lightning rod cooldown (default: 10 seconds)
+  - Research points granted
+- **Warp Gate**
+  - Enable/disable teleportation effects
+  - Teleport radius (default: 2 blocks)
+  - Teleport cooldown (default: 5 seconds)
+  - Research points granted
+- **Echoing Shadow**
+  - Enable/disable shadow effects
+  - Effect radius
+  - Light absorption strength
+  - Mob spawn boost multiplier
+  - Research points granted
+- **Thoughtwell**
+  - Enable/disable cognitive effects
+  - Effect radius
+  - Confusion duration
+  - Research points granted
+
+##### Energy System
+- **Resonant Burner**
+  - Energy generation per tick (default: 20 RE/t)
+  - Internal energy storage (default: 10,000 RE)
+  - Energy transfer rate to adjacent blocks (default: 1000 RE/t)
+- **Resonance Condenser**
+  - Energy consumption per tick (default: 2 RE/t)
+  - Internal energy storage (default: 1000 RE)
+  - Shard generation progress speed (default: 15 ticks)
+- **Paradoxical Energy Cell**
+  - Energy transfer rate per tick (default: 1000 RE/t)
+- **Reality Forge**
+  - Crafting time (default: 100 ticks / 5 seconds)
+
+##### Research System
+- **Research Costs**
+  - Global multiplier for all research node costs
+  - Individual cost overrides for each of the 12 locked research nodes:
+    - Anomaly Resonator
+    - Resonance Condenser
+    - Containment Basics
+    - Reality Forge
+    - Warp Gun
+    - Stasis Projector
+    - Gravity Anomalies
+    - Temporal Anomalies
+    - Spatial Anomalies
+    - Energy Anomalies
+    - Shadow Anomalies
+    - Cognitive Anomalies
+
+##### Research Minigames
+- **Global Settings**
+  - Enable/disable minigame requirement (instant unlock when disabled)
+  - Instability mechanics:
+    - Decrease rate when all minigames stable (default: 0.004/tick)
+    - Base increase rate divided by number of active minigames (default: 0.001/tick)
+    - More active minigames = slower instability increase
+- **Energy Minigame (Wave Alignment)**
+  - Required alignment time (default: 100 ticks / 5 seconds)
+  - Drift delay before difficulty increases (default: 600 ticks / 30 seconds)
+  - Amplitude adjustment step size (default: 0.05)
+  - Period adjustment step size (default: 0.05)
+- **Space Minigame (Image Unwarp)**
+  - Stability threshold (default: 0.1, lower = harder)
+  - Drift delay (default: 100 ticks)
+  - Warp adjustment step size (default: 0.05)
+- **Time Minigame (Clock Speed Matching)**
+  - Speed difference threshold for stability (default: 0.15)
+  - Drift delay (default: 200 ticks)
+  - Speed adjustment step size (default: 0.1)
+- **Gravity Minigame (Balance Scale)**
+  - Balance threshold for stability (default: 0.1)
+  - Drift delay (default: 200 ticks)
+  - Uses continuous slider (no step adjustment)
+- **Shadow Minigame (Light Routing)**
+  - Alignment threshold for stability (default: 10.0)
+  - Drift delay (default: 200 ticks)
+  - Mirror rotation step size (default: 15 degrees)
+- **Cognition Minigame (Symbol Matching)**
+  - Symbol display duration (default: 100 ticks / 5 seconds)
+  - Number of symbols to match (default: 4, range: 2-8)
+
 ## [0.1.1] - 2025-10-08
 
 ### Added

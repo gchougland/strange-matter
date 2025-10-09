@@ -95,6 +95,9 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
+import net.minecraftforge.common.world.BiomeModifier;
+import net.minecraftforge.registries.ForgeRegistries.Keys;
+import com.mojang.serialization.Codec;
 import org.slf4j.Logger;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -124,6 +127,15 @@ public class StrangeMatterMod
     public static final DeferredRegister<Feature<?>> FEATURES = DeferredRegister.create(Registries.FEATURE, MODID);
     // Create a Deferred Register to hold PlacementModifierTypes
     public static final DeferredRegister<PlacementModifierType<?>> PLACEMENT_MODIFIERS = DeferredRegister.create(Registries.PLACEMENT_MODIFIER_TYPE, MODID);
+    
+    // Register custom placement modifiers for config-driven world generation
+    public static final RegistryObject<PlacementModifierType<com.hexvane.strangematter.worldgen.ConfiguredRarityFilter>> CONFIGURED_RARITY_FILTER =
+        PLACEMENT_MODIFIERS.register("configured_rarity_filter", 
+            () -> () -> com.hexvane.strangematter.worldgen.ConfiguredRarityFilter.CODEC);
+    
+    public static final RegistryObject<PlacementModifierType<com.hexvane.strangematter.worldgen.ConfiguredCountPlacement>> CONFIGURED_COUNT_PLACEMENT =
+        PLACEMENT_MODIFIERS.register("configured_count_placement", 
+            () -> () -> com.hexvane.strangematter.worldgen.ConfiguredCountPlacement.CODEC);
     // Create a Deferred Register to hold StructureTypes
     public static final DeferredRegister<StructureType<?>> STRUCTURE_TYPES = DeferredRegister.create(Registries.STRUCTURE_TYPE, MODID);
     // Create a Deferred Register to hold ParticleTypes
@@ -134,7 +146,12 @@ public class StrangeMatterMod
     public static final DeferredRegister<net.minecraft.world.item.crafting.RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(ForgeRegistries.RECIPE_TYPES, MODID);
     // Create a Deferred Register to hold RecipeSerializers
     public static final DeferredRegister<net.minecraft.world.item.crafting.RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, MODID);
+    // Create a Deferred Register to hold BiomeModifier Codecs
+    public static final DeferredRegister<Codec<? extends BiomeModifier>> BIOME_MODIFIER_SERIALIZERS = DeferredRegister.create(Keys.BIOME_MODIFIER_SERIALIZERS, MODID);
 
+    // Register the configurable biome modifier codec
+    public static final RegistryObject<Codec<com.hexvane.strangematter.worldgen.ConfiguredBiomeModifier>> CONFIGURED_BIOME_MODIFIER = 
+        BIOME_MODIFIER_SERIALIZERS.register("configured_biome_modifier", () -> com.hexvane.strangematter.worldgen.ConfiguredBiomeModifier.CODEC);
 
     // Creates a new research item with the id "strangematter:field_scanner"
     public static final RegistryObject<Item> FIELD_SCANNER = ITEMS.register("field_scanner", FieldScannerItem::new);
@@ -458,6 +475,8 @@ public class StrangeMatterMod
         STRUCTURE_TYPES.register(modEventBus); // Register structure types
         // Register the Deferred Register to the mod event bus so particle types get registered
         PARTICLE_TYPES.register(modEventBus);
+        // Register the Deferred Register to the mod event bus so biome modifier serializers get registered
+        BIOME_MODIFIER_SERIALIZERS.register(modEventBus);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
@@ -473,17 +492,13 @@ public class StrangeMatterMod
     {
         // Some common setup code
         LOGGER.info("Strange Matter mod initialized - reality anomalies detected!");
-
-        if (Config.logDirtBlock)
-            LOGGER.info("DIRT BLOCK >> {}", ForgeRegistries.BLOCKS.getKey(Blocks.DIRT));
-
-        LOGGER.info(Config.magicNumberIntroduction + Config.magicNumber);
-
-        Config.items.forEach((item) -> LOGGER.info("ITEM >> {}", item.toString()));
+        LOGGER.info("Config-driven world generation enabled");
         
-        // Initialize custom sound manager
+        // Initialize custom sound manager and scannable object registry
         event.enqueueWork(() -> {
             CustomSoundManager.getInstance().initialize();
+            // Initialize scannable object registry with config values
+            com.hexvane.strangematter.research.ScannableObjectRegistry.init();
         });
     }
     

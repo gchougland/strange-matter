@@ -2,8 +2,8 @@
   "feature": "strangematter:resonite_ore",
   "placement": [
     {
-      "type": "minecraft:count",
-      "count": 3
+      "type": "strangematter:configured_count_placement",
+      "feature_type": "resonite_ore"
     },
     {
       "type": "minecraft:in_square"

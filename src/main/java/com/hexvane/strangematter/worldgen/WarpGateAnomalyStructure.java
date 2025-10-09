@@ -26,6 +26,16 @@ public class WarpGateAnomalyStructure extends Structure {
 
     @Override
     public Optional<GenerationStub> findGenerationPoint(GenerationContext context) {
+        // Check if warp gates are enabled in config
+        if (!com.hexvane.strangematter.Config.enableWarpGate) {
+            return Optional.empty();
+        }
+        
+        // Apply rarity check
+        if (context.random().nextInt(com.hexvane.strangematter.Config.warpGateRarity) != 0) {
+            return Optional.empty();
+        }
+        
         System.out.println("=== WARP GATE STRUCTURE GENERATION DEBUG ===");
         System.out.println("WarpGate Structure: findGenerationPoint called for chunk " + context.chunkPos());
         System.out.println("WarpGate Structure: Height accessor min/max: " + context.heightAccessor().getMinBuildHeight() + "/" + context.heightAccessor().getMaxBuildHeight());

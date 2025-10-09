@@ -22,8 +22,19 @@ public class ShadowMinigame extends ResearchMinigame {
     private static final double MIN_LIGHT_DISTANCE = 20.0; // Minimum distance from cube
     private static final double MAX_LIGHT_DISTANCE = 50.0; // Maximum distance from cube
     private static final double LIGHT_ANGLE_RANGE = 120.0; // Degrees of side-to-side movement
-    private static final double ALIGNMENT_THRESHOLD = 3.0; // How close shadows need to be for stability
-    private static final int DRIFT_DELAY_TICKS = 600; // Ticks before drift starts
+    
+    // Config-driven getters
+    private double getAlignmentThreshold() {
+        return com.hexvane.strangematter.Config.shadowAlignmentThreshold;
+    }
+    
+    private int getDriftDelayTicks() {
+        return com.hexvane.strangematter.Config.shadowDriftDelayTicks;
+    }
+    
+    private double getRotationStep() {
+        return com.hexvane.strangematter.Config.shadowRotationStep;
+    }
     
     // Textures
     private static final ResourceLocation CUBE_TEXTURE = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/ui/shadow_cube.png");
@@ -179,7 +190,8 @@ public class ShadowMinigame extends ResearchMinigame {
                 mouseY >= leftButtonY && mouseY < leftButtonY + CONTROL_SIZE) {
                 
                 leftButtonPressed = true;
-                adjustLightAngle(-5.0); // Rotate 5 degrees left
+                double rotStep = -getRotationStep();
+                adjustLightAngle(rotStep); // Rotate left by config step
                 buttonCooldown = BUTTON_COOLDOWN_TICKS;
                 
                 // Play click sound
@@ -194,7 +206,8 @@ public class ShadowMinigame extends ResearchMinigame {
                 mouseY >= rightButtonY && mouseY < rightButtonY + CONTROL_SIZE) {
                 
                 rightButtonPressed = true;
-                adjustLightAngle(5.0); // Rotate 5 degrees right
+                double rotStep = getRotationStep();
+                adjustLightAngle(rotStep); // Rotate right by config step
                 buttonCooldown = BUTTON_COOLDOWN_TICKS;
                 
                 // Play click sound
@@ -326,7 +339,8 @@ public class ShadowMinigame extends ResearchMinigame {
             angleDiff = 360.0 - angleDiff;
         }
         
-        boolean shadowAligned = angleDiff < ALIGNMENT_THRESHOLD && lengthDiff < ALIGNMENT_THRESHOLD;
+        double threshold = getAlignmentThreshold();
+        boolean shadowAligned = angleDiff < threshold && lengthDiff < threshold;
         
         if (shadowAligned) {
             if (!isStable) {
@@ -344,7 +358,8 @@ public class ShadowMinigame extends ResearchMinigame {
     }
     
     private void updateDrift() {
-        if (isStable && stableTicks >= DRIFT_DELAY_TICKS) {
+        int driftDelay = getDriftDelayTicks();
+        if (isStable && stableTicks >= driftDelay) {
             if (!isDrifting) {
                 isDrifting = true;
                 driftTicks = 0;
