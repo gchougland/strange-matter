@@ -77,10 +77,14 @@ public class ResearchNodeInfoScreen extends Screen {
             initializeResonanceCondenserPages();
         } else if (node.getId().equals("containment_basics")) {
             initializeContainmentBasicsPages();
+        } else if (node.getId().equals("echoform_imprinter")) {
+            initializeEchoformImprinterPages();
         } else if (node.getId().equals("warp_gun")) {
             initializeWarpGunPages();
         } else if (node.getId().equals("stasis_projector")) {
             initializeStasisProjectorPages();
+        } else if (node.getId().equals("rift_stabilizer")) {
+            initializeRiftStabilizerPages();
         } else if (node.getId().equals("gravity_anomalies")) {
             initializeGravityAnomaliesPages();
         } else if (node.getId().equals("temporal_anomalies")) {
@@ -108,7 +112,25 @@ public class ResearchNodeInfoScreen extends Screen {
         intro.hasScreenshots = false;
         pages.add(intro);
         
-        // Page 2: Using the Research Machine (with recipe)
+        // Page 2: Field Scanner (with recipe)
+        InfoPage fieldScanner = new InfoPage();
+        fieldScanner.title = "research.strangematter.research.field_scanner.title";
+        fieldScanner.content = "research.strangematter.research.field_scanner.content";
+        fieldScanner.hasRecipes = true;
+        fieldScanner.hasScreenshots = false;
+        fieldScanner.recipeName = "field_scanner";
+        pages.add(fieldScanner);
+        
+        // Page 3: Research Tablet (with recipe)
+        InfoPage researchTablet = new InfoPage();
+        researchTablet.title = "research.strangematter.research.research_tablet.title";
+        researchTablet.content = "research.strangematter.research.research_tablet.content";
+        researchTablet.hasRecipes = true;
+        researchTablet.hasScreenshots = false;
+        researchTablet.recipeName = "research_tablet";
+        pages.add(researchTablet);
+        
+        // Page 4: Using the Research Machine (with recipe)
         InfoPage machineUsage = new InfoPage();
         machineUsage.title = "research.strangematter.research.machine_usage.title";
         machineUsage.content = "research.strangematter.research.machine_usage.content";
@@ -392,6 +414,38 @@ public class ResearchNodeInfoScreen extends Screen {
         pages.add(capsule);
     }
     
+    private void initializeEchoformImprinterPages() {
+        // Page 1: Introduction with Recipe
+        InfoPage intro = new InfoPage();
+        intro.title = "research.strangematter.echoform_imprinter.intro.title";
+        intro.content = "research.strangematter.echoform_imprinter.intro.content";
+        intro.hasRecipes = true;
+        intro.hasScreenshots = false;
+        intro.recipeName = "echoform_imprinter";
+        intro.isRealityForgeRecipe = true;
+        pages.add(intro);
+        
+        // Page 2: Operational Protocols
+        InfoPage usage = new InfoPage();
+        usage.title = "research.strangematter.echoform_imprinter.usage.title";
+        usage.content = "research.strangematter.echoform_imprinter.usage.content";
+        usage.hasRecipes = false;
+        usage.hasScreenshots = false;
+        usage.recipeName = null;
+        usage.screenshotPath = null;
+        pages.add(usage);
+        
+        // Page 3: Shadow-Cognitive Theory
+        InfoPage theory = new InfoPage();
+        theory.title = "research.strangematter.echoform_imprinter.theory.title";
+        theory.content = "research.strangematter.echoform_imprinter.theory.content";
+        theory.hasRecipes = false;
+        theory.hasScreenshots = false;
+        theory.recipeName = null;
+        theory.screenshotPath = null;
+        pages.add(theory);
+    }
+    
     private void initializeWarpGunPages() {
         // Page 1: Introduction with Recipe
         InfoPage intro = new InfoPage();
@@ -442,6 +496,38 @@ public class ResearchNodeInfoScreen extends Screen {
         applications.recipeName = null;
         applications.screenshotPath = null;
         pages.add(applications);
+    }
+    
+    private void initializeRiftStabilizerPages() {
+        // Page 1: Introduction with Recipe
+        InfoPage intro = new InfoPage();
+        intro.title = "research.strangematter.rift_stabilizer.intro.title";
+        intro.content = "research.strangematter.rift_stabilizer.intro.content";
+        intro.hasRecipes = true;
+        intro.hasScreenshots = false;
+        intro.recipeName = "rift_stabilizer";
+        intro.isRealityForgeRecipe = true;
+        pages.add(intro);
+
+        // Page 2: Power Generation Theory
+        InfoPage mechanics = new InfoPage();
+        mechanics.title = "research.strangematter.rift_stabilizer.mechanics.title";
+        mechanics.content = "research.strangematter.rift_stabilizer.mechanics.content";
+        mechanics.hasRecipes = false;
+        mechanics.hasScreenshots = false;
+        mechanics.recipeName = null;
+        mechanics.screenshotPath = null;
+        pages.add(mechanics);
+        
+        // Page 3: Installation & Operation
+        InfoPage usage = new InfoPage();
+        usage.title = "research.strangematter.rift_stabilizer.usage.title";
+        usage.content = "research.strangematter.rift_stabilizer.usage.content";
+        usage.hasRecipes = false;
+        usage.hasScreenshots = false;
+        usage.recipeName = null;
+        usage.screenshotPath = null;
+        pages.add(usage);
     }
     
     private void initializeGravityAnomaliesPages() {
@@ -871,11 +957,15 @@ public class ResearchNodeInfoScreen extends Screen {
         // Convert shard type names to items
         java.util.Map<String, net.minecraft.world.item.Item> shardTypeToItem = new java.util.HashMap<>();
         shardTypeToItem.put("gravitic", com.hexvane.strangematter.StrangeMatterMod.GRAVITIC_SHARD.get());
+        shardTypeToItem.put("gravity", com.hexvane.strangematter.StrangeMatterMod.GRAVITIC_SHARD.get()); // Alias
         shardTypeToItem.put("energetic", com.hexvane.strangematter.StrangeMatterMod.ENERGETIC_SHARD.get());
         shardTypeToItem.put("spatial", com.hexvane.strangematter.StrangeMatterMod.SPATIAL_SHARD.get());
-        shardTypeToItem.put("temporal", com.hexvane.strangematter.StrangeMatterMod.CHRONO_SHARD.get());
-        shardTypeToItem.put("shadow", com.hexvane.strangematter.StrangeMatterMod.SHADE_SHARD.get());
-        shardTypeToItem.put("cognitive", com.hexvane.strangematter.StrangeMatterMod.INSIGHT_SHARD.get());
+        shardTypeToItem.put("chrono", com.hexvane.strangematter.StrangeMatterMod.CHRONO_SHARD.get());
+        shardTypeToItem.put("temporal", com.hexvane.strangematter.StrangeMatterMod.CHRONO_SHARD.get()); // Alias
+        shardTypeToItem.put("shade", com.hexvane.strangematter.StrangeMatterMod.SHADE_SHARD.get());
+        shardTypeToItem.put("shadow", com.hexvane.strangematter.StrangeMatterMod.SHADE_SHARD.get()); // Alias
+        shardTypeToItem.put("insight", com.hexvane.strangematter.StrangeMatterMod.INSIGHT_SHARD.get());
+        shardTypeToItem.put("cognitive", com.hexvane.strangematter.StrangeMatterMod.INSIGHT_SHARD.get()); // Alias
         
         // Draw shards in a horizontal line
         int shardX = x;

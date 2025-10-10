@@ -2,6 +2,116 @@
 
 All notable changes to Strange Matter will be documented in this file.
 
+## [0.1.4] - 2025-10-10
+
+### Added
+- **Rift Stabilizer**
+  - New power generation block that harnesses energy from Energetic Rift anomalies
+  - Generates power passively when placed within range of an Energetic Rift
+  - Front face must point toward the rift to generate power
+  - Back face outputs energy to adjacent machines
+  - Displays beautiful electricity beam from rift to block when active
+  - Right-click to view power generation status and stored energy
+  - Maximum 3 stabilizers can be powered by a single Energetic Rift
+  - Configurable parameters: energy per tick, storage capacity, transfer rate, detection radius, max per rift
+  - Crafted in Reality Forge using 2 Energetic Shards
+  - Requires Reality Forge research to unlock
+- **Rift Stabilizer Research Node**
+  - New research node positioned at (140, 280) on the research tree
+  - Costs 20 Energy + 10 Space research points
+  - Requires Reality Forge research to unlock
+  - Three info pages with mad scientist narration:
+    - "Rift Stabilizer" (with Reality Forge recipe)
+    - "Power Generation Theory" (mechanics and requirements)
+    - "Installation & Operation" (usage guide)
+  - Configurable research cost via config file
+- **AnomalyUtil Utility Class**
+  - New utility class for easy anomaly detection throughout the mod
+  - `findNearestEnergeticRift()` - Find nearest Energetic Rift within radius
+  - `findNearestAnomaly()` - Find nearest anomaly of any type
+  - `countEnergeticRiftsInRange()` - Count rifts in range
+  - `hasEnergeticRiftInRange()` - Check if any rift exists nearby
+  - Reusable across the entire mod for consistent anomaly detection
+- **Research Node Documentation Improvements**
+  - Added "The Field Scanner" page to "research" node explaining how to scan anomalies
+  - Added "The Research Tablet" page to "research" node explaining how to spend research points
+  - Complete tutorial workflow: Scan → Spend Points → Research → Minigames
+
+### Fixed
+- Fixed stasis projector recipe not working
+
+### Technical
+- `RiftStabilizerBlock` - Directional block with horizontal facing support
+- `RiftStabilizerBlockEntity` - Generates power, stores energy, outputs through specific face
+  - Server-side power generation with client synchronization
+  - Directional validation using dot product calculations
+  - Configurable beam offset via static fields for easy positioning adjustments
+  - Proper NBT serialization and update packet handling
+- `RiftStabilizerRenderer` - Custom block entity renderer for electricity beam
+  - Uses lightning render type for beam effect
+  - Same spark rendering technique as Energetic Rift
+  - Client-side anomaly detection for beam target
+  - Zigzag animation with configurable parameters
+- Energy system integration with Forge Energy capability
+  - Only provides capability on output face (back)
+  - Internal energy generation through custom maxReceive setting
+  - Every-tick generation with periodic client sync
+- All configurable values in Config.java with proper defaults
+- Research cost system integration with override support
+
+## [0.1.3] - 2025-10-09
+
+### Added
+- **Echoform Imprinter**
+  - New item that allows players to scan and morph into **mobs and other players** with full animations
+  - Right-click and hold on a mob or player for 1 second to scan them
+  - Successfully scanning morphs you into that target's appearance
+  - Full animation support - walk, run, swim, sneak animations all work
+  - Proper player-to-mob state synchronization for realistic movement
+  - **Player morphing**: Can morph into other players to look exactly like them
+  - **Multiplayer support**: Morphs are visible to all nearby players on servers
+  - Shift+right-click to morph back to normal form
+  - Plays field scanner sound effects during scanning
+  - Beautiful particle effects during scanning and morphing
+  - Displays proper entity/player names in messages
+  - Crafted in the Reality Forge using shade shards and insight shards
+  - Requires Containment Basics research to unlock
+- **Echoform Imprinter Research Node**
+  - New research node positioned at (80, 160) on the research tree
+  - Costs 25 Shadow + 20 Cognition research points
+  - Requires Containment Basics research to unlock
+  - Three info pages with mad scientist narration:
+    - "Identity Transference" (with recipe)
+    - "Operational Protocols" (usage guide)
+    - "Shadow-Cognitive Theory" (lore and theory)
+  - Configurable research cost via config file
+- **Thoughtwell Cognitive Disguise Multiplayer Support**
+  - Thoughtwell cognitive disguises now sync properly to all clients in multiplayer
+  - Added `MobDisguiseSyncPacket` for server-to-client synchronization
+  - Disguises are visible to all players on servers, not just the host
+  - Disguises properly expire and sync removal across all clients
+
+### Technical
+- New `PlayerMorphData` system for managing player morphs
+- New `PlayerMorphRenderer` for rendering players as mobs/players with proper animations
+  - ThreadLocal recursion guard to prevent infinite loops when morphing into players
+  - Direct walk animation synchronization via `walkAnimation.position()` and `speed()`
+- `PlayerRendererMixin` intercepts player rendering to apply morphs
+- Cached morph entities for performance
+- Full animation synchronization between player and morphed entity (works in multiplayer)
+- `PlayerMorphSyncPacket` for proper client-server synchronization
+  - Broadcasts to ALL players using `PacketDistributor.ALL` for guaranteed visibility
+  - Syncs player UUID for skin rendering when morphing into players
+- `PlayerMorphEventHandler` for cleanup on logout/world change and syncing on join
+- `EchoformImprinterEventHandler` overrides entity interactions (villagers, rideable mobs, etc.)
+- Support for morphing into both mobs and other players with correct skins
+- Proper entity type registration using `ForgeRegistries.ENTITY_TYPES.getKey()`
+- Mixin refmap properly generated and included for production builds
+- Fixed Java 17 compatibility with mixin annotation processor
+- `MobDisguiseSyncPacket` for syncing Thoughtwell cognitive disguises to all clients
+- `ThoughtwellEntity.setDisguise()` method for applying disguises on client side
+- Improved `CognitiveDisguiseRenderer` animation using walk animation state copying
+
 ## [0.1.2] - 2025-10-09
 
 ### Added

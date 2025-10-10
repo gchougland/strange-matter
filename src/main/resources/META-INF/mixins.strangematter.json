@@ -10,9 +10,11 @@
   ],
   "client": [
     "LightTextureMixin",
-    "EntityRendererMixin"
+    "EntityRendererMixin",
+    "PlayerRendererMixin"
   ],
-  "accessors": [],
-  "server": [],
+  "injectors": {
+    "defaultRequire": 0
+  },
   "verbose": true
 }

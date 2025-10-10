@@ -115,6 +115,13 @@ public class Config {
     
     // Reality Forge
     private static final ForgeConfigSpec.IntValue REALITY_FORGE_CRAFT_TIME;
+    
+    // Rift Stabilizer
+    private static final ForgeConfigSpec.IntValue RIFT_STABILIZER_ENERGY_PER_TICK;
+    private static final ForgeConfigSpec.IntValue RIFT_STABILIZER_ENERGY_STORAGE;
+    private static final ForgeConfigSpec.IntValue RIFT_STABILIZER_TRANSFER_RATE;
+    private static final ForgeConfigSpec.DoubleValue RIFT_STABILIZER_RADIUS;
+    private static final ForgeConfigSpec.IntValue RIFT_STABILIZER_MAX_PER_RIFT;
 
     // ========================================
     // RESEARCH SYSTEM CONFIG VALUES
@@ -126,9 +133,11 @@ public class Config {
     private static final ForgeConfigSpec.IntValue ANOMALY_RESONATOR_COST;
     private static final ForgeConfigSpec.IntValue RESONANCE_CONDENSER_COST;
     private static final ForgeConfigSpec.IntValue CONTAINMENT_BASICS_COST;
+    private static final ForgeConfigSpec.IntValue ECHOFORM_IMPRINTER_COST;
     private static final ForgeConfigSpec.IntValue REALITY_FORGE_COST;
     private static final ForgeConfigSpec.IntValue WARP_GUN_COST;
     private static final ForgeConfigSpec.IntValue STASIS_PROJECTOR_COST;
+    private static final ForgeConfigSpec.IntValue RIFT_STABILIZER_COST;
     private static final ForgeConfigSpec.IntValue GRAVITY_ANOMALIES_COST;
     private static final ForgeConfigSpec.IntValue TEMPORAL_ANOMALIES_COST;
     private static final ForgeConfigSpec.IntValue SPATIAL_ANOMALIES_COST;
@@ -432,6 +441,25 @@ public class Config {
                 .defineInRange("craftTime", 100, 1, 1200);
         BUILDER.pop();
         
+        // Rift Stabilizer
+        BUILDER.push("riftStabilizer");
+        RIFT_STABILIZER_ENERGY_PER_TICK = BUILDER
+                .comment("Energy generated per tick")
+                .defineInRange("energyPerTick", 100, 1, 10000);
+        RIFT_STABILIZER_ENERGY_STORAGE = BUILDER
+                .comment("Maximum energy storage")
+                .defineInRange("energyStorage", 100000, 1000, 1000000);
+        RIFT_STABILIZER_TRANSFER_RATE = BUILDER
+                .comment("Energy transfer rate per tick")
+                .defineInRange("transferRate", 1000, 1, 10000);
+        RIFT_STABILIZER_RADIUS = BUILDER
+                .comment("Radius to detect Energetic Rift anomalies")
+                .defineInRange("radius", 16.0, 1.0, 64.0);
+        RIFT_STABILIZER_MAX_PER_RIFT = BUILDER
+                .comment("Maximum number of Rift Stabilizers that can be powered by a single Energetic Rift")
+                .defineInRange("maxPerRift", 3, 1, 10);
+        BUILDER.pop();
+        
         BUILDER.pop(); // energy
         
         // ========================================
@@ -465,6 +493,10 @@ public class Config {
                 .comment("Containment Basics total cost (-1 for default: Energy 20, Shadow 15)")
                 .defineInRange("containmentBasics", -1, -1, 10000);
         
+        ECHOFORM_IMPRINTER_COST = BUILDER
+                .comment("Echoform Imprinter total cost (-1 for default: Shadow 25, Cognition 20)")
+                .defineInRange("echoformImprinter", -1, -1, 10000);
+        
         REALITY_FORGE_COST = BUILDER
                 .comment("Reality Forge total cost (-1 for default: Energy 5, Space 5, Time 5)")
                 .defineInRange("realityForge", -1, -1, 10000);
@@ -476,6 +508,10 @@ public class Config {
         STASIS_PROJECTOR_COST = BUILDER
                 .comment("Stasis Projector total cost (-1 for default: Gravity 5, Time 5)")
                 .defineInRange("stasisProjector", -1, -1, 10000);
+        
+        RIFT_STABILIZER_COST = BUILDER
+                .comment("Rift Stabilizer total cost (-1 for default: Energy 20, Space 10)")
+                .defineInRange("riftStabilizer", -1, -1, 10000);
         
         GRAVITY_ANOMALIES_COST = BUILDER
                 .comment("Gravity Anomalies research cost (-1 for default: Gravity 5)")
@@ -696,6 +732,13 @@ public class Config {
     // Reality Forge
     public static int realityForgeCraftTime;
     
+    // Rift Stabilizer
+    public static int riftStabilizerEnergyPerTick;
+    public static int riftStabilizerEnergyStorage;
+    public static int riftStabilizerTransferRate;
+    public static double riftStabilizerRadius;
+    public static int riftStabilizerMaxPerRift;
+    
     // Research system
     public static double researchCostMultiplier;
     
@@ -703,9 +746,11 @@ public class Config {
     public static int anomalyResonatorCost;
     public static int resonanceCondenserCost;
     public static int containmentBasicsCost;
+    public static int echoformImprinterCost;
     public static int realityForgeCost;
     public static int warpGunCost;
     public static int stasisProjectorCost;
+    public static int riftStabilizerCost;
     public static int gravityAnomaliesCost;
     public static int temporalAnomaliesCost;
     public static int spatialAnomaliesCost;
@@ -839,6 +884,13 @@ public class Config {
         // Reality Forge
         realityForgeCraftTime = REALITY_FORGE_CRAFT_TIME.get();
         
+        // Rift Stabilizer
+        riftStabilizerEnergyPerTick = RIFT_STABILIZER_ENERGY_PER_TICK.get();
+        riftStabilizerEnergyStorage = RIFT_STABILIZER_ENERGY_STORAGE.get();
+        riftStabilizerTransferRate = RIFT_STABILIZER_TRANSFER_RATE.get();
+        riftStabilizerRadius = RIFT_STABILIZER_RADIUS.get();
+        riftStabilizerMaxPerRift = RIFT_STABILIZER_MAX_PER_RIFT.get();
+        
         // Research system
         researchCostMultiplier = RESEARCH_COST_MULTIPLIER.get();
         
@@ -846,9 +898,11 @@ public class Config {
         anomalyResonatorCost = ANOMALY_RESONATOR_COST.get();
         resonanceCondenserCost = RESONANCE_CONDENSER_COST.get();
         containmentBasicsCost = CONTAINMENT_BASICS_COST.get();
+        echoformImprinterCost = ECHOFORM_IMPRINTER_COST.get();
         realityForgeCost = REALITY_FORGE_COST.get();
         warpGunCost = WARP_GUN_COST.get();
         stasisProjectorCost = STASIS_PROJECTOR_COST.get();
+        riftStabilizerCost = RIFT_STABILIZER_COST.get();
         gravityAnomaliesCost = GRAVITY_ANOMALIES_COST.get();
         temporalAnomaliesCost = TEMPORAL_ANOMALIES_COST.get();
         spatialAnomaliesCost = SPATIAL_ANOMALIES_COST.get();

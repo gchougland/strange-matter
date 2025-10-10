@@ -15,7 +15,7 @@
   },
   "shards": {
     "gravitic": 1,
-    "temporal": 1
+    "chrono": 1
   },
   "required_research": "stasis_projector",
   "result": {
