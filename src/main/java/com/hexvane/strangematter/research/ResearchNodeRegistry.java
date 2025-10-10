@@ -54,9 +54,11 @@ public class ResearchNodeRegistry {
             case "anomaly_resonator" -> Config.anomalyResonatorCost;
             case "resonance_condenser" -> Config.resonanceCondenserCost;
             case "containment_basics" -> Config.containmentBasicsCost;
+            case "echoform_imprinter" -> Config.echoformImprinterCost;
             case "reality_forge" -> Config.realityForgeCost;
             case "warp_gun" -> Config.warpGunCost;
             case "stasis_projector" -> Config.stasisProjectorCost;
+            case "rift_stabilizer" -> Config.riftStabilizerCost;
             case "gravity_anomalies" -> Config.gravityAnomaliesCost;
             case "temporal_anomalies" -> Config.temporalAnomaliesCost;
             case "spatial_anomalies" -> Config.spatialAnomaliesCost;
@@ -241,7 +243,19 @@ public class ResearchNodeRegistry {
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.ECHO_VACUUM.get()),
             true,
-            List.of("reality_forge") // Requires reality forge
+            List.of("reality_forge") // Requires reality_forge
+        ));
+        
+        // Echoform Imprinter tool (locked) - Connected to containment_basics
+        register(new ResearchNode(
+            "echoform_imprinter",
+            "general",
+            80, 160,
+            applyConfigCosts("echoform_imprinter", Map.of(ResearchType.SHADOW, 25, ResearchType.COGNITION, 20)),
+            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.ECHOFORM_IMPRINTER.get()),
+            true,
+            List.of("containment_basics") // Requires containment_basics
         ));
         
         // Reality Forge machine (locked) - Connected to resonite and anomaly_types
@@ -272,10 +286,21 @@ public class ResearchNodeRegistry {
         register(new ResearchNode(
             "stasis_projector",
             "general",
-            80, 280,
+            80, 200,
             applyConfigCosts("stasis_projector", Map.of(ResearchType.GRAVITY, 5, ResearchType.TIME, 5)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.STASIS_PROJECTOR_ITEM.get()),
+            true,
+            List.of("reality_forge") // Requires reality forge
+        ));
+        
+        register(new ResearchNode(
+            "rift_stabilizer",
+            "general",
+            0, 280,
+            applyConfigCosts("rift_stabilizer", Map.of(ResearchType.ENERGY, 20, ResearchType.SPACE, 10)),
+            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.RIFT_STABILIZER_ITEM.get()),
             true,
             List.of("reality_forge") // Requires reality forge
         ));

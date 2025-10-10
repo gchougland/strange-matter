@@ -323,10 +323,14 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
         return switch (shardType) {
             case "energetic" -> new ItemStack(StrangeMatterMod.ENERGETIC_SHARD.get(), count);
             case "gravitic" -> new ItemStack(StrangeMatterMod.GRAVITIC_SHARD.get(), count);
+            case "gravity" -> new ItemStack(StrangeMatterMod.GRAVITIC_SHARD.get(), count);
             case "chrono" -> new ItemStack(StrangeMatterMod.CHRONO_SHARD.get(), count);
+            case "temporal" -> new ItemStack(StrangeMatterMod.CHRONO_SHARD.get(), count);
             case "spatial" -> new ItemStack(StrangeMatterMod.SPATIAL_SHARD.get(), count);
             case "shade" -> new ItemStack(StrangeMatterMod.SHADE_SHARD.get(), count);
+            case "shadow" -> new ItemStack(StrangeMatterMod.SHADE_SHARD.get(), count);
             case "insight" -> new ItemStack(StrangeMatterMod.INSIGHT_SHARD.get(), count);
+            case "cognition" -> new ItemStack(StrangeMatterMod.INSIGHT_SHARD.get(), count);
             default -> ItemStack.EMPTY;
         };
     }

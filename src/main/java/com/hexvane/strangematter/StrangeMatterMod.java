@@ -30,6 +30,7 @@ import com.hexvane.strangematter.block.ResonanceCondenserBlock;
 import com.hexvane.strangematter.block.ResonanceCondenserBlockEntity;
 import com.hexvane.strangematter.item.AnomalousGrassItem;
 import com.hexvane.strangematter.item.AnomalyResonatorItem;
+import com.hexvane.strangematter.item.EchoformImprinterItem;
 import com.hexvane.strangematter.item.FieldScannerItem;
 import com.hexvane.strangematter.item.RawResoniteItem;
 import com.hexvane.strangematter.item.ResoniteIngotItem;
@@ -159,6 +160,9 @@ public class StrangeMatterMod
     // Anomaly Resonator - compass for finding anomalies
     public static final RegistryObject<Item> ANOMALY_RESONATOR = ITEMS.register("anomaly_resonator", AnomalyResonatorItem::new);
     
+    // Echoform Imprinter - scanner for morphing into mobs
+    public static final RegistryObject<Item> ECHOFORM_IMPRINTER = ITEMS.register("echoform_imprinter", EchoformImprinterItem::new);
+    
     // Research Notes - basic research item
     public static final RegistryObject<Item> RESEARCH_NOTES = ITEMS.register("research_notes", () -> new com.hexvane.strangematter.item.ResearchNoteItem(new Item.Properties()));
 
@@ -274,6 +278,12 @@ public class StrangeMatterMod
     public static final RegistryObject<Item> PARADOXICAL_ENERGY_CELL_ITEM = ITEMS.register("paradoxical_energy_cell", () -> new com.hexvane.strangematter.item.ParadoxicalEnergyCellItem((com.hexvane.strangematter.block.ParadoxicalEnergyCellBlock) PARADOXICAL_ENERGY_CELL_BLOCK.get()));
     public static final RegistryObject<BlockEntityType<com.hexvane.strangematter.block.ParadoxicalEnergyCellBlockEntity>> PARADOXICAL_ENERGY_CELL_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("paradoxical_energy_cell", 
         () -> BlockEntityType.Builder.of((pos, state) -> new com.hexvane.strangematter.block.ParadoxicalEnergyCellBlockEntity(pos, state), PARADOXICAL_ENERGY_CELL_BLOCK.get()).build(null));
+
+    // Rift Stabilizer Block
+    public static final RegistryObject<Block> RIFT_STABILIZER_BLOCK = BLOCKS.register("rift_stabilizer", com.hexvane.strangematter.block.RiftStabilizerBlock::new);
+    public static final RegistryObject<Item> RIFT_STABILIZER_ITEM = ITEMS.register("rift_stabilizer", () -> new BlockItem(RIFT_STABILIZER_BLOCK.get(), new Item.Properties()));
+    public static final RegistryObject<BlockEntityType<com.hexvane.strangematter.block.RiftStabilizerBlockEntity>> RIFT_STABILIZER_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("rift_stabilizer", 
+        () -> BlockEntityType.Builder.of((pos, state) -> new com.hexvane.strangematter.block.RiftStabilizerBlockEntity(pos, state), RIFT_STABILIZER_BLOCK.get()).build(null));
 
     // Stasis Projector Block
     public static final RegistryObject<Block> STASIS_PROJECTOR_BLOCK = BLOCKS.register("stasis_projector", com.hexvane.strangematter.block.StasisProjectorBlock::new);
@@ -395,6 +405,7 @@ public class StrangeMatterMod
             .displayItems((parameters, output) -> {
                 output.accept(FIELD_SCANNER.get());
                 output.accept(ANOMALY_RESONATOR.get());
+                output.accept(ECHOFORM_IMPRINTER.get());
                 output.accept(RESEARCH_TABLET.get());
                 output.accept(ANOMALOUS_GRASS_ITEM.get());
                 output.accept(RESEARCH_MACHINE_ITEM.get());
@@ -402,6 +413,7 @@ public class StrangeMatterMod
                 output.accept(RESONANT_BURNER_ITEM.get());
                 output.accept(RESONANCE_CONDENSER_ITEM.get());
                 output.accept(PARADOXICAL_ENERGY_CELL_ITEM.get());
+                output.accept(RIFT_STABILIZER_ITEM.get());
                 output.accept(STASIS_PROJECTOR_ITEM.get());
                 output.accept(RESONITE_ORE_ITEM.get());
                 output.accept(RESONITE_BLOCK_ITEM.get());
@@ -665,11 +677,13 @@ public class StrangeMatterMod
             event.accept(RESONANCE_CONDENSER_ITEM.get());
             event.accept(REALITY_FORGE_ITEM.get());
             event.accept(PARADOXICAL_ENERGY_CELL_ITEM.get());
+            event.accept(RIFT_STABILIZER_ITEM.get());
         }
         if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES)
         {
             event.accept(FIELD_SCANNER.get());
             event.accept(ANOMALY_RESONATOR.get());
+            event.accept(ECHOFORM_IMPRINTER.get());
             event.accept(RESEARCH_TABLET.get());
         }
     }
@@ -712,6 +726,7 @@ public class StrangeMatterMod
                 net.minecraft.client.renderer.entity.EntityRenderers.register(MINI_WARP_GATE_ENTITY.get(), MiniWarpGateRenderer::new);
                 net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(RESEARCH_MACHINE_BLOCK_ENTITY.get(), ResearchMachineRenderer::new);
                 net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(STASIS_PROJECTOR_BLOCK_ENTITY.get(), com.hexvane.strangematter.client.StasisProjectorRenderer::new);
+                net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(RIFT_STABILIZER_BLOCK_ENTITY.get(), com.hexvane.strangematter.client.RiftStabilizerRenderer::new);
                 
                 // Register Echo Vacuum client handler for proper first/third person rendering
                 net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new com.hexvane.strangematter.client.EchoVacuumClientHandler());

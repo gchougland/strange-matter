@@ -104,7 +104,7 @@ public class RealityForgeCategory implements IRecipeCategory<RealityForgeRecipe>
                 case "gravitic":
                     shardIngredient = net.minecraft.world.item.crafting.Ingredient.of(StrangeMatterMod.GRAVITIC_SHARD.get());
                     break;
-                case "temporal":
+                case "chrono":
                     shardIngredient = net.minecraft.world.item.crafting.Ingredient.of(StrangeMatterMod.CHRONO_SHARD.get());
                     break;
                 case "shade":

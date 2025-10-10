@@ -1,6 +1,8 @@
 {
   "item.strangematter.field_scanner": "Field Scanner",
   "item.strangematter.anomaly_resonator": "Anomaly Resonator",
+  "item.strangematter.echoform_imprinter": "Echoform Imprinter",
+  "item.strangematter.echoform_imprinter.tooltip": "A device that scans mobs and allows you to morph into them. Right-click on a mob to scan, shift right-click to morph back.",
   "item.strangematter.anomalous_grass": "Anomalous Grass",
   "item.strangematter.resonite_ore": "Resonite Ore",
   "item.strangematter.raw_resonite": "Raw Resonite",
@@ -130,6 +132,13 @@
   "research.strangematter.stasis_projector.applications.title": "Scientific Applications",
   "research.strangematter.stasis_projector.applications.content": "The applications of this technology are LIMITLESS!\n\nMUSEUM DISPLAYS: Showcase rare items in suspended animation with no risk of theft or decay! The stasis field keeps artifacts perfectly preserved and visible.\n\nSPECIMEN CONTAINMENT: Safely contain dangerous mobs for study without risk of escape or aggression!",
 
+  "research.strangematter.rift_stabilizer.intro.title": "Rift Stabilizer",
+  "research.strangematter.rift_stabilizer.intro.content": "EUREKA! UNPRECEDENTED\nBREAKTHROUGH!\n\nI have achieved DIRECT\nenergy extraction from\nEnergetic Rift anomalies!\n\nThe Rift Stabilizer\ncreates a resonance\nfield that SIPHONS raw\nanomaly energy and\nconverts it into stable,\nusable power!\n\nNo fuel! No combustion!\nJust pure, limitless\nenergy drawn from the\nvery fabric of reality\nitself!",
+  "research.strangematter.rift_stabilizer.mechanics.title": "Power Generation Theory",
+  "research.strangematter.rift_stabilizer.mechanics.content": "The Rift Stabilizer operates on revolutionary principles I've discovered through years of study!\n\nBy creating a focused resonance field pointed directly at an Energetic Rift, the device establishes a stable energy channel - a brilliant lightning bridge of pure anomaly power!\n\nCRITICAL OPERATIONAL REQUIREMENTS:\n• Must be within range of Energetic Rift\n• Front face MUST point toward the rift\n• Each rift supports limited stabilizers\n• Generates constant power every tick\n• Energy output through back face only\n\nThe visible electrical beam confirms proper alignment and active power generation!",
+  "research.strangematter.rift_stabilizer.usage.title": "Installation & Operation",
+  "research.strangematter.rift_stabilizer.usage.content": "INSTALLATION PROTOCOLS FOR OPTIMAL RESULTS:\n\n1. Locate an active Energetic Rift anomaly\n2. Place stabilizer within detection range\n3. FRONT FACE (intake) must point at rift!\n4. BACK FACE (output) connects to machines\n\nWhen properly aligned, you'll witness a magnificent electrical beam connecting the rift directly to the stabilizer!\n\nRight-click the block to check current power generation status and stored energy levels.\n\nThe device requires NO fuel and operates continuously as long as the rift remains active and within range!",
+
   "research.strangematter.gravity_anomalies.title": "Gravity Anomalies",
   "research.strangematter.gravity_anomalies.content": "FASCINATING! Gravity\nanomalies represent\nlocalized distortions\nin the gravitational\nfield.\n\nThese entities manifest\nas floating geometric\nshapes that rotate\ncontinuously, creating\npockets of altered\ngravity.\n\nThey can affect\nnearby entities and\nterrain, making them\nvaluable for research\ninto spatial\nmanipulation.",
 
@@ -156,6 +165,19 @@
   "research.strangematter.resonant_energy.burner.content": "The Resonant Burner is\nmy first practical\napplication of resonant\nenergy principles.\n\nThis device converts\nconventional fuel into\nresonant energy through\ncareful frequency\nmodulation and\nstabilization.\n\nWhile primitive compared\nto future machines, it\npaves the way for the\nadvanced power systems\nneeded for anomalous\nenergy generation.",
   "research.strangematter.containment_basics.name": "Containment Basics",
   "research.strangematter.containment_basics.description": "Fundamental principles of anomaly containment using Echo Vacuum and Containment Capsules.",
+  
+  "research.strangematter.echoform_imprinter.name": "Echoform Imprinter",
+  "research.strangematter.echoform_imprinter.description": "A revolutionary device that scans and mimics the physical forms of living entities through shadow-cognitive resonance.",
+  
+  "research.strangematter.echoform_imprinter.intro.title": "Identity Transference",
+  "research.strangematter.echoform_imprinter.intro.content": "UNPRECEDENTED BREAKTHROUGH!\nI have done the IMPOSSIBLE!\n\nThe Echoform Imprinter\nscans a living being's\nechoform - their shadow-\ncognitive imprint!\n\nI can TEMPORARILY mimic\ntheir physical form!\n\nThe scientific potential\nis EXTRAORDINARY!",
+  
+  "research.strangematter.echoform_imprinter.usage.title": "Operational Protocols",
+  "research.strangematter.echoform_imprinter.usage.content": "Operating the Echoform Imprinter requires precise technique:\n\nTO SCAN:\nHold right-click on any creature for ONE SECOND.\n\nTO REVERT:\nShift + right-click to return to normal.\n\nFEATURES:\n• Works on ANY living entity\n• Scan PLAYERS to copy appearance\n• Perfect mimicry with animations\n• Completely reversible\n\nIdeal for infiltration and research!",
+  
+  "research.strangematter.echoform_imprinter.theory.title": "Shadow-Cognitive Theory",
+  "research.strangematter.echoform_imprinter.theory.content": "Every entity casts TWO imprints:\n\nPHYSICAL SHADOW:\nCast by blocking light.\n\nCOGNITIVE ECHOFORM:\nA PERFECT template of physical structure in reality itself!\n\nAPPLICATIONS:\n• Infiltration and espionage\n• Understanding alien biology\n• Deception and disguise\n• Safe anomaly interaction\n\nThe implications are STAGGERING!",
+  
   "research.strangematter.reality_forge.name": "Reality Forge",
   "research.strangematter.reality_forge.description": "The ultimate crafting machine that uses anomaly shards to create powerful and exotic items.",
   
@@ -167,6 +189,8 @@
   "research.strangematter.warp_gun.description": "A powerful weapon that shoots projectiles creating temporary mini warp gates.",
   "research.strangematter.stasis_projector.name": "Stasis Projector",
   "research.strangematter.stasis_projector.description": "An advanced device that manipulates gravitational and temporal fields to suspend objects in a frozen state.",
+  "research.strangematter.rift_stabilizer.name": "Rift Stabilizer",
+  "research.strangematter.rift_stabilizer.description": "A revolutionary power generation device that harnesses raw energy directly from Energetic Rift anomalies.",
   "research.strangematter.gravity_anomalies.name": "Gravity Anomalies",
   "research.strangematter.gravity_anomalies.description": "In-depth study of gravitational anomalies and their unique physics-defying properties.",
   "research.strangematter.temporal_anomalies.name": "Temporal Anomalies",
@@ -234,6 +258,12 @@
   "research.strangematter.research.intro.title": "Introduction to Research",
   "research.strangematter.research.intro.content": "The Research Machine is your gateway to unlocking new technologies and understanding the strange anomalies that appear throughout the world.\n\nBy studying anomalies and completing research, you can gain access to powerful tools, advanced machines, and exotic materials that defy normal physics.\n\nThis research will teach you the fundamentals of using the research system and guide you through your journey into anomaly study.",
   
+  "research.strangematter.research.field_scanner.title": "The Field Scanner",
+  "research.strangematter.research.field_scanner.content": "The Field Scanner is your primary tool for detecting and analyzing anomalies.\n\nTo use: Hold it and right-click while looking at an anomaly. The scanner will analyze it and automatically add research points to your tablet!\n\nDifferent anomalies provide different types and amounts of research points based on their nature and power level.",
+  
+  "research.strangematter.research.research_tablet.title": "The Research Tablet",
+  "research.strangematter.research.research_tablet.content": "The Research Tablet tracks your accumulated research points and unlocked technologies.\n\nRight-click while holding it to open the research interface and view all available research nodes.\n\nClick any locked node to view its requirements. If you have enough points, spend them to receive research notes for that technology!",
+  
   "research.strangematter.research.machine_usage.title": "Using the Research Machine",
   "research.strangematter.research.machine_usage.content": "To use the Research\nMachine:\n\n1. Place research notes\n   in the machine's\n   input slot\n2. Click 'Begin\n   Research' to start\n   the process\n3. Complete the\n   minigames that\n   appear to stabilize\n   the research\n4. Successfully\n   completing research\n   unlocks new\n   technologies",
   
@@ -270,6 +300,10 @@
   "block.strangematter.paradoxical_energy_cell": "Paradoxical Energy Cell",
   "item.strangematter.paradoxical_energy_cell": "Paradoxical Energy Cell",
   "block.strangematter.paradoxical_energy_cell.info": "Infinite Resonance Energy Source",
+  "block.strangematter.rift_stabilizer": "Rift Stabilizer",
+  "item.strangematter.rift_stabilizer": "Rift Stabilizer",
+  "block.strangematter.rift_stabilizer.generating": "Generating %d RE/t | Stored: %d/%d RE",
+  "block.strangematter.rift_stabilizer.not_generating": "Not generating power (No Energetic Rift nearby or too many stabilizers) | Stored: %d/%d RE",
   "block.strangematter.stasis_projector": "Stasis Projector",
   "item.strangematter.stasis_projector": "Stasis Projector",
   "block.strangematter.stasis_projector.tooltip": "A device that projects a stasis field to suspend items and entities in time. Shift right-click to toggle on/off.",

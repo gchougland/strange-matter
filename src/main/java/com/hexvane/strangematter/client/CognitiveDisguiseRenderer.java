@@ -126,7 +126,7 @@ public class CognitiveDisguiseRenderer {
         // Copy position from the original mob
         disguiseEntity.setPos(originalMob.getX(), originalMob.getY(), originalMob.getZ());
         
-        // Copy the old position for smooth interpolation
+        // Copy old position for smooth interpolation
         disguiseEntity.xo = originalMob.xo;
         disguiseEntity.yo = originalMob.yo;
         disguiseEntity.zo = originalMob.zo;
@@ -139,14 +139,11 @@ public class CognitiveDisguiseRenderer {
         disguiseEntity.yRotO = originalMob.yRotO;
         disguiseEntity.xRotO = originalMob.xRotO;
         
-        // Update the old position and rotation
-        disguiseEntity.setOldPosAndRot();
-        
         // Copy movement
         disguiseEntity.setDeltaMovement(originalMob.getDeltaMovement());
         
         // Copy essential movement states and manually handle animation
-        if (disguiseEntity instanceof LivingEntity disguiseLiving && originalMob instanceof LivingEntity) {
+        if (disguiseEntity instanceof LivingEntity disguiseLiving) {
             // Copy essential movement states
             disguiseLiving.setSpeed(originalMob.getSpeed());
             disguiseLiving.setShiftKeyDown(originalMob.isShiftKeyDown());
@@ -165,27 +162,17 @@ public class CognitiveDisguiseRenderer {
             disguiseLiving.yya = originalMob.yya;
             disguiseLiving.zza = originalMob.zza;
             
-            // Manually handle walking animation by directly calling update
-            if (originalMob.getDeltaMovement().lengthSqr() > 0.001) {
-                // The original mob is moving, so animate the disguise
-                float movementSpeed = (float) originalMob.getDeltaMovement().length();
-                float animationSpeed = Math.min(movementSpeed * 4.0f, 1.0f);
-                
-                // Set the animation speed and manually call update
-                disguiseLiving.walkAnimation.speed(animationSpeed);
-                disguiseLiving.walkAnimation.update(animationSpeed, 0.4f);
-            } else {
-                // The original mob is not moving, so stop animation
-                disguiseLiving.walkAnimation.speed(0.0f);
-                // Don't call update when not moving - this will stop the animation properly
-            }
+            // Copy the mob's walk animation state directly (same approach as player morphs)
+            disguiseLiving.walkAnimation.setSpeed(originalMob.walkAnimation.speed());
             
-            // Special handling for Blaze - always animate the floating rods
-            if (disguiseEntity.getType().toString().contains("blaze")) {
-                // Blaze should always have some animation for its floating rods
-                float blazeAnimationSpeed = 0.3f; // Slow, steady animation
-                disguiseLiving.walkAnimation.speed(blazeAnimationSpeed);
-                disguiseLiving.walkAnimation.update(blazeAnimationSpeed, 0.4f);
+            // Manually set the position (there's no direct setter, so we update with 0 acceleration)
+            float currentPos = disguiseLiving.walkAnimation.position();
+            float targetPos = originalMob.walkAnimation.position();
+            float posDiff = targetPos - currentPos;
+            
+            // Smoothly interpolate to the target position
+            if (Math.abs(posDiff) > 0.001f) {
+                disguiseLiving.walkAnimation.update(disguiseLiving.walkAnimation.speed(), 0.4f);
             }
         }
     }

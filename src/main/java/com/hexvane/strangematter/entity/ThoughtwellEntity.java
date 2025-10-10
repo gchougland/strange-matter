@@ -339,6 +339,11 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
         DISGUISE_DURATION_MAP.remove(entityUUID);
     }
     
+    public static void setDisguise(java.util.UUID entityUUID, String disguiseType, int duration) {
+        DISGUISE_MAP.put(entityUUID, disguiseType);
+        DISGUISE_DURATION_MAP.put(entityUUID, duration);
+    }
+    
     // Update disguise durations and remove expired ones
     private void updateDisguiseDurations() {
         java.util.Iterator<java.util.Map.Entry<java.util.UUID, Integer>> iterator = DISGUISE_DURATION_MAP.entrySet().iterator();
@@ -350,6 +355,14 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
                 java.util.UUID uuid = entry.getKey();
                 DISGUISE_MAP.remove(uuid);
                 iterator.remove();
+                
+                // Sync removal to all clients
+                if (this.level() instanceof net.minecraft.server.level.ServerLevel) {
+                    com.hexvane.strangematter.network.MobDisguiseSyncPacket packet = 
+                        new com.hexvane.strangematter.network.MobDisguiseSyncPacket(uuid);
+                    com.hexvane.strangematter.network.NetworkHandler.INSTANCE.send(
+                        net.minecraftforge.network.PacketDistributor.ALL.noArg(), packet);
+                }
             } else {
                 entry.setValue(duration);
             }
@@ -367,8 +380,17 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
         String disguiseType = com.hexvane.strangematter.client.CognitiveDisguiseRenderer.getRandomDisguiseType();
         
         // Store the disguise information in the static maps
+        int duration = 2400; // 120 seconds at 20 TPS
         DISGUISE_MAP.put(mob.getUUID(), disguiseType);
-        DISGUISE_DURATION_MAP.put(mob.getUUID(), 2400); // 120 seconds at 20 TPS
+        DISGUISE_DURATION_MAP.put(mob.getUUID(), duration);
+        
+        // Sync to all clients
+        if (this.level() instanceof net.minecraft.server.level.ServerLevel) {
+            com.hexvane.strangematter.network.MobDisguiseSyncPacket packet = 
+                new com.hexvane.strangematter.network.MobDisguiseSyncPacket(mob.getUUID(), disguiseType, duration);
+            com.hexvane.strangematter.network.NetworkHandler.INSTANCE.send(
+                net.minecraftforge.network.PacketDistributor.ALL.noArg(), packet);
+        }
         
         // Add some visual particles to indicate the cognitive effect
         if (this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {

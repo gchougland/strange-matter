@@ -1,0 +1,21 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "strangematter:block/rift_stabilizer",
+      "y": 0
+    },
+    "facing=east": {
+      "model": "strangematter:block/rift_stabilizer",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "strangematter:block/rift_stabilizer",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "strangematter:block/rift_stabilizer",
+      "y": 270
+    }
+  }
+}
+

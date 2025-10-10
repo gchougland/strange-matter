@@ -71,5 +71,15 @@ public class NetworkHandler {
             EchoVacuumBeamPacket::encode,
             EchoVacuumBeamPacket::new,
             EchoVacuumBeamPacket::handle);
+            
+        INSTANCE.registerMessage(packetId++, PlayerMorphSyncPacket.class,
+            PlayerMorphSyncPacket::encode,
+            PlayerMorphSyncPacket::decode,
+            PlayerMorphSyncPacket::handle);
+            
+        INSTANCE.registerMessage(packetId++, MobDisguiseSyncPacket.class,
+            MobDisguiseSyncPacket::encode,
+            MobDisguiseSyncPacket::decode,
+            MobDisguiseSyncPacket::handle);
     }
 }
