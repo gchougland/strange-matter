@@ -1,15 +1,22 @@
 package com.hexvane.strangematter.kubejs;
 
+import com.mojang.logging.LogUtils;
 import dev.latvian.mods.kubejs.KubeJSPlugin;
+import dev.latvian.mods.kubejs.script.BindingsEvent;
+import dev.latvian.mods.kubejs.script.ScriptType;
+import org.slf4j.Logger;
 
 /**
  * KubeJS Plugin for Strange Matter mod integration.
- * This allows modpack creators to add/modify Reality Forge recipes using KubeJS scripts.
+ * Provides support for:
+ * - Reality Forge recipes
+ * - Custom research nodes
+ * - Custom research info pages
  * 
- * The Reality Forge recipe type is automatically available in KubeJS through the standard
- * recipe serializer system. No custom schema registration is needed.
+ * RECIPE INTEGRATION:
+ * Reality Forge recipes are available through the standard recipe system.
  * 
- * Example usage in KubeJS:
+ * Example:
  * <pre>
  * ServerEvents.recipes(event => {
  *   event.custom({
@@ -29,19 +36,42 @@ import dev.latvian.mods.kubejs.KubeJSPlugin;
  * })
  * </pre>
  * 
- * You can also modify or remove existing Reality Forge recipes:
+ * RESEARCH INTEGRATION:
+ * Add custom research nodes and info pages.
+ * 
+ * Example:
  * <pre>
- * ServerEvents.recipes(event => {
- *   // Remove a specific recipe
- *   event.remove({ type: 'strangematter:reality_forge', output: 'strangematter:some_item' })
+ * // In startup_scripts (runs once at game start)
+ * StrangeMatterEvents.research(event => {
+ *   // Create a custom research node
+ *   event.addNode('my_research')
+ *     .category('custom')
+ *     .position(100, 200)
+ *     .cost('gravity', 10)
+ *     .cost('energy', 5)
+ *     .iconItem('minecraft:diamond')
+ *     .prerequisite('reality_forge')
  *   
- *   // Remove all Reality Forge recipes
- *   event.remove({ type: 'strangematter:reality_forge' })
+ *   // Add info pages to any research node
+ *   event.addPages('my_research', pages => {
+ *     pages.page()
+ *       .title('My Custom Research')
+ *       .content('This is my custom research!')
+ *       .recipe('my_custom_item')
+ *   })
  * })
  * </pre>
  */
 public class StrangeMatterKubeJSPlugin extends KubeJSPlugin {
-    // Plugin presence allows KubeJS to recognize Strange Matter mod
-    // Custom recipe types work automatically through the serializer system
+    private static final Logger LOGGER = LogUtils.getLogger();
+    
+    @Override
+    public void registerBindings(BindingsEvent event) {
+        // Register the StrangeMatterHelper as a global binding for all script types
+        // This allows scripts to use: StrangeMatter.createResearchNode(), etc.
+        LOGGER.info("[Strange Matter] Registering KubeJS bindings...");
+        event.add("StrangeMatter", StrangeMatterHelper.class);
+        LOGGER.info("[Strange Matter] StrangeMatter binding registered!");
+    }
 }
 

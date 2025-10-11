@@ -90,6 +90,14 @@ public class ResearchNodeRegistry {
         nodes.clear();
         nodesByCategory.clear();
         
+        // Also reset custom research registry when reloading
+        try {
+            Class<?> customRegistry = Class.forName("com.hexvane.strangematter.kubejs.CustomResearchRegistry");
+            customRegistry.getMethod("reset").invoke(null);
+        } catch (Exception e) {
+            // KubeJS not loaded or class not found - this is fine
+        }
+        
         /*
          * RESEARCH TREE STRUCTURE
          * 
@@ -378,5 +386,13 @@ public class ResearchNodeRegistry {
             true,
             List.of("anomaly_types") // Requires anomaly types
         ));
+        
+        // Initialize custom research nodes from KubeJS (if available)
+        try {
+            Class<?> customRegistry = Class.forName("com.hexvane.strangematter.kubejs.CustomResearchRegistry");
+            customRegistry.getMethod("initializeCustomResearch").invoke(null);
+        } catch (Exception e) {
+            // KubeJS not loaded or class not found - this is fine
+        }
     }
 }
