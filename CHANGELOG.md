@@ -2,6 +2,51 @@
 
 All notable changes to Strange Matter will be documented in this file.
 
+## [0.1.5] - Unreleased
+
+### Added
+- **KubeJS Integration**
+  - Added full KubeJS plugin support for modpack creators
+  - Modpack creators can now add, modify, and remove Reality Forge recipes using KubeJS scripts
+  - Recipe schema includes all Reality Forge features:
+    - 3x3 shaped crafting patterns
+    - Anomaly shard requirements
+    - Research requirements
+    - Custom result items
+  - Example KubeJS recipe:
+    ```javascript
+    ServerEvents.recipes(event => {
+      event.custom({
+        type: 'strangematter:reality_forge',
+        pattern: ['DDD', 'DED', 'DDD'],
+        key: {
+          'D': { item: 'minecraft:diamond' },
+          'E': { item: 'strangematter:resonite_ingot' }
+        },
+        result: { item: 'strangematter:some_item' },
+        shards: {
+          'gravitic': 1,
+          'energetic': 1,
+          'chrono': 1,
+          'insight': 1,
+          'shade': 1,
+          'spatial': 1
+        },
+        required_research: 'reality_forge'
+      })
+    })
+    ```
+  - Improves compatibility with complex modpacks like GregTech integration
+  - KubeJS is an optional dependency - mod works without it
+
+### Technical
+- Added `StrangeMatterKubeJSPlugin` class for KubeJS integration
+- Reality Forge recipes work through KubeJS `event.custom()` with automatic JSON handling
+- KubeJS plugin registered via META-INF/services
+- KubeJS is a compile-only dependency (not bundled with mod)
+- Recipes use standard JSON format compatible with datapacks
+- Players must install KubeJS separately if they want scripting support
+
 ## [0.1.4] - 2025-10-10
 
 ### Added
