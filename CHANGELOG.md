@@ -2,6 +2,101 @@
 
 All notable changes to Strange Matter will be documented in this file.
 
+## [0.1.5] - 2025-10-11
+
+### Added
+- **KubeJS Integration - Recipes**
+  - Added full KubeJS plugin support for modpack creators
+  - Modpack creators can now add, modify, and remove Reality Forge recipes using KubeJS scripts
+- **KubeJS Integration - Research System**
+  - Added support for creating custom research nodes through KubeJS
+  - Can add custom info pages to any research node (vanilla or custom)
+  - Full builder API with method chaining
+  - Support for all research features: costs, prerequisites, icons, positioning
+  - Custom research nodes appear in the research tree alongside vanilla nodes
+  - **Recipe Features:**
+    - 3x3 shaped crafting patterns
+    - Anomaly shard requirements
+    - Research requirements
+    - Custom result items
+  - **Research Features:**
+    - Custom research nodes with costs, prerequisites, and icons
+    - Custom info pages with text, recipes, and screenshots
+    - Integration with vanilla research tree
+    - Automatic translation key support
+  - Example KubeJS recipe:
+    ```javascript
+    ServerEvents.recipes(event => {
+      event.custom({
+        type: 'strangematter:reality_forge',
+        pattern: ['DDD', 'DED', 'DDD'],
+        key: {
+          'D': { item: 'minecraft:diamond' },
+          'E': { item: 'strangematter:resonite_ingot' }
+        },
+        result: { item: 'strangematter:some_item' },
+        shards: {
+          'gravitic': 1,
+          'energetic': 1,
+          'chrono': 1,
+          'insight': 1,
+          'shade': 1,
+          'spatial': 1
+        },
+        required_research: 'reality_forge'
+      })
+    })
+    ```
+  - Example KubeJS research node:
+    ```javascript
+    // In startup_scripts/research.js
+    const StrangeMatter = Java.loadClass('com.hexvane.strangematter.kubejs.StrangeMatterHelper');
+
+    // Example 1: Simple custom research node
+    let simpleNode = StrangeMatter.createResearchNode('custom_simple_research');
+    simpleNode.category('general');
+    simpleNode.position(150, 250);  // X and Y coordinates in the research tree GUI
+    simpleNode.cost('gravity', 15);
+    simpleNode.cost('energy', 10);
+    simpleNode.iconItem('minecraft:diamond');
+    simpleNode.prerequisite('reality_forge');  // Must unlock Reality Forge first
+    
+    // Add info pages to custom research
+    let pagesBuilder = StrangeMatter.createInfoPagesBuilder('custom_simple_research');
+
+    // Page 1: Introduction (must call .build() to finalize)
+    pagesBuilder.page()
+        .title('Custom Research Introduction')
+        .content('This is a custom research node added via KubeJS! You can add multiple pages to explain your custom content.')
+        .build();
+
+    // Page 2: With a recipe
+    pagesBuilder.page()
+        .title('Crafting Recipe')
+        .content('Here is how to craft the result of this research:')
+        .recipe('minecraft:chest')  // Shows vanilla diamond recipe as example
+        .build();
+    // Finish and register all pages
+    pagesBuilder.finish();
+    ```
+  - KubeJS is an optional dependency - mod works without it
+
+### Technical
+- **KubeJS Integration Classes:**
+  - `StrangeMatterKubeJSPlugin` - Main plugin registration
+  - `StrangeMatterHelper` - Global bindings for scripts
+  - `ResearchNodeBuilder` - Builder API for research nodes
+  - `ResearchInfoPageBuilder` - Builder API for info pages
+  - `CustomResearchRegistry` - Registry for custom research content
+  - `ResearchInfoPage` - Data class for page information
+- Reality Forge recipes work through KubeJS `event.custom()` with automatic JSON handling
+- Research nodes registered through reflection (optional dependency safe)
+- KubeJS plugin registered via META-INF/services
+- KubeJS is a compile-only dependency (not bundled with mod)
+- Recipes use standard JSON format compatible with datapacks
+- Players must install KubeJS separately if they want scripting support
+- Custom research integrates seamlessly with vanilla research system
+
 ## [0.1.4] - 2025-10-10
 
 ### Added

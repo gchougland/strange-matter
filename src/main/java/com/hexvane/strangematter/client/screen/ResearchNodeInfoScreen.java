@@ -2,6 +2,7 @@ package com.hexvane.strangematter.client.screen;
 
 import com.hexvane.strangematter.research.ResearchNode;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.logging.LogUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -13,11 +14,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ResearchNodeInfoScreen extends Screen {
+    private static final Logger LOGGER = LogUtils.getLogger();
     private static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation("strangematter:textures/ui/research_tablet_background.png");
     
     private final ResearchNode node;
@@ -55,6 +58,7 @@ public class ResearchNodeInfoScreen extends Screen {
     }
     
     private void initializePages() {
+        // First, load the built-in pages
         if (node.getId().equals("research")) {
             initializeResearchPages();
         } else if (node.getId().equals("foundation")) {
@@ -98,8 +102,83 @@ public class ResearchNodeInfoScreen extends Screen {
         } else if (node.getId().equals("cognitive_anomalies")) {
             initializeCognitiveAnomaliesPages();
         } else {
-            // Default pages for other research nodes
-            initializeDefaultPages();
+            // Check if this node has custom pages from KubeJS
+            // If so, skip the default "Overview" page
+            if (!hasCustomPagesFromKubeJS()) {
+                // Default pages for other research nodes
+                initializeDefaultPages();
+            }
+        }
+        
+        // After loading built-in pages, append any custom pages from KubeJS
+        loadCustomPages();
+    }
+    
+    /**
+     * Check if custom pages will be loaded from KubeJS for this node.
+     */
+    private boolean hasCustomPagesFromKubeJS() {
+        try {
+            Class<?> customRegistry = Class.forName("com.hexvane.strangematter.kubejs.CustomResearchRegistry");
+            Boolean hasPages = (Boolean) customRegistry.getMethod("hasCustomPages", String.class)
+                .invoke(null, node.getId());
+            return hasPages != null && hasPages;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    /**
+     * Load and append custom info pages from KubeJS if available.
+     * Custom pages are added AFTER the built-in pages.
+     */
+    private void loadCustomPages() {
+        try {
+            // Try to load custom pages from KubeJS
+            Class<?> customRegistry = Class.forName("com.hexvane.strangematter.kubejs.CustomResearchRegistry");
+            Class<?> researchInfoPage = Class.forName("com.hexvane.strangematter.kubejs.ResearchInfoPage");
+            
+            LOGGER.info("[Strange Matter] Checking for custom pages for node: {}", node.getId());
+            
+            // Check if custom pages exist for this node
+            Boolean hasPages = (Boolean) customRegistry.getMethod("hasCustomPages", String.class)
+                .invoke(null, node.getId());
+            
+            LOGGER.info("[Strange Matter] Has custom pages: {}", hasPages);
+            
+            if (hasPages != null && hasPages) {
+                // Get the custom pages
+                @SuppressWarnings("unchecked")
+                java.util.List<Object> customPages = (java.util.List<Object>) customRegistry
+                    .getMethod("getInfoPages", String.class)
+                    .invoke(null, node.getId());
+                
+                LOGGER.info("[Strange Matter] Retrieved {} custom pages", (customPages != null ? customPages.size() : 0));
+                
+                if (customPages != null && !customPages.isEmpty()) {
+                    // Convert custom pages to InfoPage objects
+                    for (Object customPage : customPages) {
+                        InfoPage page = new InfoPage();
+                        
+                        // Use reflection to get fields from ResearchInfoPage
+                        page.title = (String) researchInfoPage.getField("title").get(customPage);
+                        page.content = (String) researchInfoPage.getField("content").get(customPage);
+                        page.hasRecipes = (Boolean) researchInfoPage.getField("hasRecipes").get(customPage);
+                        page.hasScreenshots = (Boolean) researchInfoPage.getField("hasScreenshots").get(customPage);
+                        page.recipeName = (String) researchInfoPage.getField("recipeName").get(customPage);
+                        page.isRealityForgeRecipe = (Boolean) researchInfoPage.getField("isRealityForgeRecipe").get(customPage);
+                        page.screenshotPath = (String) researchInfoPage.getField("screenshotPath").get(customPage);
+                        
+                        LOGGER.info("[Strange Matter] Adding custom page: {}", page.title);
+                        pages.add(page);
+                    }
+                    
+                    LOGGER.info("[Strange Matter] Appended {} custom pages to research node: {}", customPages.size(), node.getId());
+                }
+            }
+        } catch (Exception e) {
+            // Log the error for debugging
+            LOGGER.error("[Strange Matter] Error loading custom pages for {}: {}", node.getId(), e.getMessage(), e);
         }
     }
     
@@ -861,7 +940,10 @@ public class ResearchNodeInfoScreen extends Screen {
         }
         
         // Get the recipe from the registry
-        ResourceLocation resultItemId = ResourceLocation.parse("strangematter:" + page.recipeName);
+        // If recipeName already has a namespace (contains ':'), use it as-is
+        // Otherwise, prepend "strangematter:"
+        String fullRecipeName = page.recipeName.contains(":") ? page.recipeName : "strangematter:" + page.recipeName;
+        ResourceLocation resultItemId = ResourceLocation.parse(fullRecipeName);
         com.hexvane.strangematter.recipe.RealityForgeRecipe recipe = 
             com.hexvane.strangematter.recipe.RealityForgeRecipeRegistry.findRecipeByResult(resultItemId, this.minecraft.level);
         
@@ -1017,7 +1099,10 @@ public class ResearchNodeInfoScreen extends Screen {
     
     private void drawRecipeInGrid(GuiGraphics guiGraphics, String recipeName, int gridX, int gridY, int slotSize) {
         // Get the recipe from Minecraft's recipe registry
-        ResourceLocation recipeId = ResourceLocation.parse("strangematter:" + recipeName);
+        // If recipeName already has a namespace (contains ':'), use it as-is
+        // Otherwise, prepend "strangematter:"
+        String fullRecipeName = recipeName.contains(":") ? recipeName : "strangematter:" + recipeName;
+        ResourceLocation recipeId = ResourceLocation.parse(fullRecipeName);
         Recipe<?> recipe = this.minecraft.level.getRecipeManager().byKey(recipeId).orElse(null);
 
         if (recipe == null) {
@@ -1113,7 +1198,10 @@ public class ResearchNodeInfoScreen extends Screen {
         List<String> uniqueIngredients = new ArrayList<>();
         
         // Get the recipe from Minecraft's recipe registry
-        ResourceLocation recipeId = ResourceLocation.parse("strangematter:" + recipeName);
+        // If recipeName already has a namespace (contains ':'), use it as-is
+        // Otherwise, prepend "strangematter:"
+        String fullRecipeName = recipeName.contains(":") ? recipeName : "strangematter:" + recipeName;
+        ResourceLocation recipeId = ResourceLocation.parse(fullRecipeName);
         Recipe<?> recipe = this.minecraft.level.getRecipeManager().byKey(recipeId).orElse(null);
         
         if (recipe instanceof CraftingRecipe craftingRecipe) {
