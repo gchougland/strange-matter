@@ -21,12 +21,14 @@ public class LightTextureMixin {
         
         // Check if we're near an Echoing Shadow anomaly
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.player != null && minecraft.level != null) {
+        // Use getter method instead of direct field access to avoid loading ClientLevel type
+        net.minecraft.world.level.Level level = minecraft.getSingleplayerServer() != null ? null : (minecraft.player != null ? minecraft.player.level() : null);
+        if (minecraft.player != null && level != null) {
             BlockPos playerPos = minecraft.player.blockPosition();
             
             // Check if there's an Echoing Shadow nearby and calculate shadow strength
             float maxShadowStrength = 0.0f;
-            for (EchoingShadowEntity shadow : minecraft.level.getEntitiesOfClass(EchoingShadowEntity.class, 
+            for (EchoingShadowEntity shadow : level.getEntitiesOfClass(EchoingShadowEntity.class, 
                     minecraft.player.getBoundingBox().inflate(20.0))) { // Check within 20 blocks
                 
                 double distance = shadow.position().distanceTo(minecraft.player.position());

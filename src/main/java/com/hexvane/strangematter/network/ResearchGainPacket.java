@@ -2,6 +2,8 @@ package com.hexvane.strangematter.network;
 
 import com.hexvane.strangematter.research.ResearchType;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
@@ -30,7 +32,10 @@ public class ResearchGainPacket {
         context.enqueueWork(() -> {
             // This packet is handled on the client side
             if (context.getDirection().getReceptionSide().isClient()) {
-                com.hexvane.strangematter.network.ResearchDataClientHandler.handleResearchGain(researchType, amount);
+                ResearchType finalType = researchType;
+                int finalAmount = amount;
+                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> 
+                    com.hexvane.strangematter.network.ResearchDataClientHandler.handleResearchGain(finalType, finalAmount));
             }
         });
         context.setPacketHandled(true);

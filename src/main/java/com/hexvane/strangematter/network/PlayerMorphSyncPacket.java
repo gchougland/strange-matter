@@ -1,8 +1,9 @@
 package com.hexvane.strangematter.network;
 
 import com.hexvane.strangematter.morph.PlayerMorphData;
-import com.hexvane.strangematter.client.PlayerMorphRenderer;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.UUID;
@@ -68,7 +69,9 @@ public class PlayerMorphSyncPacket {
                 if (packet.clearMorph) {
                     System.out.println("CLIENT: Received clear morph for player " + packet.playerUUID);
                     PlayerMorphData.clearMorph(packet.playerUUID);
-                    PlayerMorphRenderer.cleanupMorphEntity(packet.playerUUID);
+                    UUID finalPlayerUUID = packet.playerUUID;
+                    DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> 
+                        com.hexvane.strangematter.client.PlayerMorphRenderer.cleanupMorphEntity(finalPlayerUUID));
                 } else if (packet.morphEntityType != null) {
                     System.out.println("CLIENT: Received morph sync - " + packet.playerUUID + " -> " + packet.morphEntityType);
                     System.out.println("CLIENT: Current morph data before update: " + PlayerMorphData.getMorphEntityType(packet.playerUUID));
@@ -77,7 +80,9 @@ public class PlayerMorphSyncPacket {
                     String oldMorph = PlayerMorphData.getMorphEntityType(packet.playerUUID);
                     if (oldMorph != null && !oldMorph.equals(packet.morphEntityType)) {
                         System.out.println("CLIENT: Clearing old morph entity cache");
-                        PlayerMorphRenderer.cleanupMorphEntity(packet.playerUUID);
+                        UUID finalPlayerUUID = packet.playerUUID;
+                        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> 
+                            com.hexvane.strangematter.client.PlayerMorphRenderer.cleanupMorphEntity(finalPlayerUUID));
                     }
                     
                     // Set new morph (with player UUID if morphing into a player)

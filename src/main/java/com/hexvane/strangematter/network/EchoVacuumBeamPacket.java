@@ -6,7 +6,6 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.PacketDistributor;
 import com.hexvane.strangematter.StrangeMatterMod;
-import com.hexvane.strangematter.client.EchoVacuumClientHandler;
 
 import java.util.function.Supplier;
 

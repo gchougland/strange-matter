@@ -1,6 +1,5 @@
 package com.hexvane.strangematter.mixin;
 
-import com.hexvane.strangematter.client.CognitiveDisguiseRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.world.entity.Entity;
@@ -36,7 +35,7 @@ public class EntityRendererMixin<T extends net.minecraft.world.entity.LivingEnti
             EntityRenderDispatcher dispatcher = net.minecraft.client.Minecraft.getInstance().getEntityRenderDispatcher();
             
             // Try to render with disguise
-            boolean renderedWithDisguise = CognitiveDisguiseRenderer.renderWithDisguise(
+            boolean renderedWithDisguise = com.hexvane.strangematter.client.CognitiveDisguiseRenderer.renderWithDisguise(
                 mob, 
                 dispatcher, 
                 poseStack, 

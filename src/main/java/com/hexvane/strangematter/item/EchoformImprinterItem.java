@@ -1,11 +1,12 @@
 package com.hexvane.strangematter.item;
 
 import com.hexvane.strangematter.morph.PlayerMorphData;
-import com.hexvane.strangematter.client.PlayerMorphRenderer;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -266,8 +267,10 @@ public class EchoformImprinterItem extends Item {
             String oldMorph = PlayerMorphData.getMorphEntityType(player.getUUID());
             if (oldMorph != null) {
                 PlayerMorphData.clearMorph(player.getUUID());
-                // Force cleanup of cached morph entity on both sides
-                PlayerMorphRenderer.cleanupMorphEntity(player.getUUID());
+                // Force cleanup of cached morph entity on client side only
+                UUID finalPlayerUUID = player.getUUID();
+                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> 
+                    com.hexvane.strangematter.client.PlayerMorphRenderer.cleanupMorphEntity(finalPlayerUUID));
             }
             
             // Store the NEW morphed entity type in item NBT
@@ -361,7 +364,9 @@ public class EchoformImprinterItem extends Item {
         
         // Clean up the cached morph entity on client
         if (level.isClientSide) {
-            PlayerMorphRenderer.cleanupMorphEntity(player.getUUID());
+            UUID finalPlayerUUID = player.getUUID();
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> 
+                com.hexvane.strangematter.client.PlayerMorphRenderer.cleanupMorphEntity(finalPlayerUUID));
         }
         
         if (!level.isClientSide) {

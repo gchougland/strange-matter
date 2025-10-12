@@ -67,23 +67,9 @@ public class PlayerMorphRenderer {
                 morphEntityCache.remove(player.getUUID());
             }
             
-            // Special handling for player morphs
-            if (isMorphingIntoPlayer && targetPlayerUUID != null) {
-                // Try to find the target player to copy their profile
-                net.minecraft.client.player.AbstractClientPlayer targetPlayer = findPlayerByUUID(player.level(), targetPlayerUUID);
-                if (targetPlayer != null) {
-                    // Create a player entity with the target's game profile for skin rendering
-                    morphEntity = new net.minecraft.client.player.RemotePlayer(
-                        (net.minecraft.client.multiplayer.ClientLevel) player.level(),
-                        targetPlayer.getGameProfile()
-                    );
-                } else {
-                    // Fallback: create with player's own profile
-                    morphEntity = morphType.create(player.level());
-                }
-            } else {
-                morphEntity = morphType.create(player.level());
-            }
+            // Special handling for player morphs - temporarily disabled to fix server crash
+            // TODO: Re-enable player morph skin rendering after fixing client-server separation
+            morphEntity = morphType.create(player.level());
             
             if (morphEntity == null) {
                 PlayerMorphData.clearMorph(player.getUUID());

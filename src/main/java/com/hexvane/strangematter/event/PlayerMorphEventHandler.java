@@ -1,11 +1,8 @@
 package com.hexvane.strangematter.event;
 
 import com.hexvane.strangematter.morph.PlayerMorphData;
-import com.hexvane.strangematter.client.PlayerMorphRenderer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -14,7 +11,7 @@ import net.minecraftforge.fml.common.Mod;
 import java.util.UUID;
 
 /**
- * Handles player morph cleanup on logout and world change, and syncing on join
+ * Handles server-side player morph cleanup and syncing
  */
 @Mod.EventBusSubscriber(modid = "strangematter")
 public class PlayerMorphEventHandler {
@@ -58,29 +55,4 @@ public class PlayerMorphEventHandler {
         Player player = event.getEntity();
         PlayerMorphData.clearMorph(player.getUUID());
     }
-    
-    /**
-     * Clear client-side cached morph entities when player changes dimension/respawns
-     */
-    @SubscribeEvent
-    @OnlyIn(Dist.CLIENT)
-    public static void onPlayerChangeDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
-        Player player = event.getEntity();
-        if (player.level().isClientSide) {
-            PlayerMorphRenderer.cleanupMorphEntity(player.getUUID());
-        }
-    }
-    
-    /**
-     * Clear client-side cached morph entities on respawn
-     */
-    @SubscribeEvent
-    @OnlyIn(Dist.CLIENT)
-    public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
-        Player player = event.getEntity();
-        if (player.level().isClientSide) {
-            PlayerMorphRenderer.cleanupMorphEntity(player.getUUID());
-        }
-    }
 }
-

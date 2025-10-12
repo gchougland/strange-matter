@@ -23,13 +23,9 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import com.hexvane.strangematter.network.EchoVacuumBeamPacket;
 import java.util.List;
 
-@Mod.EventBusSubscriber(modid = "strangematter")
 public class EchoVacuumItem extends Item {
     
     private static final double BEAM_RANGE = 8.0;
@@ -53,12 +49,6 @@ public class EchoVacuumItem extends Item {
     public EchoVacuumItem() {
         super(new Item.Properties().stacksTo(1).durability(200));
     }
-    
-    @Override
-    public void initializeClient(java.util.function.Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new com.hexvane.strangematter.client.EchoVacuumRenderer());
-    }
-    
     
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
@@ -131,15 +121,10 @@ public class EchoVacuumItem extends Item {
         }
     }
     
-    @SubscribeEvent
-    public static void onPlayerTick(net.minecraftforge.event.TickEvent.PlayerTickEvent event) {
-        if (event.phase != net.minecraftforge.event.TickEvent.Phase.END) return;
-        
-        Player player = event.player;
-        Level level = player.level();
-        
-        if (level.isClientSide) return;
-        
+    /**
+     * Called from EchoVacuumEventHandler on server side
+     */
+    public static void handlePlayerTick(Player player, Level level) {
         boolean currentlyUsingBeam = player.isUsingItem() && player.getUseItem().getItem() instanceof EchoVacuumItem;
         boolean wasUsingBeam = playersUsingBeam.contains(player);
         
@@ -149,16 +134,10 @@ public class EchoVacuumItem extends Item {
                 playersUsingBeam.add(player);
                 EchoVacuumBeamPacket.sendToNearbyPlayers(player, true);
                 
-                // Start fire loop sound
-                if (!playersWithFireLoop.contains(player)) {
-                    playersWithFireLoop.add(player);
-                    // Use custom sound manager for looping sound
-                    com.hexvane.strangematter.client.sound.CustomSoundManager.getInstance().playAmbientSound(
-                        com.hexvane.strangematter.sound.StrangeMatterSounds.ECHO_VACUUM_FIRE_LOOP.get().getLocation(),
-                        player.getX(), player.getY(), player.getZ(),
-                        0.6f, true // Loop continuously
-                    );
-                }
+                // Play charge up sound on server (will replicate to clients)
+                level.playSound(null, player.getX(), player.getY(), player.getZ(), 
+                    com.hexvane.strangematter.sound.StrangeMatterSounds.ECHO_VACUUM_CHARGE_UP.get(), 
+                    SoundSource.PLAYERS, 0.7f, 1.0f);
             }
             handleVacuumBeam(player, level);
         } else {
@@ -167,18 +146,10 @@ public class EchoVacuumItem extends Item {
                 playersUsingBeam.remove(player);
                 EchoVacuumBeamPacket.sendToNearbyPlayers(player, false);
                 
-                // Stop fire loop sound and play charge down
-                if (playersWithFireLoop.contains(player)) {
-                    playersWithFireLoop.remove(player);
-                    // Stop the looping fire sound
-                    com.hexvane.strangematter.client.sound.CustomSoundManager.getInstance().stopAmbientSound(
-                        com.hexvane.strangematter.sound.StrangeMatterSounds.ECHO_VACUUM_FIRE_LOOP.get().getLocation()
-                    );
-                    // Play charge down sound
-                    level.playSound(null, player.getX(), player.getY(), player.getZ(), 
-                        com.hexvane.strangematter.sound.StrangeMatterSounds.ECHO_VACUUM_CHARGE_DOWN.get(), 
-                        SoundSource.PLAYERS, 0.6f, 1.0f);
-                }
+                // Play charge down sound
+                level.playSound(null, player.getX(), player.getY(), player.getZ(), 
+                    com.hexvane.strangematter.sound.StrangeMatterSounds.ECHO_VACUUM_CHARGE_DOWN.get(), 
+                    SoundSource.PLAYERS, 0.6f, 1.0f);
                 
                 // Clean up any anomalies this player was targeting
                 cleanupPlayerTargeting(player);

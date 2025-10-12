@@ -4,14 +4,6 @@ import com.hexvane.strangematter.entity.GravityAnomalyEntity;
 import com.hexvane.strangematter.entity.EchoingShadowEntity;
 import com.hexvane.strangematter.entity.WarpGateAnomalyEntity;
 import com.hexvane.strangematter.entity.ThoughtwellEntity;
-import com.hexvane.strangematter.client.GravityAnomalyRenderer;
-import com.hexvane.strangematter.client.TemporalBloomRenderer;
-import com.hexvane.strangematter.client.ThoughtwellRenderer;
-import com.hexvane.strangematter.client.EnergeticRiftRenderer;
-import com.hexvane.strangematter.client.EchoingShadowRenderer;
-import com.hexvane.strangematter.client.WarpGateAnomalyRenderer;
-import com.hexvane.strangematter.client.ResearchMachineRenderer;
-import com.hexvane.strangematter.client.sound.CustomSoundManager;
 import com.hexvane.strangematter.command.AnomalyCommand;
 import com.hexvane.strangematter.command.ResearchCommand;
 import com.hexvane.strangematter.sound.StrangeMatterSounds;
@@ -52,8 +44,6 @@ import com.hexvane.strangematter.item.ContainmentCapsuleItem;
 import com.hexvane.strangematter.network.EchoVacuumBeamPacket;
 import com.hexvane.strangematter.entity.WarpProjectileEntity;
 import com.hexvane.strangematter.entity.MiniWarpGateEntity;
-import com.hexvane.strangematter.client.MiniWarpGateRenderer;
-import com.hexvane.strangematter.client.WarpProjectileRenderer;
 import com.hexvane.strangematter.worldgen.GravityAnomalyConfiguredFeature;
 import com.hexvane.strangematter.worldgen.EchoingShadowConfiguredFeature;
 import com.hexvane.strangematter.worldgen.ThoughtwellConfiguredFeature;
@@ -61,7 +51,6 @@ import com.hexvane.strangematter.worldgen.WarpGateAnomalyStructure;
 import com.hexvane.strangematter.worldgen.WarpGateAnomalyFeature;
 import com.hexvane.strangematter.network.NetworkHandler;
 import com.mojang.logging.LogUtils;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EntityType;
@@ -456,8 +445,7 @@ public class StrangeMatterMod
         // Register network handler
         NetworkHandler.register();
         
-        // Register the clientSetup method for client-side setup
-        modEventBus.addListener(this::clientSetup);
+        // Client setup is now handled by ClientModEvents in separate file
 
         // Register the Deferred Register to the mod event bus so blocks get registered
         BLOCKS.register(modEventBus);
@@ -506,70 +494,15 @@ public class StrangeMatterMod
         LOGGER.info("Strange Matter mod initialized - reality anomalies detected!");
         LOGGER.info("Config-driven world generation enabled");
         
-        // Initialize custom sound manager and scannable object registry
+        // Initialize scannable object registry and research nodes on both client and server
         event.enqueueWork(() -> {
-            CustomSoundManager.getInstance().initialize();
-            // Initialize scannable object registry with config values
             com.hexvane.strangematter.research.ScannableObjectRegistry.init();
+            // Initialize research nodes on server as well (not just in client screens)
+            com.hexvane.strangematter.research.ResearchNodeRegistry.initializeDefaultNodes();
         });
     }
     
-    private void clientSetup(final FMLClientSetupEvent event)
-    {
-        // Initialize custom sound manager on client side
-        event.enqueueWork(() -> {
-            CustomSoundManager.getInstance().initialize();
-        });
-        
-        // Register research overlay
-        event.enqueueWork(() -> {
-            // Register the research gain overlay using the event system
-            // The overlay will be handled by ResearchOverlayEventHandler
-        });
-        
-        // Register compass angle property for anomaly resonator
-        event.enqueueWork(() -> {
-            net.minecraft.client.renderer.item.ItemProperties.register(
-                ANOMALY_RESONATOR.get(),
-                net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("minecraft", "angle"),
-                (stack, level, entity, seed) -> {
-                    if (level == null || entity == null) {
-                        return 0.0F;
-                    }
-                    
-                    if (entity instanceof net.minecraft.world.entity.player.Player player) {
-                        com.hexvane.strangematter.item.AnomalyResonatorItem resonator = 
-                            (com.hexvane.strangematter.item.AnomalyResonatorItem) stack.getItem();
-                        
-                        net.minecraft.core.BlockPos targetPos = resonator.getTargetPosition(stack, level, player);
-                        if (targetPos == null) {
-                            // If no target, spin the needle
-                            return (float)(System.currentTimeMillis() * 0.1) % 1.0F;
-                        }
-                        
-                        // Calculate angle to target relative to player's look direction
-                        double d0 = targetPos.getX() - entity.getX();
-                        double d1 = targetPos.getZ() - entity.getZ();
-                        float targetAngle = (float)(Math.atan2(d1, d0) * (180F / Math.PI)) - 90.0F;
-                        
-                        // Get player's yaw (look direction)
-                        float playerYaw = entity.getYRot();
-                        
-                        // Calculate relative angle (target angle - player yaw)
-                        float relativeAngle = targetAngle - playerYaw;
-                        float wrappedAngle = net.minecraft.util.Mth.wrapDegrees(relativeAngle);
-                        
-                        // Convert to 0.0-1.0 range for model predicates
-                        return (wrappedAngle + 180.0F) / 360.0F;
-                    }
-                    
-                    return 0.0F;
-                }
-            );
-        });
-        
-        // Particle renderers would be registered here if needed
-    }
+    // Client setup moved to com.hexvane.strangematter.client.ClientModEvents
 
     // Register commands
     @SubscribeEvent
@@ -699,43 +632,11 @@ public class StrangeMatterMod
     @SubscribeEvent
     public void onServerStopping(net.minecraftforge.event.server.ServerStoppingEvent event)
     {
-        // Clean up custom sound manager
-        CustomSoundManager.getInstance().cleanup();
+        // Server cleanup - sound manager cleanup is handled on client side
     }
 
-    // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
-    @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-    public static class ClientModEvents
-    {
-        @SubscribeEvent
-        public static void onClientSetup(FMLClientSetupEvent event)
-        {
-            // Some client setup code
-            LOGGER.info("Strange Matter client initialized - prepare for reality distortion!");
-            LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
-            
-            // Register entity renderers
-            event.enqueueWork(() -> {
-                net.minecraft.client.renderer.entity.EntityRenderers.register(GRAVITY_ANOMALY.get(), GravityAnomalyRenderer::new);
-                net.minecraft.client.renderer.entity.EntityRenderers.register(ENERGETIC_RIFT.get(), EnergeticRiftRenderer::new);
-                net.minecraft.client.renderer.entity.EntityRenderers.register(ECHOING_SHADOW.get(), EchoingShadowRenderer::new);
-                net.minecraft.client.renderer.entity.EntityRenderers.register(WARP_GATE_ANOMALY_ENTITY.get(), WarpGateAnomalyRenderer::new);
-                net.minecraft.client.renderer.entity.EntityRenderers.register(TEMPORAL_BLOOM.get(), TemporalBloomRenderer::new);
-                net.minecraft.client.renderer.entity.EntityRenderers.register(THOUGHTWELL.get(), ThoughtwellRenderer::new);
-                net.minecraft.client.renderer.entity.EntityRenderers.register(WARP_PROJECTILE_ENTITY.get(), WarpProjectileRenderer::new);
-                net.minecraft.client.renderer.entity.EntityRenderers.register(MINI_WARP_GATE_ENTITY.get(), MiniWarpGateRenderer::new);
-                net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(RESEARCH_MACHINE_BLOCK_ENTITY.get(), ResearchMachineRenderer::new);
-                net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(STASIS_PROJECTOR_BLOCK_ENTITY.get(), com.hexvane.strangematter.client.StasisProjectorRenderer::new);
-                net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(RIFT_STABILIZER_BLOCK_ENTITY.get(), com.hexvane.strangematter.client.RiftStabilizerRenderer::new);
-                
-                // Register Echo Vacuum client handler for proper first/third person rendering
-                net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new com.hexvane.strangematter.client.EchoVacuumClientHandler());
-                
-            });
-        }
-        
-        
-    }
+    // Client events moved to separate class to prevent client class loading on server
+    // See: com.hexvane.strangematter.client.ClientModEvents
     
     // Beam state tracking for multiplayer visibility
     private static final java.util.Map<net.minecraft.world.entity.player.Player, Boolean> playerBeamStates = new java.util.concurrent.ConcurrentHashMap<>();

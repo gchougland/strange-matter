@@ -1,9 +1,7 @@
 package com.hexvane.strangematter.item;
 
-import com.hexvane.strangematter.client.screen.ResearchTabletScreen;
 import com.hexvane.strangematter.research.ResearchData;
 import com.hexvane.strangematter.research.ResearchDataServerHandler;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -43,7 +41,7 @@ public class ResearchTabletItem extends Item {
 
     @OnlyIn(Dist.CLIENT)
     private void openResearchTablet(Player player) {
-        Minecraft.getInstance().setScreen(new ResearchTabletScreen());
+        net.minecraft.client.Minecraft.getInstance().setScreen(new com.hexvane.strangematter.client.screen.ResearchTabletScreen());
     }
 
     @Override

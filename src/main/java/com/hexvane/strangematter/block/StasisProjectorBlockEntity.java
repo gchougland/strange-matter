@@ -28,7 +28,7 @@ public class StasisProjectorBlockEntity extends BlockEntity {
     
     // Height above the projector where items/entities float
     private static final double FLOAT_HEIGHT = 0.25;
-    private static final double CAPTURE_RADIUS = 1.0;
+    private static final double CAPTURE_RADIUS = 0.5;
     
     public StasisProjectorBlockEntity(BlockPos pos, BlockState blockState) {
         super(StrangeMatterMod.STASIS_PROJECTOR_BLOCK_ENTITY.get(), pos, blockState);
@@ -220,36 +220,60 @@ public class StasisProjectorBlockEntity extends BlockEntity {
         // First try to capture items
         List<ItemEntity> nearbyItems = level.getEntitiesOfClass(ItemEntity.class, captureBox);
         if (!nearbyItems.isEmpty()) {
-            ItemEntity itemEntity = nearbyItems.get(0);
-            blockEntity.capturedItemEntityUUID = itemEntity.getUUID();
-            blockEntity.cachedItemEntity = itemEntity;
+            // Find an item that isn't already being held by another projector
+            ItemEntity itemEntity = null;
+            for (ItemEntity item : nearbyItems) {
+                // Skip items that are already in stasis (no gravity + unlimited lifetime)
+                // This prevents stealing items from other projectors
+                if (!item.isNoGravity() || item.getAge() < 5980) { // Items with unlimited lifetime have age reset to -32768, but check for recent items
+                    itemEntity = item;
+                    break;
+                }
+            }
             
-            itemEntity.setPos(centerPos.x, centerPos.y, centerPos.z);
-            itemEntity.setDeltaMovement(Vec3.ZERO);
-            itemEntity.setNoGravity(true);
-            itemEntity.setPickUpDelay(40);
-            itemEntity.setUnlimitedLifetime(); // Prevent despawning
-            
-            blockEntity.setChanged();
-            return;
+            if (itemEntity != null) {
+                blockEntity.capturedItemEntityUUID = itemEntity.getUUID();
+                blockEntity.cachedItemEntity = itemEntity;
+                
+                itemEntity.setPos(centerPos.x, centerPos.y, centerPos.z);
+                itemEntity.setDeltaMovement(Vec3.ZERO);
+                itemEntity.setNoGravity(true);
+                itemEntity.setPickUpDelay(40);
+                itemEntity.setUnlimitedLifetime(); // Prevent despawning
+                
+                blockEntity.setChanged();
+                return;
+            }
         }
         
         // Then try to capture entities (mobs)
         List<Mob> nearbyEntities = level.getEntitiesOfClass(Mob.class, captureBox);
         
         if (!nearbyEntities.isEmpty()) {
-            Mob entity = nearbyEntities.get(0);
-            blockEntity.capturedEntityUUID = entity.getUUID();
-            blockEntity.cachedEntity = entity;
+            // Find a mob that isn't already being held by another projector
+            Mob entity = null;
+            for (Mob mob : nearbyEntities) {
+                // Skip mobs that are already in stasis (no gravity + no AI + invulnerable)
+                // This prevents stealing mobs from other projectors
+                if (!mob.isNoGravity() || !mob.isNoAi() || !mob.isInvulnerable()) {
+                    entity = mob;
+                    break;
+                }
+            }
             
-            entity.setPos(centerPos.x, centerPos.y, centerPos.z);
-            entity.setDeltaMovement(Vec3.ZERO);
-            entity.setNoGravity(true);
-            entity.setInvulnerable(true);
-            entity.setNoAi(true);
-            entity.setPersistenceRequired(); // Prevent despawning
-            
-            blockEntity.setChanged();
+            if (entity != null) {
+                blockEntity.capturedEntityUUID = entity.getUUID();
+                blockEntity.cachedEntity = entity;
+                
+                entity.setPos(centerPos.x, centerPos.y, centerPos.z);
+                entity.setDeltaMovement(Vec3.ZERO);
+                entity.setNoGravity(true);
+                entity.setInvulnerable(true);
+                entity.setNoAi(true);
+                entity.setPersistenceRequired(); // Prevent despawning
+                
+                blockEntity.setChanged();
+            }
         }
     }
     

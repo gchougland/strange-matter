@@ -2,6 +2,34 @@
 
 All notable changes to Strange Matter will be documented in this file.
 
+## [0.1.6] - 2025-10-12
+
+### Fixed
+- **Dedicated Server Compatibility**
+  - Fixed critical crash when loading mod on dedicated servers (`ClientLevel` loading error)
+  - Moved `ClientModEvents` from inner class to separate file to prevent client class loading on server
+  - Removed all client-only imports from common code (entities, items, blocks, network packets)
+  - Created `ScreenHelper` utility to isolate GUI class instantiation
+  - Fixed JEI plugin to use `FMLEnvironment.dist` guards instead of `Minecraft.getInstance()`
+  - Fixed all network packet handlers to use `DistExecutor` for client-only method calls
+  - Fixed client mixin imports to use fully qualified names instead of direct imports
+  - Separated player morph event handlers into client and server classes
+
+- **Research System on Dedicated Servers**
+  - Fixed research nodes not initializing on dedicated server
+  - Research nodes now initialize during common setup (runs on both client and server)
+  - Research Machine now works properly when inserting research notes on dedicated servers
+
+- **Stasis Projector**
+  - Fixed bug where adjacent stasis projectors would steal items/mobs from each other
+  - Stasis projectors now only capture entities that aren't already being held by another projector
+
+### Changed
+- Reorganized client-only code for better maintainability and server compatibility
+- Created new helper classes: `ScreenHelper`, `EchoVacuumEventHandler`, `PlayerMorphClientEventHandler`
+- Particle and menu screen registration consolidated into `ClientModEvents`
+- Sound manager initialization moved to client-only setup
+
 ## [0.1.5] - 2025-10-11
 
 ### Added

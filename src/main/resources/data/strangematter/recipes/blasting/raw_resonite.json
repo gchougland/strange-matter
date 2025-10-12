@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smelting",
+  "ingredient": {
+    "item": "strangematter:raw_resonite"
+  },
+  "result": "strangematter:resonite_ingot",
+  "experience": 0.7,
+  "cookingtime": 100
+}

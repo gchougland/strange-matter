@@ -7,7 +7,6 @@ import com.hexvane.strangematter.research.ScannableObjectRegistry;
 import com.hexvane.strangematter.network.NetworkHandler;
 import com.hexvane.strangematter.network.ResearchGainPacket;
 import com.hexvane.strangematter.StrangeMatterMod;
-import com.hexvane.strangematter.client.FieldScannerRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -42,7 +41,7 @@ public class FieldScannerItem extends Item {
     
     @Override
     public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> consumer) {
-        consumer.accept(new FieldScannerRenderer());
+        consumer.accept(new com.hexvane.strangematter.client.FieldScannerRenderer());
     }
     
     @Override

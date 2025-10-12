@@ -25,7 +25,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import com.hexvane.strangematter.StrangeMatterMod;
-import com.hexvane.strangematter.client.screen.ResearchMachineScreen;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -91,12 +90,12 @@ public class ResearchMachineBlock extends Block implements EntityBlock {
         // Default behavior: open GUI
         if (level.isClientSide) {
             // Open GUI on client side
-            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-                BlockEntity blockEntity = level.getBlockEntity(pos);
-                if (blockEntity != null) {
-                    net.minecraft.client.Minecraft.getInstance().setScreen(new ResearchMachineScreen(blockEntity));
-                }
-            });
+            BlockEntity blockEntity = level.getBlockEntity(pos);
+            if (blockEntity != null) {
+                BlockEntity finalBlockEntity = blockEntity;
+                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> 
+                    com.hexvane.strangematter.client.ScreenHelper.openResearchMachineScreen(finalBlockEntity));
+            }
         }
         
         return InteractionResult.SUCCESS;

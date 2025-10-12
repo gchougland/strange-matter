@@ -1,6 +1,5 @@
 package com.hexvane.strangematter.mixin;
 
-import com.hexvane.strangematter.client.PlayerMorphRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
@@ -34,7 +33,7 @@ public class PlayerRendererMixin {
         EntityRenderDispatcher dispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
         
         // Try to render as morph
-        boolean renderedAsMorph = PlayerMorphRenderer.renderPlayerAsMorph(
+        boolean renderedAsMorph = com.hexvane.strangematter.client.PlayerMorphRenderer.renderPlayerAsMorph(
             player,
             dispatcher,
             poseStack,
