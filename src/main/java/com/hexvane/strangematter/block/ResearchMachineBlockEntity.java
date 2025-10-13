@@ -320,6 +320,9 @@ public class ResearchMachineBlockEntity extends BlockEntity {
         tag.putFloat("instability", instabilityLevel);
         tag.putInt("research_ticks", researchTicks);
         
+        // Note: We don't need to save facing to NBT - the blockstate handles it
+        // and the structure system will rotate it correctly when placing structures
+        
         // Save player ID
         if (playerId != null) {
             tag.putUUID("player_id", playerId);
@@ -366,6 +369,10 @@ public class ResearchMachineBlockEntity extends BlockEntity {
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
+        
+        // Note: We DON'T restore facing from NBT here because the structure system
+        // handles rotation automatically when placing structures. The blockstate will
+        // already be correctly rotated by the time this loads.
         
         // Safely load state with fallback to IDLE
         try {

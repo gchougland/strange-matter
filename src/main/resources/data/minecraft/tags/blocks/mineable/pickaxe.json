@@ -14,6 +14,13 @@
     "strangematter:research_machine",
     "strangematter:reality_forge",
     "strangematter:stasis_projector",
-    "strangematter:rift_stabilizer"
+    "strangematter:rift_stabilizer",
+    "strangematter:resonite_tile",
+    "strangematter:resonite_tile_stairs",
+    "strangematter:resonite_tile_slab",
+    "strangematter:fancy_resonite_tile",
+    "strangematter:resonite_pillar",
+    "strangematter:resonite_door",
+    "strangematter:resonite_trapdoor"
   ]
 }

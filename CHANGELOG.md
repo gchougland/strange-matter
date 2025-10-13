@@ -2,6 +2,49 @@
 
 All notable changes to Strange Matter will be documented in this file.
 
+## [0.1.7] - 2025-10-12
+
+### Added
+- **Decoration Blocks**
+  - Added Resonite Tile - decorative building block crafted with 2 Resonite Ingots + 2 Stone → 4 Tiles
+  - Added Resonite Tile Stairs - stairs variant crafted with 6 Resonite Tiles → 4 Stairs
+  - Added Resonite Tile Slab - slab variant crafted with 3 Resonite Tiles → 6 Slabs
+  - Added Fancy Resonite Tile - upgraded decorative variant crafted with 2x2 Resonite Tiles → 4 Fancy Tiles
+  - Added Resonite Pillar - directional pillar block (placeable like logs) crafted with 2 Resonite Tiles → 2 Pillars
+  - Added Resonite Door - functional door that opens like wooden doors, crafted with 6 Resonite Ingots → 3 Doors
+  - Added Resonite Trapdoor - functional trapdoor with transparency, crafted with 6 Resonite Ingots → 2 Trapdoors
+  - All decoration blocks are mineable with pickaxe and have appropriate loot tables
+  - Villagers can now pathfind through and open Resonite Doors (added to `minecraft:wooden_doors` tag)
+
+- **Villager Profession: Anomaly Scientist**
+  - Added new villager profession that uses the Research Machine as their job site block
+  - Villagers will claim Research Machines and convert to Anomaly Scientists naturally
+  - Added to `acquirable_job_site` tag so unemployed villagers can acquire the profession
+  - Anomaly Scientist Labs now generate naturally in all village types (plains, desert, savanna, snowy, taiga)
+  - Structure generation uses Forge's event-based injection system (TagsUpdatedEvent + reflection)
+  - Lab structures properly integrate with village jigsaw system using `minecraft:building_entrance` connection
+  - **Novice trades**: Raw Resonite and basic resources
+  - **Apprentice trades**: Resonite Ingots and Nuggets
+  - **Journeyman trades**: Resonant Coils and basic shards (Gravitic, Spatial)
+  - **Expert trades**: Stabilized Cores and advanced shards (Chrono, Energetic)
+  - **Master trades**: Resonant Circuits, rare shards (Shade, Insight), and Resonite Blocks
+  
+### Fixed
+- **Research Machine Structure Rotation**
+  - Fixed Research Machine not rotating correctly when placed in village structures
+  - Added `rotate()` and `mirror()` methods to Research Machine block for proper jigsaw structure integration
+  - Research Machines now correctly orient themselves when village structures are rotated by the jigsaw system
+  - Updated blockstate JSON to declare all facing variants for structure compatibility
+  
+- **Placement Modifier Registration**
+  - Fixed world creation crash caused by incorrect placement modifier registration
+  - Corrected ConfiguredRarityFilter and ConfiguredCountPlacement registration to use proper double-lambda syntax
+  - Added exception handling in config access methods to prevent initialization order issues
+
+- **Player Logout Crash**
+  - Fixed occasional crash when logging out of worlds due to PlayerMorphData classloading race condition
+  - Added try-catch block and null checks to prevent NoClassDefFoundError during logout
+
 ## [0.1.6] - 2025-10-12
 
 ### Fixed
