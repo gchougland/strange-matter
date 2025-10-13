@@ -51,10 +51,14 @@ public class ConfiguredCountPlacement extends PlacementModifier {
      * Get the count value from config based on feature type
      */
     private int getCountFromConfig() {
-        return switch (featureType) {
-            case "resonite_ore" -> Config.resoniteOreVeinsPerChunk;
-            default -> 3; // Default count if unknown
-        };
+        try {
+            return switch (featureType) {
+                case "resonite_ore" -> Config.resoniteOreVeinsPerChunk;
+                default -> 3; // Default count if unknown
+            };
+        } catch (Exception e) {
+            return 3; // Safe default if config isn't loaded yet
+        }
     }
     
     /**

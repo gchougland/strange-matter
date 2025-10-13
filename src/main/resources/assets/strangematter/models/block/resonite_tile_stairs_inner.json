@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/inner_stairs",
+  "textures": {
+    "bottom": "strangematter:block/resonite_tile",
+    "top": "strangematter:block/resonite_tile",
+    "side": "strangematter:block/resonite_tile"
+  }
+}
+

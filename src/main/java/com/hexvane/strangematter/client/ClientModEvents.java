@@ -36,6 +36,10 @@ public class ClientModEvents {
             net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(StrangeMatterMod.STASIS_PROJECTOR_BLOCK_ENTITY.get(), StasisProjectorRenderer::new);
             net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(StrangeMatterMod.RIFT_STABILIZER_BLOCK_ENTITY.get(), RiftStabilizerRenderer::new);
             
+            // Set render layers for blocks with transparency
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(StrangeMatterMod.RESONITE_TRAPDOOR_BLOCK.get(), net.minecraft.client.renderer.RenderType.cutout());
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(StrangeMatterMod.RESONITE_DOOR_BLOCK.get(), net.minecraft.client.renderer.RenderType.cutout());
+            
             // Register Echo Vacuum client handler for proper first/third person rendering
             net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new EchoVacuumClientHandler());
         });

@@ -1,0 +1,17 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "strangematter:block/resonite_pillar",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "strangematter:block/resonite_pillar"
+    },
+    "axis=z": {
+      "model": "strangematter:block/resonite_pillar",
+      "x": 90
+    }
+  }
+}
+

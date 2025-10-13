@@ -1,6 +1,15 @@
 {
   "variants": {
-    "": {
+    "facing=north": {
+      "model": "strangematter:block/research_machine"
+    },
+    "facing=south": {
+      "model": "strangematter:block/research_machine"
+    },
+    "facing=east": {
+      "model": "strangematter:block/research_machine"
+    },
+    "facing=west": {
       "model": "strangematter:block/research_machine"
     }
   }

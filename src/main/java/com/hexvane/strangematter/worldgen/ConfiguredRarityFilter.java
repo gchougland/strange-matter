@@ -55,30 +55,38 @@ public class ConfiguredRarityFilter extends PlacementModifier {
      * Get the rarity value from config based on feature type
      */
     private int getRarityFromConfig() {
-        return switch (featureType) {
-            case "gravity_anomaly" -> Config.gravityAnomalyRarity;
-            case "temporal_bloom" -> Config.temporalBloomRarity;
-            case "warp_gate_anomaly" -> Config.warpGateRarity;
-            case "energetic_rift" -> Config.energeticRiftRarity;
-            case "echoing_shadow" -> Config.echoingShadowRarity;
-            case "thoughtwell" -> Config.thoughtwellRarity;
-            default -> 500; // Default rarity if unknown
-        };
+        try {
+            return switch (featureType) {
+                case "gravity_anomaly" -> Config.gravityAnomalyRarity;
+                case "temporal_bloom" -> Config.temporalBloomRarity;
+                case "warp_gate_anomaly" -> Config.warpGateRarity;
+                case "energetic_rift" -> Config.energeticRiftRarity;
+                case "echoing_shadow" -> Config.echoingShadowRarity;
+                case "thoughtwell" -> Config.thoughtwellRarity;
+                default -> 500; // Default rarity if unknown
+            };
+        } catch (Exception e) {
+            return 500; // Safe default if config isn't loaded yet
+        }
     }
     
     /**
      * Check if the feature is enabled in config
      */
     private boolean isFeatureEnabled() {
-        return switch (featureType) {
-            case "gravity_anomaly" -> Config.enableGravityAnomaly;
-            case "temporal_bloom" -> Config.enableTemporalBloom;
-            case "warp_gate_anomaly" -> Config.enableWarpGate;
-            case "energetic_rift" -> Config.enableEnergeticRift;
-            case "echoing_shadow" -> Config.enableEchoingShadow;
-            case "thoughtwell" -> Config.enableThoughtwell;
-            default -> true; // Default to enabled if unknown
-        };
+        try {
+            return switch (featureType) {
+                case "gravity_anomaly" -> Config.enableGravityAnomaly;
+                case "temporal_bloom" -> Config.enableTemporalBloom;
+                case "warp_gate_anomaly" -> Config.enableWarpGate;
+                case "energetic_rift" -> Config.enableEnergeticRift;
+                case "echoing_shadow" -> Config.enableEchoingShadow;
+                case "thoughtwell" -> Config.enableThoughtwell;
+                default -> true; // Default to enabled if unknown
+            };
+        } catch (Exception e) {
+            return true; // Safe default if config isn't loaded yet
+        }
     }
 }
 

@@ -1,0 +1,14 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "strangematter:block/resonite_tile_slab"
+    },
+    "type=top": {
+      "model": "strangematter:block/resonite_tile_slab_top"
+    },
+    "type=double": {
+      "model": "strangematter:block/resonite_tile"
+    }
+  }
+}
+

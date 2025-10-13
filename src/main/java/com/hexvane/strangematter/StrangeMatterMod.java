@@ -10,6 +10,13 @@ import com.hexvane.strangematter.sound.StrangeMatterSounds;
 import com.hexvane.strangematter.block.AnomalousGrassBlock;
 import com.hexvane.strangematter.block.ResoniteOreBlock;
 import com.hexvane.strangematter.block.ResoniteBlock;
+import com.hexvane.strangematter.block.ResoniteTileBlock;
+import com.hexvane.strangematter.block.ResoniteTileStairsBlock;
+import com.hexvane.strangematter.block.ResoniteTileSlabBlock;
+import com.hexvane.strangematter.block.FancyResoniteTileBlock;
+import com.hexvane.strangematter.block.ResonitePillarBlock;
+import com.hexvane.strangematter.block.ResoniteDoorBlock;
+import com.hexvane.strangematter.block.ResoniteTrapdoorBlock;
 import com.hexvane.strangematter.block.GraviticShardOreBlock;
 import com.hexvane.strangematter.block.ChronoShardOreBlock;
 import com.hexvane.strangematter.block.SpatialShardOreBlock;
@@ -138,6 +145,10 @@ public class StrangeMatterMod
     public static final DeferredRegister<net.minecraft.world.item.crafting.RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, MODID);
     // Create a Deferred Register to hold BiomeModifier Codecs
     public static final DeferredRegister<Codec<? extends BiomeModifier>> BIOME_MODIFIER_SERIALIZERS = DeferredRegister.create(Keys.BIOME_MODIFIER_SERIALIZERS, MODID);
+    // Create a Deferred Register to hold Villager Professions
+    public static final DeferredRegister<net.minecraft.world.entity.npc.VillagerProfession> VILLAGER_PROFESSIONS = DeferredRegister.create(ForgeRegistries.VILLAGER_PROFESSIONS, MODID);
+    // Create a Deferred Register to hold POI Types
+    public static final DeferredRegister<net.minecraft.world.entity.ai.village.poi.PoiType> POI_TYPES = DeferredRegister.create(ForgeRegistries.POI_TYPES, MODID);
 
     // Register the configurable biome modifier codec
     public static final RegistryObject<Codec<com.hexvane.strangematter.worldgen.ConfiguredBiomeModifier>> CONFIGURED_BIOME_MODIFIER = 
@@ -165,6 +176,28 @@ public class StrangeMatterMod
     // Resonite Block
     public static final RegistryObject<Block> RESONITE_BLOCK = BLOCKS.register("resonite_block", ResoniteBlock::new);
     public static final RegistryObject<Item> RESONITE_BLOCK_ITEM = ITEMS.register("resonite_block", () -> new BlockItem(RESONITE_BLOCK.get(), new Item.Properties()));
+    
+    // Resonite Decoration Blocks
+    public static final RegistryObject<Block> RESONITE_TILE_BLOCK = BLOCKS.register("resonite_tile", ResoniteTileBlock::new);
+    public static final RegistryObject<Item> RESONITE_TILE_ITEM = ITEMS.register("resonite_tile", () -> new BlockItem(RESONITE_TILE_BLOCK.get(), new Item.Properties()));
+    
+    public static final RegistryObject<Block> RESONITE_TILE_STAIRS_BLOCK = BLOCKS.register("resonite_tile_stairs", ResoniteTileStairsBlock::new);
+    public static final RegistryObject<Item> RESONITE_TILE_STAIRS_ITEM = ITEMS.register("resonite_tile_stairs", () -> new BlockItem(RESONITE_TILE_STAIRS_BLOCK.get(), new Item.Properties()));
+    
+    public static final RegistryObject<Block> FANCY_RESONITE_TILE_BLOCK = BLOCKS.register("fancy_resonite_tile", FancyResoniteTileBlock::new);
+    public static final RegistryObject<Item> FANCY_RESONITE_TILE_ITEM = ITEMS.register("fancy_resonite_tile", () -> new BlockItem(FANCY_RESONITE_TILE_BLOCK.get(), new Item.Properties()));
+    
+    public static final RegistryObject<Block> RESONITE_PILLAR_BLOCK = BLOCKS.register("resonite_pillar", ResonitePillarBlock::new);
+    public static final RegistryObject<Item> RESONITE_PILLAR_ITEM = ITEMS.register("resonite_pillar", () -> new BlockItem(RESONITE_PILLAR_BLOCK.get(), new Item.Properties()));
+    
+    public static final RegistryObject<Block> RESONITE_DOOR_BLOCK = BLOCKS.register("resonite_door", ResoniteDoorBlock::new);
+    public static final RegistryObject<Item> RESONITE_DOOR_ITEM = ITEMS.register("resonite_door", () -> new net.minecraft.world.item.DoubleHighBlockItem(RESONITE_DOOR_BLOCK.get(), new Item.Properties()));
+    
+    public static final RegistryObject<Block> RESONITE_TILE_SLAB_BLOCK = BLOCKS.register("resonite_tile_slab", ResoniteTileSlabBlock::new);
+    public static final RegistryObject<Item> RESONITE_TILE_SLAB_ITEM = ITEMS.register("resonite_tile_slab", () -> new BlockItem(RESONITE_TILE_SLAB_BLOCK.get(), new Item.Properties()));
+    
+    public static final RegistryObject<Block> RESONITE_TRAPDOOR_BLOCK = BLOCKS.register("resonite_trapdoor", ResoniteTrapdoorBlock::new);
+    public static final RegistryObject<Item> RESONITE_TRAPDOOR_ITEM = ITEMS.register("resonite_trapdoor", () -> new BlockItem(RESONITE_TRAPDOOR_BLOCK.get(), new Item.Properties()));
     
     // Shard Ore Blocks
     public static final RegistryObject<Block> GRAVITIC_SHARD_ORE_BLOCK = BLOCKS.register("gravitic_shard_ore", GraviticShardOreBlock::new);
@@ -279,6 +312,40 @@ public class StrangeMatterMod
     public static final RegistryObject<Item> STASIS_PROJECTOR_ITEM = ITEMS.register("stasis_projector", () -> new BlockItem(STASIS_PROJECTOR_BLOCK.get(), new Item.Properties()));
     public static final RegistryObject<BlockEntityType<com.hexvane.strangematter.block.StasisProjectorBlockEntity>> STASIS_PROJECTOR_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("stasis_projector", 
         () -> BlockEntityType.Builder.of((pos, state) -> new com.hexvane.strangematter.block.StasisProjectorBlockEntity(pos, state), STASIS_PROJECTOR_BLOCK.get()).build(null));
+
+    // Register POI Type for Research Machine (villager job site)
+    // We'll use a lazy supplier to get block states when they're actually available
+    public static final RegistryObject<net.minecraft.world.entity.ai.village.poi.PoiType> RESEARCH_MACHINE_POI = POI_TYPES.register("research_machine_poi",
+        () -> {
+            try {
+                var blockStates = RESEARCH_MACHINE_BLOCK.get().getStateDefinition().getPossibleStates();
+                return new net.minecraft.world.entity.ai.village.poi.PoiType(
+                    com.google.common.collect.ImmutableSet.copyOf(blockStates),
+                    1, 1);
+            } catch (Exception e) {
+                // Fallback to empty set if block not yet initialized
+                return new net.minecraft.world.entity.ai.village.poi.PoiType(
+                    com.google.common.collect.ImmutableSet.of(),
+                    1, 1);
+            }
+        });
+
+    // Register Anomaly Scientist Villager Profession
+    public static final RegistryObject<net.minecraft.world.entity.npc.VillagerProfession> ANOMALY_SCIENTIST = VILLAGER_PROFESSIONS.register("anomaly_scientist",
+        () -> {
+            net.minecraft.resources.ResourceKey<net.minecraft.world.entity.ai.village.poi.PoiType> poiKey = 
+                net.minecraft.resources.ResourceKey.create(
+                    net.minecraft.core.registries.Registries.POINT_OF_INTEREST_TYPE,
+                    new net.minecraft.resources.ResourceLocation(MODID, "research_machine_poi"));
+            
+            return new net.minecraft.world.entity.npc.VillagerProfession(
+                "anomaly_scientist",
+                holder -> holder.is(poiKey),
+                holder -> holder.is(poiKey),
+                com.google.common.collect.ImmutableSet.of(),
+                com.google.common.collect.ImmutableSet.of(),
+                net.minecraft.sounds.SoundEvents.VILLAGER_WORK_CLERIC);
+        });
 
     // Particle Types
     public static final RegistryObject<net.minecraft.core.particles.SimpleParticleType> ENERGY_ABSORPTION_PARTICLE = PARTICLE_TYPES.register("energy_absorption", 
@@ -406,6 +473,13 @@ public class StrangeMatterMod
                 output.accept(STASIS_PROJECTOR_ITEM.get());
                 output.accept(RESONITE_ORE_ITEM.get());
                 output.accept(RESONITE_BLOCK_ITEM.get());
+                output.accept(RESONITE_TILE_ITEM.get());
+                output.accept(RESONITE_TILE_STAIRS_ITEM.get());
+                output.accept(RESONITE_TILE_SLAB_ITEM.get());
+                output.accept(FANCY_RESONITE_TILE_ITEM.get());
+                output.accept(RESONITE_PILLAR_ITEM.get());
+                output.accept(RESONITE_DOOR_ITEM.get());
+                output.accept(RESONITE_TRAPDOOR_ITEM.get());
                 output.accept(GRAVITIC_SHARD_ORE_ITEM.get());
                 output.accept(CHRONO_SHARD_ORE_ITEM.get());
                 output.accept(SPATIAL_SHARD_ORE_ITEM.get());
@@ -477,6 +551,9 @@ public class StrangeMatterMod
         PARTICLE_TYPES.register(modEventBus);
         // Register the Deferred Register to the mod event bus so biome modifier serializers get registered
         BIOME_MODIFIER_SERIALIZERS.register(modEventBus);
+        // Register villager professions and POI types
+        VILLAGER_PROFESSIONS.register(modEventBus);
+        POI_TYPES.register(modEventBus);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
@@ -499,6 +576,17 @@ public class StrangeMatterMod
             com.hexvane.strangematter.research.ScannableObjectRegistry.init();
             // Initialize research nodes on server as well (not just in client screens)
             com.hexvane.strangematter.research.ResearchNodeRegistry.initializeDefaultNodes();
+            
+            // Debug: Log POI type information
+            LOGGER.info("Research Machine POI registered: {}", RESEARCH_MACHINE_POI.getId());
+            LOGGER.info("Research Machine POI block states: {}", 
+                RESEARCH_MACHINE_POI.get().matchingStates().size());
+            LOGGER.info("Anomaly Scientist profession registered: {}", ANOMALY_SCIENTIST.getId());
+            
+            // Log the actual block states for debugging
+            RESEARCH_MACHINE_POI.get().matchingStates().forEach(state -> {
+                LOGGER.info("  - POI state: {}", state);
+            });
         });
     }
     

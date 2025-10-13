@@ -52,7 +52,14 @@ public class PlayerMorphEventHandler {
      */
     @SubscribeEvent
     public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
-        Player player = event.getEntity();
-        PlayerMorphData.clearMorph(player.getUUID());
+        try {
+            Player player = event.getEntity();
+            if (player != null) {
+                PlayerMorphData.clearMorph(player.getUUID());
+            }
+        } catch (Exception e) {
+            // Silently catch any errors during logout to prevent crashes
+            // This can happen if PlayerMorphData hasn't been loaded yet
+        }
     }
 }
