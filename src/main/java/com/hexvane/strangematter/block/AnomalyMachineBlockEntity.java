@@ -46,7 +46,7 @@ public abstract class AnomalyMachineBlockEntity extends BaseMachineBlockEntity {
     @Override
     protected void clientTick() {
         // Spawn particles if anomaly is detected
-        if (spawnParticles && hasNearbyAnomaly && tickCounter % particleSpawnRate == 0) {
+        if (spawnParticles && hasNearbyAnomaly && level.getGameTime() % particleSpawnRate == 0) {
             spawnAnomalyParticles();
         }
     }

@@ -72,8 +72,8 @@ public class ResonantBurnerBlockEntity extends BaseMachineBlockEntity {
         this.maxEnergyStorage = com.hexvane.strangematter.Config.resonantBurnerEnergyStorage;
         this.energyStorage.setCapacity(maxEnergyStorage);
         
-        // Configure energy input sides (all sides by default)
-        boolean[] inputSides = {true, true, true, true, true, true};
+        // Configure energy input sides (NO INPUT - this is a generator)
+        boolean[] inputSides = {false, false, false, false, false, false};
         this.setEnergyInputSides(inputSides);
         
         // Configure energy output sides (all sides for power distribution)
@@ -86,19 +86,20 @@ public class ResonantBurnerBlockEntity extends BaseMachineBlockEntity {
         return com.hexvane.strangematter.Config.resonantBurnerTransferRate;
     }
     
+    @Override
+    protected MachineEnergyRole getEnergyRole() {
+        return MachineEnergyRole.GENERATOR; // Explicitly define as generator
+    }
+    
+    @Override
+    protected void processMachine() {
+        // Process fuel burning and energy generation every tick
+        processFuelBurning();
+    }
+    
     public static void tick(Level level, BlockPos pos, BlockState state, ResonantBurnerBlockEntity blockEntity) {
-        blockEntity.tickCounter++;
-        
-        // Process fuel burning and energy generation
-        blockEntity.processFuelBurning();
-        
-        // Try to send energy to adjacent blocks
-        blockEntity.trySendEnergy();
-        
-        // Handle client-side effects
-        if (level.isClientSide) {
-            blockEntity.clientTick();
-        }
+        // Use the base class tick method which calls processMachine() every tick
+        BaseMachineBlockEntity.tick(level, pos, state, blockEntity);
     }
     
     private void processFuelBurning() {
@@ -115,8 +116,11 @@ public class ResonantBurnerBlockEntity extends BaseMachineBlockEntity {
                 if (energyStorage.getEnergyStored() < energyStorage.getMaxEnergyStored()) {
                     int energyToAdd = Math.min(energyPerTick, energyStorage.getMaxEnergyStored() - energyStorage.getEnergyStored());
                     if (energyToAdd > 0) {
+                        int oldEnergy = energyStorage.getEnergyStored();
                         energyStorage.receiveEnergy(energyToAdd, false);
                         shouldUpdate = true;
+                        syncEnergyToClient();
+                        
                     }
                 }
             } else {
@@ -171,12 +175,6 @@ public class ResonantBurnerBlockEntity extends BaseMachineBlockEntity {
                 z + (level.getRandom().nextDouble() - 0.5) * 0.5, 
                 0, 0.1, 0);
         }
-    }
-    
-    @Override
-    protected void processMachine() {
-        // Process fuel burning and energy generation
-        processFuelBurning();
     }
     
     // Container interface methods

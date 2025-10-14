@@ -25,7 +25,6 @@ public class ResonanceCondenserMenu extends BaseMachineMenu {
         // Add the ContainerData to the menu for synchronization
         if (this.dataAccess != null) {
             this.addDataSlots(this.dataAccess);
-            System.out.println("Server-side: Added ContainerData with " + this.dataAccess.getCount() + " slots");
         } else {
             System.out.println("Server-side: dataAccess is null!");
         }

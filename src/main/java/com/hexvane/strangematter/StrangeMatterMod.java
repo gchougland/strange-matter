@@ -107,7 +107,7 @@ public class StrangeMatterMod
     // Attribute modifier ID for low gravity effect
     public static final java.util.UUID LOW_GRAVITY_MODIFIER_ID = java.util.UUID.fromString("12345678-1234-1234-1234-123456789abc");
     // Directly reference a slf4j logger
-    private static final Logger LOGGER = LogUtils.getLogger();
+    public static final Logger LOGGER = LogUtils.getLogger();
     // Create a Deferred Register to hold Blocks which will all be registered under the "strangematter" namespace
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MODID);
     // Create a Deferred Register to hold Items which will all be registered under the "strangematter" namespace
@@ -313,6 +313,12 @@ public class StrangeMatterMod
     public static final RegistryObject<BlockEntityType<com.hexvane.strangematter.block.StasisProjectorBlockEntity>> STASIS_PROJECTOR_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("stasis_projector", 
         () -> BlockEntityType.Builder.of((pos, state) -> new com.hexvane.strangematter.block.StasisProjectorBlockEntity(pos, state), STASIS_PROJECTOR_BLOCK.get()).build(null));
 
+    // Resonant Conduit Block
+    public static final RegistryObject<Block> RESONANT_CONDUIT_BLOCK = BLOCKS.register("resonant_conduit", com.hexvane.strangematter.block.ResonantConduitBlock::new);
+    public static final RegistryObject<Item> RESONANT_CONDUIT_ITEM = ITEMS.register("resonant_conduit", () -> new com.hexvane.strangematter.item.ResonantConduitItem((com.hexvane.strangematter.block.ResonantConduitBlock) RESONANT_CONDUIT_BLOCK.get()));
+    public static final RegistryObject<BlockEntityType<com.hexvane.strangematter.block.ResonantConduitBlockEntity>> RESONANT_CONDUIT_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("resonant_conduit", 
+        () -> BlockEntityType.Builder.of((pos, state) -> new com.hexvane.strangematter.block.ResonantConduitBlockEntity(pos, state), RESONANT_CONDUIT_BLOCK.get()).build(null));
+
     // Register POI Type for Research Machine (villager job site)
     // We'll use a lazy supplier to get block states when they're actually available
     public static final RegistryObject<net.minecraft.world.entity.ai.village.poi.PoiType> RESEARCH_MACHINE_POI = POI_TYPES.register("research_machine_poi",
@@ -507,6 +513,7 @@ public class StrangeMatterMod
                 output.accept(CONTAINMENT_CAPSULE_TEMPORAL_BLOOM.get());
                 output.accept(CONTAINMENT_CAPSULE_THOUGHTWELL.get());
                 output.accept(CONTAINMENT_CAPSULE_WARP_GATE.get());
+                output.accept(RESONANT_CONDUIT_ITEM.get());
             }).build());
 
     public StrangeMatterMod()

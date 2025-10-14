@@ -1,0 +1,7 @@
+{
+  "parent": "block/air",
+	"textures": {
+		"particle": "strangematter:block/resonant_conduit"
+	}
+}
+

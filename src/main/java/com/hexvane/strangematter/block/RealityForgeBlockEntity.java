@@ -112,6 +112,18 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
     
     public RealityForgeBlockEntity(BlockPos pos, BlockState state) {
         super(StrangeMatterMod.REALITY_FORGE_BLOCK_ENTITY.get(), pos, state, 11); // 11 slots: 9 crafting + 1 shard + 1 output
+        
+        // Reality Forge doesn't use energy - disable all energy input/output
+        boolean[] inputSides = {false, false, false, false, false, false};
+        this.setEnergyInputSides(inputSides);
+        
+        boolean[] outputSides = {false, false, false, false, false, false};
+        this.setEnergyOutputSides(outputSides);
+    }
+    
+    @Override
+    protected MachineEnergyRole getEnergyRole() {
+        return MachineEnergyRole.ENERGY_INDEPENDENT; // Explicitly define as energy-independent
     }
     
     @Override

@@ -10,11 +10,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.IEnergyStorage;
-import com.hexvane.strangematter.energy.ResonanceEnergyStorage;
 
 import java.util.Optional;
 
@@ -23,7 +18,7 @@ import java.util.Optional;
  * Generates power by absorbing energy from nearby Energetic Rift anomalies.
  * Only outputs energy through its SOUTH face.
  */
-public class RiftStabilizerBlockEntity extends BlockEntity {
+public class RiftStabilizerBlockEntity extends BaseMachineBlockEntity {
     
     // Configurable beam offset (adjust to position beam correctly on block face)
     // These values are relative to the block center
@@ -32,49 +27,42 @@ public class RiftStabilizerBlockEntity extends BlockEntity {
     public static double BEAM_OFFSET_Y = 0.5;
     public static double BEAM_OFFSET_Z = 0.0;
     
-    private final ResonanceEnergyStorage energyStorage;
-    private final LazyOptional<IEnergyStorage> energyOptional;
-    
     private boolean isGenerating = false;
     private int currentPowerGeneration = 0;
     private EnergeticRiftEntity connectedRift = null;
     
+    // Tick counter for rift checking
+    private int riftCheckCounter = 0;
+    private static final int RIFT_CHECK_INTERVAL = 20; // Check every 20 ticks (1 second)
+    
     public RiftStabilizerBlockEntity(BlockPos pos, BlockState state) {
-        super(StrangeMatterMod.RIFT_STABILIZER_BLOCK_ENTITY.get(), pos, state);
-        this.energyStorage = new ResonanceEnergyStorage(
-            Config.riftStabilizerEnergyStorage,
-            Config.riftStabilizerEnergyPerTick * 2, // Allow internal generation (external input blocked by capability)
-            Config.riftStabilizerTransferRate
-        );
-        this.energyOptional = LazyOptional.of(() -> this.energyStorage);
+        super(StrangeMatterMod.RIFT_STABILIZER_BLOCK_ENTITY.get(), pos, state, 0); // No inventory
+        
+        // Configure energy settings for Rift Stabilizer
+        // Only output on SOUTH face, no input from any side
+        boolean[] inputSides = {false, false, false, false, false, false}; // No input
+        boolean[] outputSides = {false, false, false, false, false, false}; // Will be set to SOUTH only
+        
+        // Set energy storage configuration
+        energyStorage.setCapacity(Config.riftStabilizerEnergyStorage);
+        energyStorage.setMaxReceive(Config.riftStabilizerEnergyPerTick * 2); // Allow internal generation
+        energyStorage.setMaxExtract(Config.riftStabilizerTransferRate);
+        
+        // Configure output sides - only SOUTH face
+        Direction facing = state.getValue(RiftStabilizerBlock.FACING);
+        Direction outputFace = facing.getOpposite(); // SOUTH is opposite of where block faces
+        outputSides[outputFace.get3DDataValue()] = true;
+        
+        this.energyInputSides = inputSides;
+        this.energyOutputSides = outputSides;
+        
     }
     
     public static void tick(Level level, BlockPos pos, BlockState state, RiftStabilizerBlockEntity blockEntity) {
         if (level.isClientSide) return;
         
-        // Check for nearby Energetic Rift every 20 ticks (once per second)
-        if (level.getGameTime() % 20 == 0) {
-            blockEntity.updatePowerGeneration(level, pos);
-        }
-        
-        // Generate energy every tick
-        if (blockEntity.isGenerating && blockEntity.currentPowerGeneration > 0) {
-            int energyBefore = blockEntity.energyStorage.getEnergyStored();
-            int generated = blockEntity.energyStorage.receiveEnergy(blockEntity.currentPowerGeneration, false);
-            
-            // Only mark changed and sync if we actually generated energy
-            if (generated > 0) {
-                blockEntity.setChanged();
-                
-                // Sync to client every 20 ticks to show updated energy
-                if (level.getGameTime() % 20 == 0) {
-                    level.sendBlockUpdated(pos, state, state, 3);
-                }
-            }
-        }
-        
-        // Distribute energy to adjacent blocks on SOUTH face every tick
-        blockEntity.distributeEnergy(state);
+        // Call the base class tick method which handles energy distribution and calls processMachine()
+        BaseMachineBlockEntity.tick(level, pos, state, blockEntity);
     }
     
     /**
@@ -189,60 +177,44 @@ public class RiftStabilizerBlockEntity extends BlockEntity {
         return distance <= Config.riftStabilizerRadius;
     }
     
-    /**
-     * Distribute energy to adjacent blocks on SOUTH face only
-     */
-    private void distributeEnergy(BlockState state) {
+    @Override
+    protected MachineEnergyRole getEnergyRole() {
+        return MachineEnergyRole.GENERATOR; // Rift Stabilizer only generates energy
+    }
+    
+    @Override
+    protected void processMachine() {
         if (level == null) return;
         
-        // Get the SOUTH face based on block rotation
-        Direction facing = state.getValue(RiftStabilizerBlock.FACING);
-        Direction outputFace = facing.getOpposite(); // SOUTH is opposite of where block faces
-        
-        BlockPos adjacentPos = worldPosition.relative(outputFace);
-        BlockEntity adjacentEntity = level.getBlockEntity(adjacentPos);
-        
-        if (adjacentEntity != null) {
-            adjacentEntity.getCapability(ForgeCapabilities.ENERGY, outputFace.getOpposite()).ifPresent(adjacentStorage -> {
-                if (adjacentStorage.canReceive() && energyStorage.canExtract()) {
-                    int transferRate = Config.riftStabilizerTransferRate;
-                    int energyToSend = Math.min(energyStorage.getEnergyStored(), transferRate);
-                    if (energyToSend > 0) {
-                        int energySent = adjacentStorage.receiveEnergy(energyToSend, false);
-                        if (energySent > 0) {
-                            energyStorage.extractEnergy(energySent, false);
-                            setChanged();
-                        }
-                    }
-                }
-            });
+        // Check for nearby Energetic Rift periodically
+        riftCheckCounter++;
+        if (riftCheckCounter >= RIFT_CHECK_INTERVAL) {
+            riftCheckCounter = 0;
+            updatePowerGeneration(level, worldPosition);
         }
-    }
-    
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-        // Only provide energy capability on SOUTH face
-        if (cap == ForgeCapabilities.ENERGY) {
-            if (side != null) {
-                Direction facing = getBlockState().getValue(RiftStabilizerBlock.FACING);
-                Direction outputFace = facing.getOpposite();
+        
+        // Generate energy every tick
+        if (isGenerating && currentPowerGeneration > 0) {
+            int generated = energyStorage.receiveEnergy(currentPowerGeneration, false);
+            
+            // Only mark changed and sync if we actually generated energy
+            if (generated > 0) {
+                setChanged();
                 
-                if (side == outputFace) {
-                    return energyOptional.cast();
+                // Sync to client periodically to show updated energy
+                if (riftCheckCounter == 0) { // Sync when we check for rifts
+                    level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 2); // Use flag 2 for block entity data sync
                 }
-                return LazyOptional.empty();
             }
-            // If side is null, provide capability (for internal use)
-            return energyOptional.cast();
         }
-        return super.getCapability(cap, side);
     }
     
     @Override
-    public void invalidateCaps() {
-        super.invalidateCaps();
-        energyOptional.invalidate();
+    public net.minecraft.world.inventory.AbstractContainerMenu createMenu(int containerId, net.minecraft.world.entity.player.Inventory playerInventory) {
+        // Rift Stabilizer doesn't have a GUI
+        return null;
     }
+    
     
     @Override
     protected void saveAdditional(CompoundTag tag) {
@@ -250,6 +222,7 @@ public class RiftStabilizerBlockEntity extends BlockEntity {
         tag.putInt("energy", energyStorage.getEnergyStored());
         tag.putBoolean("isGenerating", isGenerating);
         tag.putInt("currentPowerGeneration", currentPowerGeneration);
+        tag.putInt("riftCheckCounter", riftCheckCounter);
     }
     
     @Override
@@ -258,6 +231,7 @@ public class RiftStabilizerBlockEntity extends BlockEntity {
         energyStorage.setEnergy(tag.getInt("energy"));
         isGenerating = tag.getBoolean("isGenerating");
         currentPowerGeneration = tag.getInt("currentPowerGeneration");
+        riftCheckCounter = tag.getInt("riftCheckCounter");
     }
     
     @Override
@@ -277,18 +251,7 @@ public class RiftStabilizerBlockEntity extends BlockEntity {
         return net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket.create(this);
     }
     
-    // Public getters for display and rendering
-    public ResonanceEnergyStorage getEnergyStorage() {
-        return energyStorage;
-    }
-    
-    public int getEnergyStored() {
-        return energyStorage.getEnergyStored();
-    }
-    
-    public int getMaxEnergyStored() {
-        return energyStorage.getMaxEnergyStored();
-    }
+    // Public getters for display and rendering (energy getters inherited from BaseMachineBlockEntity)
     
     public boolean isGenerating() {
         return isGenerating;

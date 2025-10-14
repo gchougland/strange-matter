@@ -17,6 +17,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.ContainerData;
 import com.hexvane.strangematter.api.block.entity.IPacketHandlerTile;
+import com.hexvane.strangematter.StrangeMatterMod;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
@@ -34,7 +35,6 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
     protected int energyLevel = 0;
     protected int maxEnergyLevel = 100;
     protected boolean isActive = false;
-    protected int tickCounter = 0;
     
     // Energy system
     protected final ResonanceEnergyStorage energyStorage;
@@ -99,14 +99,12 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
      * Main tick method - called every tick for processing
      */
     public static void tick(Level level, BlockPos pos, BlockState state, BaseMachineBlockEntity blockEntity) {
-        blockEntity.tickCounter++;
-        
-        // Try to receive energy from adjacent blocks every tick
-        blockEntity.tryReceiveEnergy();
-        
-        // Process machine logic every 20 ticks (1 second)
-        if (blockEntity.tickCounter >= 20) {
-            blockEntity.tickCounter = 0;
+        // Only process energy and machine logic on server side
+        if (!level.isClientSide) {
+            // Role-based energy transfer - only call appropriate methods
+            blockEntity.performRoleBasedEnergyTransfer();
+            
+            // Process machine logic every tick
             blockEntity.processMachine();
         }
         
@@ -120,6 +118,118 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
      * Override this to implement machine-specific processing logic
      */
     protected abstract void processMachine();
+    
+    /**
+     * Perform role-based energy transfer based on machine type.
+     * This prevents bidirectional energy flow that causes jumping energy bars.
+     */
+    protected void performRoleBasedEnergyTransfer() {
+        MachineEnergyRole role = getEnergyRole();
+        
+        switch (role) {
+            case GENERATOR:
+                // Generators only send energy out, never receive
+                trySendEnergy();
+                break;
+                
+            case CONSUMER:
+                // Consumers only receive energy, never send
+                tryReceiveEnergy();
+                break;
+                
+            case ENERGY_INDEPENDENT:
+                // Energy-independent machines don't transfer energy at all
+                break;
+                
+            case BOTH:
+                // Machines that can both generate and consume (rare case)
+                tryReceiveEnergy();
+                trySendEnergy();
+                break;
+        }
+    }
+    
+    /**
+     * Determine the energy role of this machine.
+     * Override this method in specific machine classes to define their role.
+     */
+    protected MachineEnergyRole getEnergyRole() {
+        // Default implementation: check input/output sides to determine role
+        boolean hasInputSides = false;
+        boolean hasOutputSides = false;
+        
+        for (boolean input : energyInputSides) {
+            if (input) {
+                hasInputSides = true;
+                break;
+            }
+        }
+        
+        for (boolean output : energyOutputSides) {
+            if (output) {
+                hasOutputSides = true;
+                break;
+            }
+        }
+        
+        if (hasInputSides && hasOutputSides) {
+            return MachineEnergyRole.BOTH;
+        } else if (hasInputSides) {
+            return MachineEnergyRole.CONSUMER;
+        } else if (hasOutputSides) {
+            return MachineEnergyRole.GENERATOR;
+        } else {
+            return MachineEnergyRole.ENERGY_INDEPENDENT;
+        }
+    }
+    
+    /**
+     * Check if this machine can receive energy from the given adjacent entity.
+     * This prevents generators from receiving energy from other generators.
+     */
+    protected boolean canReceiveEnergyFrom(BlockEntity adjacentEntity) {
+        // If the adjacent entity is a BaseMachineBlockEntity, check its role
+        if (adjacentEntity instanceof BaseMachineBlockEntity adjacentMachine) {
+            MachineEnergyRole adjacentRole = adjacentMachine.getEnergyRole();
+            MachineEnergyRole ourRole = getEnergyRole();
+            
+            // Only allow receiving from generators or machines that can send energy
+            return adjacentRole == MachineEnergyRole.GENERATOR || 
+                   adjacentRole == MachineEnergyRole.BOTH;
+        }
+        
+        // For non-BaseMachineBlockEntity (like conduits), allow receiving
+        return true;
+    }
+    
+    /**
+     * Check if this machine can send energy to the given adjacent entity.
+     * This prevents consumers from sending energy to other consumers.
+     */
+    protected boolean canSendEnergyTo(BlockEntity adjacentEntity) {
+        // If the adjacent entity is a BaseMachineBlockEntity, check its role
+        if (adjacentEntity instanceof BaseMachineBlockEntity adjacentMachine) {
+            MachineEnergyRole adjacentRole = adjacentMachine.getEnergyRole();
+            MachineEnergyRole ourRole = getEnergyRole();
+            
+            // Only allow sending to consumers or machines that can receive energy
+            return adjacentRole == MachineEnergyRole.CONSUMER || 
+                   adjacentRole == MachineEnergyRole.BOTH;
+        }
+        
+        // For non-BaseMachineBlockEntity (like conduits), allow sending
+        return true;
+    }
+    
+    /**
+     * Enum defining the energy roles a machine can have
+     */
+    protected enum MachineEnergyRole {
+        GENERATOR,           // Only sends energy (ResonantBurner, RiftStabilizer)
+        CONSUMER,           // Only receives energy (ResonanceCondenser)
+        BOTH,               // Can both send and receive (rare)
+        ENERGY_INDEPENDENT  // No energy transfer (RealityForge)
+    }
     
     /**
      * Override this to implement client-side effects (particles, sounds, etc.)
@@ -170,6 +280,9 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
     protected void tryReceiveEnergy() {
         if (level == null || level.isClientSide) return;
         
+        final boolean[] energyChanged = {false};
+        int initialEnergy = energyStorage.getEnergyStored();
+        
         for (Direction direction : Direction.values()) {
             if (energyInputSides[direction.ordinal()]) {
                 BlockPos adjacentPos = worldPosition.relative(direction);
@@ -178,20 +291,29 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
                 if (adjacentEntity != null) {
                     adjacentEntity.getCapability(ForgeCapabilities.ENERGY, direction.getOpposite()).ifPresent(adjacentStorage -> {
                         if (adjacentStorage.canExtract() && energyStorage.canReceive()) {
-                            int transferRate = getEnergyTransferRate();
-                            int energyToReceive = Math.min(energyStorage.getMaxEnergyStored() - energyStorage.getEnergyStored(), transferRate);
-                            if (energyToReceive > 0) {
-                                int energyReceived = adjacentStorage.extractEnergy(energyToReceive, false);
-                                if (energyReceived > 0) {
-                                    energyStorage.receiveEnergy(energyReceived, false);
-                                    setChanged();
-                                    syncToClient();
+                            // Check if the adjacent entity should be able to send energy to us
+                            if (canReceiveEnergyFrom(adjacentEntity)) {
+                                int transferRate = getEnergyTransferRate();
+                                int energyToReceive = Math.min(energyStorage.getMaxEnergyStored() - energyStorage.getEnergyStored(), transferRate);
+                                if (energyToReceive > 0) {
+                                    int energyReceived = adjacentStorage.extractEnergy(energyToReceive, false);
+                                    if (energyReceived > 0) {
+                                        energyStorage.receiveEnergy(energyReceived, false);
+                                        setChanged();
+                                        energyChanged[0] = true;
+                                        
+                                    }
                                 }
                             }
                         }
                     });
                 }
             }
+        }
+        
+        // Only sync once at the end if energy changed
+        if (energyChanged[0]) {
+            syncToClient();
         }
     }
     
@@ -201,6 +323,9 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
     protected void trySendEnergy() {
         if (level == null || level.isClientSide) return;
         
+        final boolean[] energyChanged = {false};
+        int initialEnergy = energyStorage.getEnergyStored();
+        
         for (Direction direction : Direction.values()) {
             if (energyOutputSides[direction.ordinal()]) {
                 BlockPos adjacentPos = worldPosition.relative(direction);
@@ -209,20 +334,29 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
                 if (adjacentEntity != null) {
                     adjacentEntity.getCapability(ForgeCapabilities.ENERGY, direction.getOpposite()).ifPresent(adjacentStorage -> {
                         if (adjacentStorage.canReceive() && energyStorage.canExtract()) {
-                            int transferRate = getEnergyTransferRate();
-                            int energyToSend = Math.min(energyStorage.getEnergyStored(), transferRate);
-                            if (energyToSend > 0) {
-                                int energySent = adjacentStorage.receiveEnergy(energyToSend, false);
-                                if (energySent > 0) {
-                                    energyStorage.extractEnergy(energySent, false);
-                                    setChanged();
-                                    syncToClient();
+                            // Check if the adjacent entity should be able to receive energy from us
+                            if (canSendEnergyTo(adjacentEntity)) {
+                                int transferRate = getEnergyTransferRate();
+                                int energyToSend = Math.min(energyStorage.getEnergyStored(), transferRate);
+                                if (energyToSend > 0) {
+                                    int energySent = adjacentStorage.receiveEnergy(energyToSend, false);
+                                    if (energySent > 0) {
+                                        energyStorage.extractEnergy(energySent, false);
+                                        setChanged();
+                                        energyChanged[0] = true;
+                                        
+                                    }
                                 }
                             }
                         }
                     });
                 }
             }
+        }
+        
+        // Only sync once at the end if energy changed
+        if (energyChanged[0]) {
+            syncToClient();
         }
     }
     
@@ -271,7 +405,7 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
     protected void syncToClient() {
         if (level != null && !level.isClientSide) {
             setChanged();
-            level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
+            level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 2);
         }
     }
     
@@ -360,7 +494,6 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
         tag.putInt("energy_per_tick", energyPerTick);
         tag.putInt("max_energy_storage", maxEnergyStorage);
         tag.putBoolean("is_active", isActive);
-        tag.putInt("tick_counter", tickCounter);
         tag.putInt("progress_level", progressLevel);
         tag.putInt("max_progress_level", maxProgressLevel);
         
@@ -383,7 +516,6 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
         energyPerTick = tag.getInt("energy_per_tick");
         maxEnergyStorage = tag.getInt("max_energy_storage");
         isActive = tag.getBoolean("is_active");
-        tickCounter = tag.getInt("tick_counter");
         progressLevel = tag.getInt("progress_level");
         maxProgressLevel = tag.getInt("max_progress_level");
         
@@ -401,11 +533,11 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
     
     // Getters for GUI access
     public int getEnergyLevel() {
-        return energyLevel;
+        return energyStorage.getEnergyStored();
     }
     
     public int getMaxEnergyLevel() {
-        return maxEnergyLevel;
+        return energyStorage.getMaxEnergyStored();
     }
     
     public boolean isActive() {
@@ -419,8 +551,8 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
     // IPacketHandlerTile implementation
     @Override
     public FriendlyByteBuf getStatePacket(FriendlyByteBuf buffer) {
-        buffer.writeInt(energyLevel);
-        buffer.writeInt(maxEnergyLevel);
+        buffer.writeInt(energyStorage.getEnergyStored());
+        buffer.writeInt(energyStorage.getMaxEnergyStored());
         buffer.writeBoolean(isActive);
         writeAdditionalStateData(buffer);
         return buffer;
@@ -428,9 +560,14 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
     
     @Override
     public void handleStatePacket(FriendlyByteBuf buffer) {
-        energyLevel = buffer.readInt();
-        maxEnergyLevel = buffer.readInt();
+        int storedEnergy = buffer.readInt();
+        int maxEnergy = buffer.readInt();
         isActive = buffer.readBoolean();
+        
+        // Update the actual energy storage
+        energyStorage.setEnergy(storedEnergy);
+        energyStorage.setCapacity(maxEnergy);
+        
         readAdditionalStateData(buffer);
     }
     
@@ -467,11 +604,37 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
         }
     }
     
+    /**
+     * Sync energy state to client - call this when energy changes
+     */
+    protected void syncEnergyToClient() {
+        if (level != null && !level.isClientSide) {
+            setChanged();
+            // Trigger block entity data sync to client
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 2);
+        }
+    }
+    
+    
     // Capability support
     @Override
     public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
         if (cap == ForgeCapabilities.ENERGY) {
-            return energyOptional.cast();
+            // Only expose energy capability if the side allows it
+            if (side != null) {
+                // Check if this side allows input or output
+                boolean canInput = energyInputSides[side.ordinal()];
+                boolean canOutput = energyOutputSides[side.ordinal()];
+                
+                if (canInput || canOutput) {
+                    return energyOptional.cast();
+                } else {
+                    return LazyOptional.empty();
+                }
+            } else {
+                // If side is null (internal access), always allow
+                return energyOptional.cast();
+            }
         }
         return super.getCapability(cap, side);
     }

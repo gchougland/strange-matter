@@ -2,6 +2,63 @@
 
 All notable changes to Strange Matter will be documented in this file.
 
+## [0.2.0] - 2025-10-13
+
+### Added
+
+- **Resonant Conduits**
+  - Added Resonant Conduit block for transferring resonant energy between machines
+  - Modular conduit system that connects from any side depending on adjacent machines or conduits
+  - Dynamic rendering system with custom UV mapping:
+    - Straight connections: 5x5 pixel tubes
+    - Corners/intersections: 7x7 pixel joint in center with 5x5 tubes extending
+    - Joint only renders when needed (not for straight across connections)
+    - Single texture with different UV coordinates for tubes and joints
+  - Custom block entity renderer with proper texture atlas integration
+  - Crafting recipe: 4 Resonite Ingots + 4 Resonant Circuits → 8 Resonant Conduits
+  - Conduits act as pure energy routers (no energy storage) with direct source-to-sink routing
+  - Event-driven network updates with BFS pathfinding for energy transfer optimization
+  - Compatible with all existing energy machines (Resonant Burner, Resonance Condenser, etc.)
+
+- **Enhanced Energy System**
+  - **Role-Based Energy Transfer**: Machines now have defined energy roles (GENERATOR, CONSUMER, BOTH, ENERGY_INDEPENDENT)
+  - **Unidirectional Energy Flow**: 
+    - Resonant Burner: Only supplies energy (GENERATOR role)
+    - Resonance Condenser: Only accepts energy (CONSUMER role)
+    - Reality Forge: Energy independent (ENERGY_INDEPENDENT role)
+    - Rift Stabilizer: Only supplies energy (GENERATOR role)
+  - **Improved Client/Server Synchronization**: Fixed energy bar jumping issues with proper block entity data sync
+  - **Every-Tick Processing**: All machines now process every tick instead of every 20 ticks for better responsiveness
+  - **Capability Exposure Control**: Energy capabilities only exposed on configured input/output sides
+
+### Fixed
+
+- **Energy Transfer Issues**
+  - Fixed energy bars jumping up and down during transfer operations
+  - Fixed client/server synchronization conflicts by ensuring energy logic runs only server-side
+  - Fixed energy transfer between multiple machines of the same type (generators no longer transfer to each other)
+  - Fixed conduit allowing cross-transfer between incompatible machine types
+  - Improved energy transfer batching to prevent multiple sync packets from conflicting
+
+- **Rift Stabilizer Integration**
+  - Modified Rift Stabilizer to extend BaseMachineBlockEntity for full integration with role-based energy system
+  - Fixed Rift Stabilizer energy generation by resolving internal energy storage configuration
+  - Added proper tick counter system for rift detection (every 20 ticks) while maintaining every-tick energy generation
+  - Fixed energy output configuration to match block facing direction
+
+- **Machine Timing**
+  - Fixed BaseMachineBlockEntity to call processMachine() every tick instead of every 20 ticks
+  - Individual machines can now implement their own internal timing for specific operations
+  - Improved responsiveness for all energy generation and consumption operations
+  - Removed global tick synchronization in favor of distributed processing
+
+- **Village Structure Integration**
+  - Fixed `NoSuchFieldException: rawTemplates` error on dedicated servers
+  - Enhanced field detection to handle both obfuscated (f_210559_, f_210560_) and deobfuscated (rawTemplates, templates) field names
+  - Added robust error handling and debug logging for field discovery
+  - Village structure injection now works reliably across all server environments (client, server, dedicated server)
+
+
 ## [0.1.7] - 2025-10-12
 
 ### Added

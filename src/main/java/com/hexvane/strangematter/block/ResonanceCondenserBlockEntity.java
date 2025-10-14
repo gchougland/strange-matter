@@ -57,13 +57,21 @@ public class ResonanceCondenserBlockEntity extends BaseMachineBlockEntity {
         this.setEnergyOutputSides(outputSides);
     }
     
+    @Override
+    protected MachineEnergyRole getEnergyRole() {
+        return MachineEnergyRole.CONSUMER; // Explicitly define as consumer
+    }
+    
     public static void tick(Level level, BlockPos pos, BlockState state, ResonanceCondenserBlockEntity blockEntity) {
         blockEntity.tickCounter++;
         
-        blockEntity.processResonance();
+        // Only process machine logic on server side
+        if (!level.isClientSide) {
+            blockEntity.processResonance();
+        }
         
-        // Spawn particles every 5 ticks (4 times per second)
-        if (blockEntity.tickCounter % 5 == 0) {
+        // Spawn particles every 5 ticks (4 times per second) - client side only
+        if (level.isClientSide && blockEntity.tickCounter % 5 == 0) {
             blockEntity.spawnParticles(level, pos);
         }
     }
@@ -84,6 +92,7 @@ public class ResonanceCondenserBlockEntity extends BaseMachineBlockEntity {
                     setActive(false);
                     return;
                 }
+                
                 setActive(true);
                 
                 int progressSpeed = com.hexvane.strangematter.Config.resonanceCondenserProgressSpeed;

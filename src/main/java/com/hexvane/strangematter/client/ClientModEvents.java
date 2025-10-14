@@ -35,6 +35,7 @@ public class ClientModEvents {
             net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(StrangeMatterMod.RESEARCH_MACHINE_BLOCK_ENTITY.get(), ResearchMachineRenderer::new);
             net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(StrangeMatterMod.STASIS_PROJECTOR_BLOCK_ENTITY.get(), StasisProjectorRenderer::new);
             net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(StrangeMatterMod.RIFT_STABILIZER_BLOCK_ENTITY.get(), RiftStabilizerRenderer::new);
+            net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(StrangeMatterMod.RESONANT_CONDUIT_BLOCK_ENTITY.get(), ResonantConduitRenderer::new);
             
             // Set render layers for blocks with transparency
             net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(StrangeMatterMod.RESONITE_TRAPDOOR_BLOCK.get(), net.minecraft.client.renderer.RenderType.cutout());

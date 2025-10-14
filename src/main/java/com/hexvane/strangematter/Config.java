@@ -122,6 +122,12 @@ public class Config {
     private static final ForgeConfigSpec.IntValue RIFT_STABILIZER_TRANSFER_RATE;
     private static final ForgeConfigSpec.DoubleValue RIFT_STABILIZER_RADIUS;
     private static final ForgeConfigSpec.IntValue RIFT_STABILIZER_MAX_PER_RIFT;
+    
+    // Resonant Conduit
+    private static final ForgeConfigSpec.IntValue RESONANT_CONDUIT_TRANSFER_RATE;
+    private static final ForgeConfigSpec.IntValue RESONANT_CONDUIT_NETWORK_UPDATE_INTERVAL;
+    private static final ForgeConfigSpec.IntValue RESONANT_CONDUIT_MAX_NETWORK_SIZE;
+    private static final ForgeConfigSpec.DoubleValue RESONANT_CONDUIT_DISTANCE_PENALTY;
 
     // ========================================
     // RESEARCH SYSTEM CONFIG VALUES
@@ -460,6 +466,22 @@ public class Config {
                 .defineInRange("maxPerRift", 3, 1, 10);
         BUILDER.pop();
         
+        // Resonant Conduit
+        BUILDER.comment("Resonant Conduit Settings").push("resonant_conduit");
+        RESONANT_CONDUIT_TRANSFER_RATE = BUILDER
+                .comment("Energy transfer rate per tick through conduits (RE/t)")
+                .defineInRange("transferRate", 500, 1, 100000);
+        RESONANT_CONDUIT_NETWORK_UPDATE_INTERVAL = BUILDER
+                .comment("Network cache update interval in ticks (20 ticks = 1 second)")
+                .defineInRange("networkUpdateInterval", 20, 1, 600);
+        RESONANT_CONDUIT_MAX_NETWORK_SIZE = BUILDER
+                .comment("Maximum network size before performance optimization kicks in")
+                .defineInRange("maxNetworkSize", 64, 4, 1000);
+        RESONANT_CONDUIT_DISTANCE_PENALTY = BUILDER
+                .comment("Energy transfer penalty per block distance (0.0 = no penalty, 0.1 = 10% loss per block)")
+                .defineInRange("distancePenalty", 0.05, 0.0, 1.0);
+        BUILDER.pop();
+        
         BUILDER.pop(); // energy
         
         // ========================================
@@ -739,6 +761,12 @@ public class Config {
     public static double riftStabilizerRadius;
     public static int riftStabilizerMaxPerRift;
     
+    // Resonant Conduit
+    public static int resonantConduitTransferRate;
+    public static int resonantConduitNetworkUpdateInterval;
+    public static int resonantConduitMaxNetworkSize;
+    public static double resonantConduitDistancePenalty;
+    
     // Research system
     public static double researchCostMultiplier;
     
@@ -890,6 +918,12 @@ public class Config {
         riftStabilizerTransferRate = RIFT_STABILIZER_TRANSFER_RATE.get();
         riftStabilizerRadius = RIFT_STABILIZER_RADIUS.get();
         riftStabilizerMaxPerRift = RIFT_STABILIZER_MAX_PER_RIFT.get();
+        
+        // Resonant Conduit
+        resonantConduitTransferRate = RESONANT_CONDUIT_TRANSFER_RATE.get();
+        resonantConduitNetworkUpdateInterval = RESONANT_CONDUIT_NETWORK_UPDATE_INTERVAL.get();
+        resonantConduitMaxNetworkSize = RESONANT_CONDUIT_MAX_NETWORK_SIZE.get();
+        resonantConduitDistancePenalty = RESONANT_CONDUIT_DISTANCE_PENALTY.get();
         
         // Research system
         researchCostMultiplier = RESEARCH_COST_MULTIPLIER.get();
