@@ -142,6 +142,7 @@ public class Config {
     private static final ForgeConfigSpec.IntValue ECHOFORM_IMPRINTER_COST;
     private static final ForgeConfigSpec.IntValue REALITY_FORGE_COST;
     private static final ForgeConfigSpec.IntValue WARP_GUN_COST;
+    private static final ForgeConfigSpec.IntValue GRAVITON_HAMMER_COST;
     private static final ForgeConfigSpec.IntValue STASIS_PROJECTOR_COST;
     private static final ForgeConfigSpec.IntValue RIFT_STABILIZER_COST;
     private static final ForgeConfigSpec.IntValue GRAVITY_ANOMALIES_COST;
@@ -150,6 +151,17 @@ public class Config {
     private static final ForgeConfigSpec.IntValue ENERGY_ANOMALIES_COST;
     private static final ForgeConfigSpec.IntValue SHADOW_ANOMALIES_COST;
     private static final ForgeConfigSpec.IntValue COGNITIVE_ANOMALIES_COST;
+
+    // ========================================
+    // GRAVITON HAMMER CONFIG VALUES
+    // ========================================
+    
+    private static final ForgeConfigSpec.IntValue GRAVITON_HAMMER_CHARGE_LEVEL_1_TIME;
+    private static final ForgeConfigSpec.IntValue GRAVITON_HAMMER_CHARGE_LEVEL_2_TIME;
+    private static final ForgeConfigSpec.IntValue GRAVITON_HAMMER_CHARGE_LEVEL_3_TIME;
+    private static final ForgeConfigSpec.IntValue GRAVITON_HAMMER_TUNNEL_DEPTH_LEVEL_1;
+    private static final ForgeConfigSpec.IntValue GRAVITON_HAMMER_TUNNEL_DEPTH_LEVEL_2;
+    private static final ForgeConfigSpec.IntValue GRAVITON_HAMMER_TUNNEL_DEPTH_LEVEL_3;
 
     // ========================================
     // RESEARCH MINIGAMES CONFIG VALUES
@@ -527,6 +539,35 @@ public class Config {
                 .comment("Warp Gun total cost (-1 for default: Space 15, Energy 10)")
                 .defineInRange("warpGun", -1, -1, 10000);
         
+        GRAVITON_HAMMER_COST = BUILDER
+                .comment("Graviton Hammer total cost (-1 for default: Gravity 15, Energy 10)")
+                .defineInRange("gravitonHammer", -1, -1, 10000);
+        
+        // Graviton Hammer configuration
+        GRAVITON_HAMMER_CHARGE_LEVEL_1_TIME = BUILDER
+                .comment("Charge time for level 1 in ticks (20 ticks = 1 second)")
+                .defineInRange("gravitonHammerChargeLevel1Time", 20, 1, 200);
+        
+        GRAVITON_HAMMER_CHARGE_LEVEL_2_TIME = BUILDER
+                .comment("Charge time for level 2 in ticks (40 ticks = 2 seconds)")
+                .defineInRange("gravitonHammerChargeLevel2Time", 40, 1, 200);
+        
+        GRAVITON_HAMMER_CHARGE_LEVEL_3_TIME = BUILDER
+                .comment("Charge time for level 3 in ticks (60 ticks = 3 seconds)")
+                .defineInRange("gravitonHammerChargeLevel3Time", 60, 1, 200);
+        
+        GRAVITON_HAMMER_TUNNEL_DEPTH_LEVEL_1 = BUILDER
+                .comment("Tunnel depth for charge level 1")
+                .defineInRange("gravitonHammerTunnelDepthLevel1", 3, 1, 50);
+        
+        GRAVITON_HAMMER_TUNNEL_DEPTH_LEVEL_2 = BUILDER
+                .comment("Tunnel depth for charge level 2")
+                .defineInRange("gravitonHammerTunnelDepthLevel2", 6, 1, 50);
+        
+        GRAVITON_HAMMER_TUNNEL_DEPTH_LEVEL_3 = BUILDER
+                .comment("Tunnel depth for charge level 3")
+                .defineInRange("gravitonHammerTunnelDepthLevel3", 9, 1, 50);
+        
         STASIS_PROJECTOR_COST = BUILDER
                 .comment("Stasis Projector total cost (-1 for default: Gravity 5, Time 5)")
                 .defineInRange("stasisProjector", -1, -1, 10000);
@@ -777,6 +818,7 @@ public class Config {
     public static int echoformImprinterCost;
     public static int realityForgeCost;
     public static int warpGunCost;
+    public static int gravitonHammerCost;
     public static int stasisProjectorCost;
     public static int riftStabilizerCost;
     public static int gravityAnomaliesCost;
@@ -785,6 +827,14 @@ public class Config {
     public static int energyAnomaliesCost;
     public static int shadowAnomaliesCost;
     public static int cognitiveAnomaliesCost;
+    
+    // Graviton Hammer
+    public static int gravitonHammerChargeLevel1Time;
+    public static int gravitonHammerChargeLevel2Time;
+    public static int gravitonHammerChargeLevel3Time;
+    public static int gravitonHammerTunnelDepthLevel1;
+    public static int gravitonHammerTunnelDepthLevel2;
+    public static int gravitonHammerTunnelDepthLevel3;
     
     // Minigames
     public static boolean enableMinigames;
@@ -935,6 +985,7 @@ public class Config {
         echoformImprinterCost = ECHOFORM_IMPRINTER_COST.get();
         realityForgeCost = REALITY_FORGE_COST.get();
         warpGunCost = WARP_GUN_COST.get();
+        gravitonHammerCost = GRAVITON_HAMMER_COST.get();
         stasisProjectorCost = STASIS_PROJECTOR_COST.get();
         riftStabilizerCost = RIFT_STABILIZER_COST.get();
         gravityAnomaliesCost = GRAVITY_ANOMALIES_COST.get();
@@ -943,6 +994,14 @@ public class Config {
         energyAnomaliesCost = ENERGY_ANOMALIES_COST.get();
         shadowAnomaliesCost = SHADOW_ANOMALIES_COST.get();
         cognitiveAnomaliesCost = COGNITIVE_ANOMALIES_COST.get();
+        
+        // Graviton Hammer
+        gravitonHammerChargeLevel1Time = GRAVITON_HAMMER_CHARGE_LEVEL_1_TIME.get();
+        gravitonHammerChargeLevel2Time = GRAVITON_HAMMER_CHARGE_LEVEL_2_TIME.get();
+        gravitonHammerChargeLevel3Time = GRAVITON_HAMMER_CHARGE_LEVEL_3_TIME.get();
+        gravitonHammerTunnelDepthLevel1 = GRAVITON_HAMMER_TUNNEL_DEPTH_LEVEL_1.get();
+        gravitonHammerTunnelDepthLevel2 = GRAVITON_HAMMER_TUNNEL_DEPTH_LEVEL_2.get();
+        gravitonHammerTunnelDepthLevel3 = GRAVITON_HAMMER_TUNNEL_DEPTH_LEVEL_3.get();
         
         // Minigames
         enableMinigames = ENABLE_MINIGAMES.get();

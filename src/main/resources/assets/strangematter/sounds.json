@@ -147,5 +147,9 @@
   "stasis_projector_off": {
     "sounds": ["strangematter:stasis_projector_off"],
     "subtitle": "Stasis Projector deactivated"
+  },
+  "graviton_chargeup": {
+    "sounds": ["strangematter:graviton_chargeup"],
+    "subtitle": "Graviton Hammer charging"
   }
 }
