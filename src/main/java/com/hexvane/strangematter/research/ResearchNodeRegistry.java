@@ -57,6 +57,7 @@ public class ResearchNodeRegistry {
             case "echoform_imprinter" -> Config.echoformImprinterCost;
             case "reality_forge" -> Config.realityForgeCost;
             case "warp_gun" -> Config.warpGunCost;
+            case "graviton_hammer" -> Config.gravitonHammerCost;
             case "stasis_projector" -> Config.stasisProjectorCost;
             case "rift_stabilizer" -> Config.riftStabilizerCost;
             case "gravity_anomalies" -> Config.gravityAnomaliesCost;
@@ -286,6 +287,18 @@ public class ResearchNodeRegistry {
             applyConfigCosts("warp_gun", Map.of(ResearchType.SPACE, 15, ResearchType.ENERGY, 10)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.WARP_GUN.get()),
+            true,
+            List.of("reality_forge") // Requires reality forge
+        ));
+        
+        // Graviton Hammer tool (locked) - Connected to reality_forge
+        register(new ResearchNode(
+            "graviton_hammer",
+            "general",
+            -160, 200,
+            applyConfigCosts("graviton_hammer", Map.of(ResearchType.GRAVITY, 20, ResearchType.ENERGY, 5)),
+            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.GRAVITON_HAMMER.get()),
             true,
             List.of("reality_forge") // Requires reality forge
         ));

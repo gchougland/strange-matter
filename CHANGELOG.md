@@ -2,6 +2,37 @@
 
 All notable changes to Strange Matter will be documented in this file.
 
+## [0.2.1] - 2025-10-14
+
+### Added
+
+- **Graviton Hammer**
+  - New powerful mining tool that manipulates gravity for area-of-effect mining
+  - **Left-click mining**: Mines a 3x3 area of blocks with orientation based on block face
+    - Horizontal plane mining for top/bottom faces
+    - Perpendicular plane mining for cardinal faces
+  - **Right-click charging**: Hold to charge up the hammer with three distinct levels
+    - **Level 1**: 3-block deep tunnel (configurable, default: 1 second charge)
+    - **Level 2**: 6-block deep tunnel (configurable, default: 2 seconds charge)  
+    - **Level 3**: 9-block deep tunnel (configurable, default: 3 seconds charge)
+  - **Charge release**: Mines a 3x3 tunnel extending in the direction you're looking
+  - **Tool properties**: Diamond pickaxe mining level, iron pickaxe speed, infinite durability, cannot be enchanted
+  - **Research integration**: Unlocked via "Graviton Hammer" research node requiring Reality Forge
+  - **Configuration support**: All charge times and tunnel depths configurable via config file
+    - `gravitonHammerChargeLevel1Time` (default: 20 ticks)
+    - `gravitonHammerChargeLevel2Time` (default: 40 ticks)
+    - `gravitonHammerChargeLevel3Time` (default: 60 ticks)
+    - `gravitonHammerTunnelDepthLevel1` (default: 3 blocks)
+    - `gravitonHammerTunnelDepthLevel2` (default: 6 blocks)
+    - `gravitonHammerTunnelDepthLevel3` (default: 9 blocks)
+
+### Fixed
+
+- **Research System Display**
+  - Fixed Reality Forge recipe display in research info pages to show correct shard quantities (e.g., "6x" instead of just showing one of each shard)
+  - Improved info page content formatting and reduced page lengths to fit properly within GUI constraints
+  - Updated research documentation tone from "all caps exclamations" to scientific journal style
+
 ## [0.2.0] - 2025-10-13
 
 ### Added

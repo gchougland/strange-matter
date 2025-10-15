@@ -67,6 +67,9 @@ public class StrangeMatterSounds {
     public static final RegistryObject<SoundEvent> STASIS_PROJECTOR_ON = registerSoundEvent("stasis_projector_on");
     public static final RegistryObject<SoundEvent> STASIS_PROJECTOR_OFF = registerSoundEvent("stasis_projector_off");
 
+    // Graviton Hammer sounds
+    public static final RegistryObject<SoundEvent> GRAVITON_CHARGEUP = registerSoundEvent("graviton_chargeup");
+
     private static RegistryObject<SoundEvent> registerSoundEvent(String name) {
         return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(StrangeMatterMod.MODID, name)));
     }

@@ -1,0 +1,29 @@
+{
+  "type": "strangematter:reality_forge",
+  "pattern": [
+    "RCR",
+    "RGR",
+    " I "
+  ],
+  "key": {
+    "R": {
+      "item": "strangematter:resonite_block"
+    },
+    "G": {
+      "item": "strangematter:gravitic_shard"
+    },
+    "C": {
+      "item": "strangematter:containment_capsule_gravity"
+    },
+    "I": {
+      "item": "strangematter:resonite_ingot"
+    }
+  },
+  "shards": {
+    "gravitic": 6
+  },
+  "required_research": "reality_forge",
+  "result": {
+    "item": "strangematter:graviton_hammer"
+  }
+}

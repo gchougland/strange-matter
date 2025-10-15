@@ -89,6 +89,8 @@ public class ResearchNodeInfoScreen extends Screen {
             initializeStasisProjectorPages();
         } else if (node.getId().equals("rift_stabilizer")) {
             initializeRiftStabilizerPages();
+        } else if (node.getId().equals("graviton_hammer")) {
+            initializeGravitonHammerPages();
         } else if (node.getId().equals("gravity_anomalies")) {
             initializeGravityAnomaliesPages();
         } else if (node.getId().equals("temporal_anomalies")) {
@@ -542,6 +544,28 @@ public class ResearchNodeInfoScreen extends Screen {
         mechanics.content = "research.strangematter.warp_gun.mechanics.content";
         mechanics.hasRecipes = false;
         mechanics.hasScreenshots = false;
+        pages.add(mechanics);
+    }
+    
+    private void initializeGravitonHammerPages() {
+        // Page 1: Introduction with Recipe
+        InfoPage intro = new InfoPage();
+        intro.title = "research.strangematter.graviton_hammer.intro.title";
+        intro.content = "research.strangematter.graviton_hammer.intro.content";
+        intro.hasRecipes = true;
+        intro.hasScreenshots = false;
+        intro.recipeName = "graviton_hammer";
+        intro.isRealityForgeRecipe = true;
+        pages.add(intro);
+
+        // Page 2: Mining Mechanics
+        InfoPage mechanics = new InfoPage();
+        mechanics.title = "research.strangematter.graviton_hammer.mechanics.title";
+        mechanics.content = "research.strangematter.graviton_hammer.mechanics.content";
+        mechanics.hasRecipes = false;
+        mechanics.hasScreenshots = false;
+        mechanics.recipeName = null;
+        mechanics.screenshotPath = null;
         pages.add(mechanics);
     }
     
@@ -1067,10 +1091,17 @@ public class ResearchNodeInfoScreen extends Screen {
                 // Draw shard item
                 guiGraphics.renderItem(shardStack, shardX, shardY);
                 
+                // Draw count text next to the shard
+                String countText = count + "x";
+                int textX = shardX + shardSize + 2;
+                int textY = shardY + (shardSize - this.font.lineHeight) / 2;
+                guiGraphics.drawString(this.font, countText, textX, textY, 0xFFFFFF);
+                
                 // Render tooltip if mouse is over this shard
                 renderItemTooltip(guiGraphics, shardX, shardY, shardSize, shardStack);
                 
-                shardX += shardSpacing;
+                // Move to next shard position (account for text width)
+                shardX += shardSpacing + this.font.width(countText);
             }
         }
     }

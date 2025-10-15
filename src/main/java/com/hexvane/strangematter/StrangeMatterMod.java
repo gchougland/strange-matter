@@ -48,6 +48,7 @@ import com.hexvane.strangematter.item.EnergeticShardItem;
 import com.hexvane.strangematter.item.WarpGunItem;
 import com.hexvane.strangematter.item.EchoVacuumItem;
 import com.hexvane.strangematter.item.ContainmentCapsuleItem;
+import com.hexvane.strangematter.item.GravitonHammerItem;
 import com.hexvane.strangematter.network.EchoVacuumBeamPacket;
 import com.hexvane.strangematter.entity.WarpProjectileEntity;
 import com.hexvane.strangematter.entity.MiniWarpGateEntity;
@@ -256,6 +257,9 @@ public class StrangeMatterMod
 
     // Echo Vacuum Item
     public static final RegistryObject<Item> ECHO_VACUUM = ITEMS.register("echo_vacuum", EchoVacuumItem::new);
+
+    // Graviton Hammer Item
+    public static final RegistryObject<Item> GRAVITON_HAMMER = ITEMS.register("graviton_hammer", GravitonHammerItem::new);
 
     // Containment Capsule Items
     public static final RegistryObject<Item> CONTAINMENT_CAPSULE = ITEMS.register("containment_capsule", () -> new ContainmentCapsuleItem(ContainmentCapsuleItem.AnomalyType.NONE));
@@ -506,6 +510,7 @@ public class StrangeMatterMod
                 output.accept(ENERGETIC_SHARD.get());
                 output.accept(WARP_GUN.get());
                 output.accept(ECHO_VACUUM.get());
+                output.accept(GRAVITON_HAMMER.get());
                 output.accept(CONTAINMENT_CAPSULE.get());
                 output.accept(CONTAINMENT_CAPSULE_GRAVITY.get());
                 output.accept(CONTAINMENT_CAPSULE_ENERGETIC.get());
