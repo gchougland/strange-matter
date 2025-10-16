@@ -504,9 +504,12 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
     }
     
     public void spawnAnomalousGrassAndOre(ServerLevel serverLevel, BlockPos centerPos) {
-        // Use the base class method for consistent terrain generation
-        // This will spawn both resonite ore and spatial shard ore
-        this.modifyTerrain();
+        // Only modify terrain if terrain modification is enabled
+        if (this.terrainModificationEnabled) {
+            // Use the base class method for consistent terrain generation
+            // This will spawn both resonite ore and spatial shard ore
+            this.modifyTerrain();
+        }
     }
     
     private void spawnTeleportParticles(Vec3 pos) {

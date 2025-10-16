@@ -32,10 +32,12 @@ public class ClientModEvents {
             net.minecraft.client.renderer.entity.EntityRenderers.register(StrangeMatterMod.THOUGHTWELL.get(), ThoughtwellRenderer::new);
             net.minecraft.client.renderer.entity.EntityRenderers.register(StrangeMatterMod.WARP_PROJECTILE_ENTITY.get(), WarpProjectileRenderer::new);
             net.minecraft.client.renderer.entity.EntityRenderers.register(StrangeMatterMod.MINI_WARP_GATE_ENTITY.get(), MiniWarpGateRenderer::new);
+            net.minecraft.client.renderer.entity.EntityRenderers.register(StrangeMatterMod.THROWABLE_CONTAINMENT_CAPSULE.get(), com.hexvane.strangematter.client.renderer.ThrowableContainmentCapsuleRenderer::new);
             net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(StrangeMatterMod.RESEARCH_MACHINE_BLOCK_ENTITY.get(), ResearchMachineRenderer::new);
             net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(StrangeMatterMod.STASIS_PROJECTOR_BLOCK_ENTITY.get(), StasisProjectorRenderer::new);
             net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(StrangeMatterMod.RIFT_STABILIZER_BLOCK_ENTITY.get(), RiftStabilizerRenderer::new);
             net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(StrangeMatterMod.RESONANT_CONDUIT_BLOCK_ENTITY.get(), ResonantConduitRenderer::new);
+            net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(StrangeMatterMod.LEVITATION_PAD_BLOCK_ENTITY.get(), com.hexvane.strangematter.client.renderer.LevitationPadRenderer::new);
             
             // Set render layers for blocks with transparency
             net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(StrangeMatterMod.RESONITE_TRAPDOOR_BLOCK.get(), net.minecraft.client.renderer.RenderType.cutout());

@@ -57,6 +57,11 @@ public class NetworkHandler {
             RequestResearchMachineStatePacket::decode,
             RequestResearchMachineStatePacket::handle);
             
+        INSTANCE.registerMessage(packetId++, GravitySyncPacket.class,
+            GravitySyncPacket::encode,
+            GravitySyncPacket::new,
+            GravitySyncPacket::handle);
+            
         INSTANCE.registerMessage(packetId++, WarpGunShootPacket.class,
             WarpGunShootPacket::encode,
             WarpGunShootPacket::new,

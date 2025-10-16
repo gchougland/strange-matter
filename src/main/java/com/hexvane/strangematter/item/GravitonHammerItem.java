@@ -117,8 +117,15 @@ public class GravitonHammerItem extends Item {
     @Override
     public boolean mineBlock(@Nonnull ItemStack stack, @Nonnull Level level, @Nonnull BlockState state, @Nonnull BlockPos pos, @Nonnull LivingEntity miningEntity) {
         if (!level.isClientSide && miningEntity instanceof Player player) {
-            // Perform 3x3 mining on left click
-            performAreaMining(level, player, pos, state);
+            // If crouching, only mine the single block
+            if (player.isCrouching()) {
+                if (canMineBlock(state, level, pos, player)) {
+                    level.destroyBlock(pos, true, player);
+                }
+            } else {
+                // Perform 3x3 mining on left click when not crouching
+                performAreaMining(level, player, pos, state);
+            }
         }
         return true;
     }
@@ -148,6 +155,7 @@ public class GravitonHammerItem extends Item {
     @Override
     public void appendHoverText(@Nonnull ItemStack stack, @Nullable Level level, @Nonnull List<Component> tooltipComponents, @Nonnull TooltipFlag isAdvanced) {
         tooltipComponents.add(Component.literal("§7Left click: 3x3 area mining"));
+        tooltipComponents.add(Component.literal("§7Left click + Crouch: Single block mining"));
         tooltipComponents.add(Component.literal("§7Right click hold: Charged tunnel mining"));
     }
     

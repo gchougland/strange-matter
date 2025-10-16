@@ -70,7 +70,6 @@ public class VillageStructureAddition {
                             List<?> list = (List<?>) fieldValue;
                             if (!list.isEmpty() && list.get(0) instanceof Pair<?, ?>) {
                                 rawTemplatesField = field;
-                                LOGGER.debug("Found rawTemplates field: " + fieldName);
                                 break;
                             }
                         }
@@ -94,7 +93,6 @@ public class VillageStructureAddition {
                             List<?> list = (List<?>) fieldValue;
                             if (!list.isEmpty() && list.get(0) instanceof StructurePoolElement) {
                                 templatesField = field;
-                                LOGGER.debug("Found templates field: " + fieldName + " (" + typeName + ")");
                                 break;
                             }
                         }
@@ -105,7 +103,6 @@ public class VillageStructureAddition {
             }
             
             if (rawTemplatesField == null || templatesField == null) {
-                LOGGER.warn("Could not find required fields in StructureTemplatePool. Available fields:");
                 for (Field field : fields) {
                     LOGGER.warn("  " + field.getName() + " (" + field.getType().getSimpleName() + ")");
                 }

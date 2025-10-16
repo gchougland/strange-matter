@@ -10,7 +10,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.Vec3;
 import org.slf4j.Logger;
 
 import java.util.Map;
@@ -37,27 +36,42 @@ public class PlayerMorphRenderer {
                                              PoseStack poseStack, MultiBufferSource buffer,
                                              int packedLight, float partialTicks) {
         
-        // Prevent infinite recursion when rendering players as players
-        if (isRendering.get()) {
+        try {
+            // Prevent infinite recursion when rendering players as players
+            if (isRendering.get()) {
+                return false;
+            }
+            
+            // Check if player has a morph
+            if (!PlayerMorphData.isMorphed(player.getUUID())) {
+                return false;
+            }
+        } catch (NoClassDefFoundError e) {
+            // If PlayerMorphData class can't be loaded, just return false
+            LOGGER.warn("PlayerMorphData class not available, skipping morph rendering: {}", e.getMessage());
+            return false;
+        } catch (Exception e) {
+            // Any other exception should also return false
+            LOGGER.error("Error checking morph status, skipping morph rendering", e);
             return false;
         }
         
-        // Check if player has a morph
-        if (!PlayerMorphData.isMorphed(player.getUUID())) {
+        EntityType<?> morphType;
+        try {
+            morphType = PlayerMorphData.getMorphEntityTypeObj(player.getUUID());
+            if (morphType == null) {
+                return false;
+            }
+        } catch (NoClassDefFoundError e) {
+            LOGGER.warn("PlayerMorphData class not available for morph type lookup: {}", e.getMessage());
             return false;
-        }
-        
-        EntityType<?> morphType = PlayerMorphData.getMorphEntityTypeObj(player.getUUID());
-        if (morphType == null) {
+        } catch (Exception e) {
+            LOGGER.error("Error getting morph type, skipping morph rendering", e);
             return false;
         }
         
         // Get or create cached morph entity
         Entity morphEntity = morphEntityCache.get(player.getUUID());
-        
-        // Check if morphing into a player and if we have a target player UUID
-        UUID targetPlayerUUID = PlayerMorphData.getMorphedPlayerUUID(player.getUUID());
-        boolean isMorphingIntoPlayer = morphType.equals(net.minecraft.world.entity.EntityType.PLAYER);
         
         // Always check if the cached entity type matches the current morph type
         if (morphEntity == null || !morphEntity.getType().equals(morphType)) {
@@ -72,7 +86,13 @@ public class PlayerMorphRenderer {
             morphEntity = morphType.create(player.level());
             
             if (morphEntity == null) {
-                PlayerMorphData.clearMorph(player.getUUID());
+                try {
+                    PlayerMorphData.clearMorph(player.getUUID());
+                } catch (NoClassDefFoundError e) {
+                    LOGGER.warn("PlayerMorphData class not available for clearing morph: {}", e.getMessage());
+                } catch (Exception e) {
+                    LOGGER.error("Error clearing morph data", e);
+                }
                 return false;
             }
             
@@ -105,7 +125,13 @@ public class PlayerMorphRenderer {
         } catch (Exception e) {
             // If rendering fails, clear the morph
             LOGGER.error("Failed to render morph: {}", e.getMessage());
-            PlayerMorphData.clearMorph(player.getUUID());
+            try {
+                PlayerMorphData.clearMorph(player.getUUID());
+            } catch (NoClassDefFoundError classError) {
+                LOGGER.warn("PlayerMorphData class not available for clearing morph after error: {}", classError.getMessage());
+            } catch (Exception clearError) {
+                LOGGER.error("Error clearing morph data after render failure", clearError);
+            }
             Entity cachedEntity = morphEntityCache.remove(player.getUUID());
             if (cachedEntity != null) {
                 cachedEntity.remove(Entity.RemovalReason.DISCARDED);
@@ -199,16 +225,5 @@ public class PlayerMorphRenderer {
         morphEntityCache.clear();
     }
     
-    /**
-     * Find a player by UUID in the level
-     */
-    private static net.minecraft.client.player.AbstractClientPlayer findPlayerByUUID(net.minecraft.world.level.Level level, UUID uuid) {
-        for (net.minecraft.world.entity.player.Player p : level.players()) {
-            if (p.getUUID().equals(uuid) && p instanceof net.minecraft.client.player.AbstractClientPlayer clientPlayer) {
-                return clientPlayer;
-            }
-        }
-        return null;
-    }
 }
 

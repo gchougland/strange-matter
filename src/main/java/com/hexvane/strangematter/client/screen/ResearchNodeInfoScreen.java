@@ -89,6 +89,8 @@ public class ResearchNodeInfoScreen extends Screen {
             initializeStasisProjectorPages();
         } else if (node.getId().equals("rift_stabilizer")) {
             initializeRiftStabilizerPages();
+        } else if (node.getId().equals("levitation_pad")) {
+            initializeLevitationPadPages();
         } else if (node.getId().equals("graviton_hammer")) {
             initializeGravitonHammerPages();
         } else if (node.getId().equals("gravity_anomalies")) {
@@ -697,6 +699,26 @@ public class ResearchNodeInfoScreen extends Screen {
         intro.hasScreenshots = true;
         intro.screenshotPath = "strangematter:textures/ui/thoughtwell.png";
         pages.add(intro);
+    }
+    
+    private void initializeLevitationPadPages() {
+        // Page 1: Introduction with Recipe (Half Page)
+        InfoPage intro = new InfoPage();
+        intro.title = "research.strangematter.levitation_pad.intro.title";
+        intro.content = "research.strangematter.levitation_pad.intro.content";
+        intro.hasRecipes = true;
+        intro.hasScreenshots = false;
+        intro.recipeName = "levitation_pad";
+        intro.isRealityForgeRecipe = true;
+        pages.add(intro);
+        
+        // Page 2: Mechanics (Full Page)
+        InfoPage mechanics = new InfoPage();
+        mechanics.title = "research.strangematter.levitation_pad.mechanics.title";
+        mechanics.content = "research.strangematter.levitation_pad.mechanics.content";
+        mechanics.hasRecipes = false;
+        mechanics.hasScreenshots = false;
+        pages.add(mechanics);
     }
     
     private void initializeDefaultPages() {

@@ -66,6 +66,7 @@ public class ResearchNodeRegistry {
             case "energy_anomalies" -> Config.energyAnomaliesCost;
             case "shadow_anomalies" -> Config.shadowAnomaliesCost;
             case "cognitive_anomalies" -> Config.cognitiveAnomaliesCost;
+            case "levitation_pad" -> Config.levitationPadCost;
             default -> -1; // Use default
         };
     }
@@ -295,7 +296,7 @@ public class ResearchNodeRegistry {
         register(new ResearchNode(
             "graviton_hammer",
             "general",
-            -160, 200,
+            0, 80,
             applyConfigCosts("graviton_hammer", Map.of(ResearchType.GRAVITY, 20, ResearchType.ENERGY, 5)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.GRAVITON_HAMMER.get()),
@@ -322,6 +323,18 @@ public class ResearchNodeRegistry {
             applyConfigCosts("rift_stabilizer", Map.of(ResearchType.ENERGY, 20, ResearchType.SPACE, 10)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.RIFT_STABILIZER_ITEM.get()),
+            true,
+            List.of("reality_forge") // Requires reality forge
+        ));
+        
+        // Levitation Pad device (locked) - Connected to reality_forge
+        register(new ResearchNode(
+            "levitation_pad",
+            "general",
+            -160, 320,
+            applyConfigCosts("levitation_pad", Map.of(ResearchType.GRAVITY, 15, ResearchType.ENERGY, 10)),
+            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.LEVITATION_PAD_ITEM.get()),
             true,
             List.of("reality_forge") // Requires reality forge
         ));

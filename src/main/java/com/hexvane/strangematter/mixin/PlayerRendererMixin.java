@@ -1,5 +1,6 @@
 package com.hexvane.strangematter.mixin;
 
+import com.hexvane.strangematter.client.PlayerMorphRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
@@ -29,22 +30,30 @@ public class PlayerRendererMixin {
                                PoseStack poseStack, MultiBufferSource buffer, int packedLight,
                                CallbackInfo ci) {
         
-        // Get the entity render dispatcher
-        EntityRenderDispatcher dispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
-        
-        // Try to render as morph
-        boolean renderedAsMorph = com.hexvane.strangematter.client.PlayerMorphRenderer.renderPlayerAsMorph(
-            player,
-            dispatcher,
-            poseStack,
-            buffer,
-            packedLight,
-            partialTicks
-        );
-        
-        if (renderedAsMorph) {
-            // Successfully rendered as morph, cancel normal rendering
-            ci.cancel();
+        try {
+            // Get the entity render dispatcher
+            EntityRenderDispatcher dispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
+            
+            // Try to render as morph
+            boolean renderedAsMorph = PlayerMorphRenderer.renderPlayerAsMorph(
+                player,
+                dispatcher,
+                poseStack,
+                buffer,
+                packedLight,
+                partialTicks
+            );
+            
+            if (renderedAsMorph) {
+                // Successfully rendered as morph, cancel normal rendering
+                ci.cancel();
+            }
+        } catch (NoClassDefFoundError e) {
+            // If there's a class loading issue, just continue with normal rendering
+            LOGGER.warn("Failed to load morph renderer classes, falling back to normal rendering: {}", e.getMessage());
+        } catch (Exception e) {
+            // Any other exception should also fall back to normal rendering
+            LOGGER.error("Error in morph rendering, falling back to normal rendering", e);
         }
     }
 }

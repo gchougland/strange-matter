@@ -147,6 +147,15 @@
   "research.strangematter.rift_stabilizer.usage.title": "Installation & Operation",
   "research.strangematter.rift_stabilizer.usage.content": "INSTALLATION PROTOCOLS FOR OPTIMAL RESULTS:\n\n1. Locate an active Energetic Rift anomaly\n2. Place stabilizer within detection range\n3. FRONT FACE (intake) must point at rift!\n4. BACK FACE (output) connects to machines\n\nWhen properly aligned, you'll witness a magnificent electrical beam connecting the rift directly to the stabilizer!\n\nRight-click the block to check current power generation status and stored energy levels.\n\nThe device requires NO fuel and operates continuously as long as the rift remains active and within range!",
 
+  "research.strangematter.levitation_pad.name": "Levitation Pad",
+  "research.strangematter.levitation_pad.description": "An advanced device that creates controlled levitation fields for safe transportation and anti-gravity applications.",
+
+  "research.strangematter.levitation_pad.intro.title": "Levitation Pad",
+  "research.strangematter.levitation_pad.intro.content": "REVOLUTIONARY BREAKTHROUGH!\nI have mastered the art\nof controlled levitation!\n\nThe Levitation Pad\ncreates a powerful\nanti-gravity field that\ncan lift players,\nmobs, and items\nup to 16 blocks high!\n\nThis device represents\nthe pinnacle of\ngravitational anomaly\nmanipulation technology!",
+
+  "research.strangematter.levitation_pad.mechanics.title": "Levitation Mechanics",
+  "research.strangematter.levitation_pad.mechanics.content": "The Levitation Pad operates through advanced gravitational field manipulation:\n\nUP MODE (Default):\n• Lifts entities upward within 16 blocks\n• Stops at first solid block encountered\n• Prevents fall damage during descent\n• Works on players, mobs, and items\n\nDOWN MODE (Right-click to toggle):\n• Slowly lowers entities to ground level\n• Provides controlled descent\n• Eliminates fall damage completely\n• Perfect for safe transportation\n\nThe visible levitation beam shows the active field range and current mode.",
+
   "research.strangematter.gravity_anomalies.title": "Gravity Anomalies",
   "research.strangematter.gravity_anomalies.content": "FASCINATING! Gravity\nanomalies represent\nlocalized distortions\nin the gravitational\nfield.\n\nThese entities manifest\nas floating geometric\nshapes that rotate\ncontinuously, creating\npockets of altered\ngravity.\n\nThey can affect\nnearby entities and\nterrain, making them\nvaluable for research\ninto spatial\nmanipulation.",
 
@@ -316,6 +325,8 @@
   "block.strangematter.rift_stabilizer.not_generating": "Not generating power (No Energetic Rift nearby or too many stabilizers) | Stored: %d/%d RE",
   "block.strangematter.stasis_projector": "Stasis Projector",
   "block.strangematter.resonant_conduit": "Resonant Conduit",
+  "block.strangematter.levitation_pad": "Levitation Pad",
+  "block.strangematter.levitation_pad.mode_changed": "Levitation Pad switched to %s mode",
   "item.strangematter.stasis_projector": "Stasis Projector",
   "block.strangematter.stasis_projector.tooltip": "A device that projects a stasis field to suspend items and entities in time. Shift right-click to toggle on/off.",
   "message.strangematter.stasis_projector.on": "Stasis Projector activated",
