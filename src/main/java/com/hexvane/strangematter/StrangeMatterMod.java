@@ -4,6 +4,7 @@ import com.hexvane.strangematter.entity.GravityAnomalyEntity;
 import com.hexvane.strangematter.entity.EchoingShadowEntity;
 import com.hexvane.strangematter.entity.WarpGateAnomalyEntity;
 import com.hexvane.strangematter.entity.ThoughtwellEntity;
+import com.hexvane.strangematter.entity.ThrowableContainmentCapsuleEntity;
 import com.hexvane.strangematter.command.AnomalyCommand;
 import com.hexvane.strangematter.command.ResearchCommand;
 import com.hexvane.strangematter.sound.StrangeMatterSounds;
@@ -49,6 +50,8 @@ import com.hexvane.strangematter.item.WarpGunItem;
 import com.hexvane.strangematter.item.EchoVacuumItem;
 import com.hexvane.strangematter.item.ContainmentCapsuleItem;
 import com.hexvane.strangematter.item.GravitonHammerItem;
+import com.hexvane.strangematter.block.LevitationPadBlock;
+import com.hexvane.strangematter.block.LevitationPadBlockEntity;
 import com.hexvane.strangematter.network.EchoVacuumBeamPacket;
 import com.hexvane.strangematter.entity.WarpProjectileEntity;
 import com.hexvane.strangematter.entity.MiniWarpGateEntity;
@@ -323,6 +326,12 @@ public class StrangeMatterMod
     public static final RegistryObject<BlockEntityType<com.hexvane.strangematter.block.ResonantConduitBlockEntity>> RESONANT_CONDUIT_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("resonant_conduit", 
         () -> BlockEntityType.Builder.of((pos, state) -> new com.hexvane.strangematter.block.ResonantConduitBlockEntity(pos, state), RESONANT_CONDUIT_BLOCK.get()).build(null));
 
+    // Levitation Pad Block
+    public static final RegistryObject<Block> LEVITATION_PAD_BLOCK = BLOCKS.register("levitation_pad", LevitationPadBlock::new);
+    public static final RegistryObject<Item> LEVITATION_PAD_ITEM = ITEMS.register("levitation_pad", () -> new BlockItem(LEVITATION_PAD_BLOCK.get(), new Item.Properties()));
+    public static final RegistryObject<BlockEntityType<LevitationPadBlockEntity>> LEVITATION_PAD_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("levitation_pad", 
+        () -> BlockEntityType.Builder.of((pos, state) -> new LevitationPadBlockEntity(pos, state), LEVITATION_PAD_BLOCK.get()).build(null));
+
     // Register POI Type for Research Machine (villager job site)
     // We'll use a lazy supplier to get block states when they're actually available
     public static final RegistryObject<net.minecraft.world.entity.ai.village.poi.PoiType> RESEARCH_MACHINE_POI = POI_TYPES.register("research_machine_poi",
@@ -435,6 +444,12 @@ public class StrangeMatterMod
             .sized(1.0f, 2.0f) // 1x1x2 hitbox
             .build("mini_warp_gate"));
 
+    // Throwable Containment Capsule Entity
+    public static final RegistryObject<EntityType<ThrowableContainmentCapsuleEntity>> THROWABLE_CONTAINMENT_CAPSULE = ENTITY_TYPES.register("throwable_containment_capsule", 
+        () -> EntityType.Builder.<ThrowableContainmentCapsuleEntity>of(ThrowableContainmentCapsuleEntity::new, MobCategory.MISC)
+            .sized(0.25f, 0.25f) // Small projectile size
+            .build("throwable_containment_capsule"));
+
     // Sound Events are now registered in StrangeMatterSounds class
 
     // World Generation Features
@@ -519,6 +534,7 @@ public class StrangeMatterMod
                 output.accept(CONTAINMENT_CAPSULE_THOUGHTWELL.get());
                 output.accept(CONTAINMENT_CAPSULE_WARP_GATE.get());
                 output.accept(RESONANT_CONDUIT_ITEM.get());
+                output.accept(LEVITATION_PAD_ITEM.get());
             }).build());
 
     public StrangeMatterMod()
@@ -581,24 +597,12 @@ public class StrangeMatterMod
     {
         // Some common setup code
         LOGGER.info("Strange Matter mod initialized - reality anomalies detected!");
-        LOGGER.info("Config-driven world generation enabled");
         
         // Initialize scannable object registry and research nodes on both client and server
         event.enqueueWork(() -> {
             com.hexvane.strangematter.research.ScannableObjectRegistry.init();
             // Initialize research nodes on server as well (not just in client screens)
             com.hexvane.strangematter.research.ResearchNodeRegistry.initializeDefaultNodes();
-            
-            // Debug: Log POI type information
-            LOGGER.info("Research Machine POI registered: {}", RESEARCH_MACHINE_POI.getId());
-            LOGGER.info("Research Machine POI block states: {}", 
-                RESEARCH_MACHINE_POI.get().matchingStates().size());
-            LOGGER.info("Anomaly Scientist profession registered: {}", ANOMALY_SCIENTIST.getId());
-            
-            // Log the actual block states for debugging
-            RESEARCH_MACHINE_POI.get().matchingStates().forEach(state -> {
-                LOGGER.info("  - POI state: {}", state);
-            });
         });
     }
     

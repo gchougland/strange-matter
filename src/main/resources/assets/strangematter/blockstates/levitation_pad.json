@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "levitate_up=true": {
+      "model": "strangematter:block/levitation_pad"
+    },
+    "levitate_up=false": {
+      "model": "strangematter:block/levitation_pad"
+    }
+  }
+}

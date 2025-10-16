@@ -151,6 +151,8 @@ public class Config {
     private static final ForgeConfigSpec.IntValue ENERGY_ANOMALIES_COST;
     private static final ForgeConfigSpec.IntValue SHADOW_ANOMALIES_COST;
     private static final ForgeConfigSpec.IntValue COGNITIVE_ANOMALIES_COST;
+    private static final ForgeConfigSpec.IntValue LEVITATION_PAD_COST;
+    private static final ForgeConfigSpec.IntValue LEVITATION_PAD_MAX_HEIGHT;
 
     // ========================================
     // GRAVITON HAMMER CONFIG VALUES
@@ -600,6 +602,14 @@ public class Config {
                 .comment("Cognitive Anomalies research cost (-1 for default: Cognition 5)")
                 .defineInRange("cognitiveAnomalies", -1, -1, 10000);
         
+        LEVITATION_PAD_COST = BUILDER
+                .comment("Levitation Pad total cost (-1 for default: Gravity 15, Energy 10)")
+                .defineInRange("levitationPad", -1, -1, 10000);
+        
+        LEVITATION_PAD_MAX_HEIGHT = BUILDER
+                .comment("Levitation Pad maximum beam height in blocks (default: 16)")
+                .defineInRange("levitationPadMaxHeight", 16, 1, 64);
+        
         BUILDER.pop(); // node_costs
         BUILDER.pop(); // research
         
@@ -827,6 +837,8 @@ public class Config {
     public static int energyAnomaliesCost;
     public static int shadowAnomaliesCost;
     public static int cognitiveAnomaliesCost;
+    public static int levitationPadCost;
+    public static int levitationPadMaxHeight;
     
     // Graviton Hammer
     public static int gravitonHammerChargeLevel1Time;
@@ -994,6 +1006,8 @@ public class Config {
         energyAnomaliesCost = ENERGY_ANOMALIES_COST.get();
         shadowAnomaliesCost = SHADOW_ANOMALIES_COST.get();
         cognitiveAnomaliesCost = COGNITIVE_ANOMALIES_COST.get();
+        levitationPadCost = LEVITATION_PAD_COST.get();
+        levitationPadMaxHeight = LEVITATION_PAD_MAX_HEIGHT.get();
         
         // Graviton Hammer
         gravitonHammerChargeLevel1Time = GRAVITON_HAMMER_CHARGE_LEVEL_1_TIME.get();

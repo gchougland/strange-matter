@@ -56,6 +56,7 @@ public abstract class BaseAnomalyEntity extends Entity {
     // Terrain modification tracking
     private Set<BlockPos> modifiedBlocks = new HashSet<>();
     private boolean terrainModified = false;
+    protected boolean terrainModificationEnabled = true;
     
     public BaseAnomalyEntity(EntityType<?> entityType, Level level) {
         super(entityType, level);
@@ -83,8 +84,8 @@ public abstract class BaseAnomalyEntity extends Entity {
             applyAnomalyEffects();
             spawnParticles();
             
-            // Modify terrain once when first spawned
-            if (!terrainModified && tickCount > 20) { // Wait a bit for proper positioning
+            // Modify terrain once when first spawned (if enabled)
+            if (!terrainModified && terrainModificationEnabled && tickCount > 20) { // Wait a bit for proper positioning
                 modifyTerrain();
                 terrainModified = true;
             }
@@ -177,6 +178,20 @@ public abstract class BaseAnomalyEntity extends Entity {
                state.is(Blocks.BLUE_TERRACOTTA) || state.is(Blocks.BROWN_TERRACOTTA) ||
                state.is(Blocks.GREEN_TERRACOTTA) || state.is(Blocks.RED_TERRACOTTA) ||
                state.is(Blocks.BLACK_TERRACOTTA);
+    }
+    
+    /**
+     * Set whether this anomaly should modify terrain when spawned
+     */
+    public void setTerrainModificationEnabled(boolean enabled) {
+        this.terrainModificationEnabled = enabled;
+    }
+    
+    /**
+     * Get whether this anomaly should modify terrain when spawned
+     */
+    public boolean isTerrainModificationEnabled() {
+        return this.terrainModificationEnabled;
     }
     
     /**

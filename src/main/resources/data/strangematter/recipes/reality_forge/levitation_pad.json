@@ -1,0 +1,23 @@
+{
+  "type": "strangematter:reality_forge",
+  "pattern": [
+    "RRR",
+    "RGR",
+    "RRR"
+  ],
+  "key": {
+    "R": {
+      "item": "strangematter:resonite_ingot"
+    },
+    "G": {
+      "item": "strangematter:gravitic_shard"
+    }
+  },
+  "shards": {
+    "gravitic": 2
+  },
+  "required_research": "reality_forge",
+  "result": {
+    "item": "strangematter:levitation_pad"
+  }
+}

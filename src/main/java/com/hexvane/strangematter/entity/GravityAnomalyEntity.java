@@ -30,8 +30,13 @@ import net.minecraftforge.registries.RegistryObject;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.hexvane.strangematter.network.NetworkHandler;
+import com.hexvane.strangematter.network.GravitySyncPacket;
 
 public class GravityAnomalyEntity extends BaseAnomalyEntity {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GravityAnomalyEntity.class);
     
     // Constants for the gravity anomaly (now read from config)
     private float getLevitationRadius() {
@@ -71,6 +76,15 @@ public class GravityAnomalyEntity extends BaseAnomalyEntity {
                 // Player left the area, remove gravity data
                 GravityData.removePlayerGravityForce(player.getUUID());
                 player.getPersistentData().remove("strangematter.gravity_force");
+                
+                // Send packet to clear gravity force on client
+                if (!level().isClientSide) {
+                    NetworkHandler.INSTANCE.send(
+                        net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> (net.minecraft.server.level.ServerPlayer) player), 
+                        new GravitySyncPacket(0.0) // Send 0 to clear the effect
+                    );
+                    LOGGER.info("[GRAVITY ANOMALY] Server: Player {} left range, sent clear packet", player.getName().getString());
+                }
                 return true;
             }
             return false;
@@ -145,6 +159,16 @@ public class GravityAnomalyEntity extends BaseAnomalyEntity {
         
         // Also store in persistent data for fallback
         player.getPersistentData().putDouble("strangematter.gravity_force", forceMultiplier);
+        
+        // Send packet to client for synchronization
+        if (!this.level().isClientSide) {
+            NetworkHandler.INSTANCE.send(
+                net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> (net.minecraft.server.level.ServerPlayer) player), 
+                new GravitySyncPacket(forceMultiplier)
+            );
+        } else {
+            LOGGER.info("[GRAVITY ANOMALY] Client: Player {} in field, force: {}", player.getName().getString(), forceMultiplier);
+        }
     }
     
     private void applyMobLowGravity(LivingEntity mob, Vec3 currentVelocity, double forceMultiplier) {

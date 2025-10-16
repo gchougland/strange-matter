@@ -2,6 +2,53 @@
 
 All notable changes to Strange Matter will be documented in this file.
 
+## [0.2.2] - 2025-01-15
+
+### Added
+
+- **Levitation Pad**
+  - New advanced device that creates controlled levitation fields for safe transportation and anti-gravity applications
+  - **Dual-mode operation**: Right-click to toggle between UP and DOWN modes
+    - **UP Mode (Default)**: Lifts entities upward within 16 blocks, stops at first solid block encountered
+    - **DOWN Mode**: Lowers entities to ground level with controlled descent
+  - **Universal entity support**: Works on players, mobs, and items with specialized handling for each
+  - **Fall damage prevention**: Eliminates fall damage during descent in both modes
+  - **Smart beam detection**: 
+    - Passes through open trapdoors (allows beam gates)
+    - Blocked by closed trapdoors and all other solid blocks
+    - Visual beam matches effect range exactly
+  - **Advanced player levitation**: Uses gravity manipulation system for smooth, natural movement
+  - **Item management**: Removes momentum, centers items in beam, applies gentle floating motion
+  - **Visual effects**: Animated levitation beam with UV scrolling based on mode direction
+  - **Research integration**: Unlocked via "Levitation Pad" research node requiring Reality Forge
+  - **Comprehensive documentation**: Three-page info system with introduction, mechanics, and applications
+  - **Configuration support**: Research cost configurable via config file
+    - `levitationPad` (default: Gravity 15, Energy 10)
+
+### Changed
+
+- **Graviton Hammer Improvements**
+  - **Precision mining mode**: Crouch + left-click now mines only a single block instead of 3x3 area
+  - **Enhanced tooltip**: Updated to show both mining modes clearly
+    - Left click: 3x3 area mining
+    - Left click + Crouch: Single block mining
+    - Right click hold: Charged tunnel mining
+
+### Added
+
+- **Throwable Containment Capsules**
+  - **New deployment method**: Right-click any filled containment capsule to throw it like a potion
+  - **Anomaly deployment**: When capsule hits the ground, it spawns the contained anomaly at the impact location
+  - **Clean deployment**: Spawned anomalies do not modify terrain (no grass/ore generation)
+  - **Realistic physics**: Uses proper projectile physics with arc trajectory
+  - **Sound effects**: 
+    - Potion throw sound when launched
+    - Glass breaking sound when it hits the ground
+  - **Visual feedback**: Capsule renders as the actual item model while flying
+  - **Universal support**: Works with all anomaly types (Gravity, Energetic, Echoing Shadow, Temporal Bloom, Thoughtwell, Warp Gate)
+  - **Consumption**: Capsule is consumed when thrown (unless in creative mode)
+  - **Enhanced tooltips**: Filled capsules now show "Right click to throw and release anomaly"
+
 ## [0.2.1] - 2025-10-14
 
 ### Added

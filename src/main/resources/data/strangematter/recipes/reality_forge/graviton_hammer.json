@@ -22,7 +22,7 @@
   "shards": {
     "gravitic": 6
   },
-  "required_research": "reality_forge",
+  "required_research": "containment_basics",
   "result": {
     "item": "strangematter:graviton_hammer"
   }

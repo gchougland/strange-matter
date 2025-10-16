@@ -18,11 +18,14 @@ public class WarpGateSpawnEventHandler {
     public static void onEntityJoinLevel(EntityJoinLevelEvent event) {
         // Check if this is a warp gate entity joining the level
         if (event.getEntity() instanceof WarpGateAnomalyEntity warpGate) {
-            // Schedule block placement for the next tick to ensure the entity is fully spawned
-            if (event.getLevel() instanceof ServerLevel serverLevel) {
-                serverLevel.getServer().tell(new net.minecraft.server.TickTask(1, () -> {
-                    placeAnomalousGrassAndOre(serverLevel, warpGate.blockPosition());
-                }));
+            // Only modify terrain if terrain modification is enabled
+            if (warpGate.isTerrainModificationEnabled()) {
+                // Schedule block placement for the next tick to ensure the entity is fully spawned
+                if (event.getLevel() instanceof ServerLevel serverLevel) {
+                    serverLevel.getServer().tell(new net.minecraft.server.TickTask(1, () -> {
+                        placeAnomalousGrassAndOre(serverLevel, warpGate.blockPosition());
+                    }));
+                }
             }
         }
     }
