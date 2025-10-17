@@ -2,7 +2,14 @@
 
 All notable changes to Strange Matter will be documented in this file.
 
-## [0.2.2] - 2025-01-15
+## [0.2.3] - 2025-10-16
+
+### Fixed
+- **Echo Vacuum Recipe**: Fixed typo causing recipe to not function
+- **Gravity Issues**: Fixed gravity persisting between worlds and after containment
+- **Reality Forge Energy Storage**: Removed energy storage that was causing confusion with Reality Forge
+
+## [0.2.2] - 2025-10-15
 
 ### Added
 
@@ -25,29 +32,14 @@ All notable changes to Strange Matter will be documented in this file.
   - **Configuration support**: Research cost configurable via config file
     - `levitationPad` (default: Gravity 15, Energy 10)
 
+- **Throwable Containment Capsules**
+  - **New deployment method**: Right-click any filled containment capsule to throw it like a potion
+  - **Anomaly deployment**: When capsule hits the ground, it spawns the contained anomaly at the impact location
+
 ### Changed
 
 - **Graviton Hammer Improvements**
   - **Precision mining mode**: Crouch + left-click now mines only a single block instead of 3x3 area
-  - **Enhanced tooltip**: Updated to show both mining modes clearly
-    - Left click: 3x3 area mining
-    - Left click + Crouch: Single block mining
-    - Right click hold: Charged tunnel mining
-
-### Added
-
-- **Throwable Containment Capsules**
-  - **New deployment method**: Right-click any filled containment capsule to throw it like a potion
-  - **Anomaly deployment**: When capsule hits the ground, it spawns the contained anomaly at the impact location
-  - **Clean deployment**: Spawned anomalies do not modify terrain (no grass/ore generation)
-  - **Realistic physics**: Uses proper projectile physics with arc trajectory
-  - **Sound effects**: 
-    - Potion throw sound when launched
-    - Glass breaking sound when it hits the ground
-  - **Visual feedback**: Capsule renders as the actual item model while flying
-  - **Universal support**: Works with all anomaly types (Gravity, Energetic, Echoing Shadow, Temporal Bloom, Thoughtwell, Warp Gate)
-  - **Consumption**: Capsule is consumed when thrown (unless in creative mode)
-  - **Enhanced tooltips**: Filled capsules now show "Right click to throw and release anomaly"
 
 ## [0.2.1] - 2025-10-14
 
