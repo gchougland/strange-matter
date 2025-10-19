@@ -1,0 +1,59 @@
+{
+  "parent": "strangematter:field_researcher",
+  "display": {
+    "icon": {
+      "item": "strangematter:gravitic_shard"
+    },
+    "title": {
+      "translate": "advancements.strangematter.anomaly_collector.title"
+    },
+    "description": {
+      "translate": "advancements.strangematter.anomaly_collector.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "scan_gravity_anomaly": {
+      "trigger": "strangematter:scan_anomaly",
+      "conditions": {
+        "anomaly_type": "strangematter:gravity_anomaly"
+      }
+    },
+    "scan_temporal_anomaly": {
+      "trigger": "strangematter:scan_anomaly",
+      "conditions": {
+        "anomaly_type": "strangematter:temporal_bloom"
+      }
+    },
+    "scan_spatial_anomaly": {
+      "trigger": "strangematter:scan_anomaly",
+      "conditions": {
+        "anomaly_type": "strangematter:warp_gate_anomaly"
+      }
+    },
+    "scan_energy_anomaly": {
+      "trigger": "strangematter:scan_anomaly",
+      "conditions": {
+        "anomaly_type": "strangematter:energetic_rift"
+      }
+    },
+    "scan_shadow_anomaly": {
+      "trigger": "strangematter:scan_anomaly",
+      "conditions": {
+        "anomaly_type": "strangematter:echoing_shadow"
+      }
+    },
+    "scan_cognitive_anomaly": {
+      "trigger": "strangematter:scan_anomaly",
+      "conditions": {
+        "anomaly_type": "strangematter:thoughtwell"
+      }
+    }
+  },
+  "requirements": [
+    ["scan_gravity_anomaly", "scan_temporal_anomaly", "scan_spatial_anomaly", "scan_energy_anomaly", "scan_shadow_anomaly", "scan_cognitive_anomaly"]
+  ]
+}

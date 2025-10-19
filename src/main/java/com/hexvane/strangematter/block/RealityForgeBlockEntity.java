@@ -464,6 +464,7 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
             // Set output
             setItem(10, currentRecipe.getResultItem(level.registryAccess()).copy());
 
+
             // Play sound
             if (level != null && !level.isClientSide) {
                 level.playSound(null, worldPosition, 

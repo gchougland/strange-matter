@@ -122,8 +122,6 @@ public class GravityEventHandler {
         if (event.getEntity().getType().toString().equals("strangematter:gravity_anomaly") ||
             event.getEntity().getClass().getSimpleName().equals("GravityAnomalyEntity")) {
             
-            LOGGER.info("[GRAVITY HANDLER] Gravity Anomaly entity removed, clearing all gravity effects");
-            
             // Clear gravity effects for all players in the world
             if (event.getLevel() != null) {
                 for (Player player : event.getLevel().players()) {

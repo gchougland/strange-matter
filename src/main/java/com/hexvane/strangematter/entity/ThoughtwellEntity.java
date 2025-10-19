@@ -29,10 +29,19 @@ import java.util.List;
  */
 public class ThoughtwellEntity extends BaseAnomalyEntity {
     
+    // Entity data for syncing between client and server
+    private static final EntityDataAccessor<Boolean> IS_ACTIVE = SynchedEntityData.defineId(ThoughtwellEntity.class, EntityDataSerializers.BOOLEAN);
+    
     // Config-driven getters for thoughtwell parameters
-    private float getEffectRadius() {
+    private float getThoughtwellEffectRadius() {
         return (float) com.hexvane.strangematter.Config.thoughtwellEffectRadius;
     }
+    
+    @Override
+    protected float getEffectRadius() {
+        return getThoughtwellEffectRadius();
+    }
+    
     
     private int getConfusionDuration() {
         return com.hexvane.strangematter.Config.thoughtwellConfusionDuration;
@@ -59,6 +68,12 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
         this.setBoundingBox(new AABB(-1.0, 0, -1.0, 1.0, 2.0, 1.0));
     }
     
+    @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(IS_ACTIVE, true);
+    }
+    
     
     @Override
     protected void updatePulseAnimation() {
@@ -70,8 +85,8 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
     
     @Override
     protected void applyAnomalyEffects() {
-        if (this.isContained() || !com.hexvane.strangematter.Config.enableThoughtwellEffects) {
-            return; // Don't apply effects if contained or effects disabled
+        if (!this.isActive() || this.isContained() || !com.hexvane.strangematter.Config.enableThoughtwellEffects) {
+            return; // Don't apply effects if not active, contained, or effects disabled
         }
         
         // Update cooldowns
@@ -106,7 +121,7 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
     
     private void affectNearbyPlayers() {
         // Create a large bounding box centered on the entity's position for effect detection
-        float effectRadius = getEffectRadius();
+        float effectRadius = getThoughtwellEffectRadius();
         AABB effectBox = new AABB(
             this.getX() - effectRadius, this.getY() - effectRadius, this.getZ() - effectRadius,
             this.getX() + effectRadius, this.getY() + effectRadius, this.getZ() + effectRadius
@@ -138,7 +153,7 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
     
     private void confuseNearbyMobs() {
         // Create a large bounding box centered on the entity's position for effect detection
-        float effectRadius = getEffectRadius();
+        float effectRadius = getThoughtwellEffectRadius();
         AABB confusionBox = new AABB(
             this.getX() - effectRadius, this.getY() - effectRadius, this.getZ() - effectRadius,
             this.getX() + effectRadius, this.getY() + effectRadius, this.getZ() + effectRadius
@@ -181,7 +196,7 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
     
     private void createCyanBurst() {
         // Create a burst of cyan energy particles
-        double radius = getEffectRadius() * 0.8;
+        double radius = getThoughtwellEffectRadius() * 0.8;
         int particleCount = 12 + this.level().getRandom().nextInt(8); // 12-19 particles
         
         for (int i = 0; i < particleCount; i++) {
@@ -411,5 +426,13 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
                 );
             }
         }
+    }
+    
+    public boolean isActive() {
+        return this.entityData.get(IS_ACTIVE);
+    }
+    
+    public void setActive(boolean active) {
+        this.entityData.set(IS_ACTIVE, active);
     }
 }

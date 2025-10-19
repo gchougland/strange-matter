@@ -1,0 +1,83 @@
+{
+  "parent": "strangematter:reality_extractor",
+  "display": {
+    "icon": {
+      "item": "strangematter:containment_capsule_gravity"
+    },
+    "title": {
+      "translate": "advancements.strangematter.anomaly_tamer.title"
+    },
+    "description": {
+      "translate": "advancements.strangematter.anomaly_tamer.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "contain_gravity_anomaly": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": ["strangematter:containment_capsule_gravity"]
+          }
+        ]
+      }
+    },
+    "contain_temporal_anomaly": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": ["strangematter:containment_capsule_temporal_bloom"]
+          }
+        ]
+      }
+    },
+    "contain_spatial_anomaly": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": ["strangematter:containment_capsule_warp_gate"]
+          }
+        ]
+      }
+    },
+    "contain_energy_anomaly": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": ["strangematter:containment_capsule_energetic"]
+          }
+        ]
+      }
+    },
+    "contain_shadow_anomaly": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": ["strangematter:containment_capsule_echoing_shadow"]
+          }
+        ]
+      }
+    },
+    "contain_cognitive_anomaly": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": ["strangematter:containment_capsule_thoughtwell"]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    ["contain_gravity_anomaly", "contain_temporal_anomaly", "contain_spatial_anomaly", "contain_energy_anomaly", "contain_shadow_anomaly", "contain_cognitive_anomaly"]
+  ]
+}

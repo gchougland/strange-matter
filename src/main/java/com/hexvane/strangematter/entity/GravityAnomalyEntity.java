@@ -38,10 +38,19 @@ import com.hexvane.strangematter.network.GravitySyncPacket;
 public class GravityAnomalyEntity extends BaseAnomalyEntity {
     private static final Logger LOGGER = LoggerFactory.getLogger(GravityAnomalyEntity.class);
     
+    // Entity data for syncing between client and server
+    private static final EntityDataAccessor<Boolean> IS_ACTIVE = SynchedEntityData.defineId(GravityAnomalyEntity.class, EntityDataSerializers.BOOLEAN);
+    
     // Constants for the gravity anomaly (now read from config)
     private float getLevitationRadius() {
         return (float) com.hexvane.strangematter.Config.gravityLevitationRadius;
     }
+    
+    @Override
+    protected float getEffectRadius() {
+        return getLevitationRadius();
+    }
+    
     
     private float getLevitationForce() {
         return (float) com.hexvane.strangematter.Config.gravityLevitationForce;
@@ -60,9 +69,15 @@ public class GravityAnomalyEntity extends BaseAnomalyEntity {
     }
     
     @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(IS_ACTIVE, true);
+    }
+    
+    @Override
     protected void applyAnomalyEffects() {
-        if (this.isContained() || !com.hexvane.strangematter.Config.enableGravityEffects) {
-            return; // Don't apply levitation if contained or effects disabled
+        if (!this.isActive() || this.isContained() || !com.hexvane.strangematter.Config.enableGravityEffects) {
+            return; // Don't apply levitation if not active, contained, or effects disabled
         }
         
         float levitationRadius = getLevitationRadius();
@@ -287,5 +302,13 @@ public class GravityAnomalyEntity extends BaseAnomalyEntity {
     public SoundEvent getAmbientSound() {
         // Return the gravity anomaly loop sound
         return SoundEvents.AMBIENT_CAVE.get();
+    }
+    
+    public boolean isActive() {
+        return this.entityData.get(IS_ACTIVE);
+    }
+    
+    public void setActive(boolean active) {
+        this.entityData.set(IS_ACTIVE, active);
     }
 }

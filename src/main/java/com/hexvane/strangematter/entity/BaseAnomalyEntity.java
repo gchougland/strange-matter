@@ -22,9 +22,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 
 import java.util.Set;
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * Base class for all anomaly entities in the Strange Matter mod.
@@ -58,6 +60,9 @@ public abstract class BaseAnomalyEntity extends Entity {
     private boolean terrainModified = false;
     protected boolean terrainModificationEnabled = true;
     
+    // Research scanning tracking
+    private boolean spawnedFromCapsule = false;
+    
     public BaseAnomalyEntity(EntityType<?> entityType, Level level) {
         super(entityType, level);
         this.setNoGravity(true);
@@ -82,7 +87,9 @@ public abstract class BaseAnomalyEntity extends Entity {
             updateRotation();
             updatePulseAnimation();
             applyAnomalyEffects();
+            checkForFirstContact();
             spawnParticles();
+            
             
             // Modify terrain once when first spawned (if enabled)
             if (!terrainModified && terrainModificationEnabled && tickCount > 20) { // Wait a bit for proper positioning
@@ -132,6 +139,42 @@ public abstract class BaseAnomalyEntity extends Entity {
      * Override this method to implement specific client-side effects
      */
     protected abstract void updateClientEffects();
+    
+    /**
+     * Check for players experiencing anomaly effects for the first time and trigger advancement
+     */
+    private void checkForFirstContact() {
+        if (!this.isActive() || this.isContained()) {
+            return; // Don't check if anomaly is not active or contained
+        }
+        
+        // Only check every 20 ticks (1 second) to avoid performance issues
+        if (tickCount % 20 != 0) return;
+        
+        // Find all players within effect range of this anomaly
+        float effectRadius = getEffectRadius();
+        AABB effectBox = this.getBoundingBox().inflate(effectRadius);
+        List<Entity> entitiesInRange = this.level().getEntities(this, effectBox);
+        
+        for (Entity entity : entitiesInRange) {
+            if (entity instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+                double distance = this.distanceTo(entity);
+                if (distance <= effectRadius) {
+                    // Player is within effect range, trigger the advancement
+                    StrangeMatterMod.ANOMALY_EFFECT_TRIGGER.trigger(serverPlayer);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Get the radius at which this anomaly's effects are applied
+     * Override in subclasses to provide specific effect ranges
+     */
+    protected float getEffectRadius() {
+        return 5.0f; // Default effect radius
+    }
+    
     
     /**
      * Override this method to return the sound resource for this anomaly
@@ -192,6 +235,28 @@ public abstract class BaseAnomalyEntity extends Entity {
      */
     public boolean isTerrainModificationEnabled() {
         return this.terrainModificationEnabled;
+    }
+    
+    /**
+     * Set whether this anomaly was spawned from a containment capsule
+     */
+    public void setSpawnedFromCapsule(boolean spawnedFromCapsule) {
+        this.spawnedFromCapsule = spawnedFromCapsule;
+    }
+    
+    /**
+     * Get whether this anomaly was spawned from a containment capsule
+     */
+    public boolean isSpawnedFromCapsule() {
+        return this.spawnedFromCapsule;
+    }
+    
+    /**
+     * Check if this anomaly is active (has effects enabled)
+     * Override in subclasses to provide specific active state logic
+     */
+    public boolean isActive() {
+        return true; // Default to active, subclasses can override
     }
     
     /**
@@ -507,4 +572,5 @@ public abstract class BaseAnomalyEntity extends Entity {
         // For now, just mark that sound should be stopped
         isSoundActive = false;
     }
+    
 }

@@ -47,6 +47,12 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
         return (float) com.hexvane.strangematter.Config.warpTeleportRadius;
     }
     
+    @Override
+    protected float getEffectRadius() {
+        return getTeleportRadius();
+    }
+    
+    
     private int getTeleportCooldownMax() {
         return com.hexvane.strangematter.Config.warpTeleportCooldown;
     }
@@ -63,7 +69,7 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
     
     public WarpGateAnomalyEntity(EntityType<?> entityType, Level level) {
         super(entityType, level);
-        this.entityData.set(IS_ACTIVE, false);
+        this.entityData.set(IS_ACTIVE, true);
         // Set a proper bounding box for the warp gate
         this.setBoundingBox(new AABB(-1.5, 0, -1.5, 1.5, 3, 1.5));
     }
@@ -94,7 +100,7 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(PAIRED_GATE_ID, "");
-        this.entityData.define(IS_ACTIVE, false);
+        this.entityData.define(IS_ACTIVE, true);
     }
     
     @Override

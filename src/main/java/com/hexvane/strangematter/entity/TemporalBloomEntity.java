@@ -8,6 +8,9 @@ import net.minecraftforge.registries.RegistryObject;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -32,10 +35,19 @@ import java.util.List;
  */
 public class TemporalBloomEntity extends BaseAnomalyEntity {
     
+    // Entity data for syncing between client and server
+    private static final EntityDataAccessor<Boolean> IS_ACTIVE = SynchedEntityData.defineId(TemporalBloomEntity.class, EntityDataSerializers.BOOLEAN);
+    
     // Config-driven getters for temporal bloom parameters
-    private float getEffectRadius() {
+    private float getTemporalEffectRadius() {
         return (float) com.hexvane.strangematter.Config.temporalEffectRadius;
     }
+    
+    @Override
+    protected float getEffectRadius() {
+        return getTemporalEffectRadius();
+    }
+    
     
     private int getCropCooldownMax() {
         return com.hexvane.strangematter.Config.temporalCropCooldown;
@@ -61,6 +73,12 @@ public class TemporalBloomEntity extends BaseAnomalyEntity {
     }
     
     @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(IS_ACTIVE, true);
+    }
+    
+    @Override
     protected void updatePulseAnimation() {
         // Create a gentle pulsing effect with temporal energy waves
         float time = (this.tickCount % 80) / 80.0f; // 4 second cycle (80 ticks)
@@ -70,8 +88,8 @@ public class TemporalBloomEntity extends BaseAnomalyEntity {
     
     @Override
     protected void applyAnomalyEffects() {
-        if (this.isContained() || !com.hexvane.strangematter.Config.enableTemporalEffects) {
-            return; // Don't apply effects if contained or effects disabled
+        if (!this.isActive() || this.isContained() || !com.hexvane.strangematter.Config.enableTemporalEffects) {
+            return; // Don't apply effects if not active, contained, or effects disabled
         }
         
         // Update cooldowns
@@ -99,7 +117,7 @@ public class TemporalBloomEntity extends BaseAnomalyEntity {
         BlockPos center = this.blockPosition();
         
         // Find crops in a circular area around the anomaly
-        float effectRadius = getEffectRadius();
+        float effectRadius = getTemporalEffectRadius();
         for (int x = (int) -effectRadius; x <= effectRadius; x++) {
             for (int z = (int) -effectRadius; z <= effectRadius; z++) {
                 double distance = Math.sqrt(x * x + z * z);
@@ -175,7 +193,7 @@ public class TemporalBloomEntity extends BaseAnomalyEntity {
     }
     
     private void transformNearbyMobs() {
-        float effectRadius = getEffectRadius();
+        float effectRadius = getTemporalEffectRadius();
         AABB transformBox = this.getBoundingBox().inflate(effectRadius);
         List<Entity> entitiesInRange = this.level().getEntities(this, transformBox);
         
@@ -247,7 +265,7 @@ public class TemporalBloomEntity extends BaseAnomalyEntity {
     
     private void createTemporalBurst() {
         // Create a burst of temporal energy particles
-        double radius = getEffectRadius() * 0.8;
+        double radius = getTemporalEffectRadius() * 0.8;
         int particleCount = 15 + this.level().getRandom().nextInt(10); // 15-24 particles
         
         for (int i = 0; i < particleCount; i++) {
@@ -311,7 +329,7 @@ public class TemporalBloomEntity extends BaseAnomalyEntity {
     private void spawnEnergyRipples() {
         // Create energy ripples that expand outward
         double rippleRadius = (tickCount % 60) * 0.2; // Expand over 3 seconds
-        if (rippleRadius > getEffectRadius()) return;
+        if (rippleRadius > getTemporalEffectRadius()) return;
         
         for (int i = 0; i < 8; i++) {
             double angle = (i * Math.PI * 2) / 8.0;
@@ -439,5 +457,13 @@ public class TemporalBloomEntity extends BaseAnomalyEntity {
     @Override
     public Component getDisplayName() {
         return Component.translatable("entity.strangematter.temporal_bloom");
+    }
+    
+    public boolean isActive() {
+        return this.entityData.get(IS_ACTIVE);
+    }
+    
+    public void setActive(boolean active) {
+        this.entityData.set(IS_ACTIVE, active);
     }
 }

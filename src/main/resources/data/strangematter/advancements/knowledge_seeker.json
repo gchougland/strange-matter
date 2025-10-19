@@ -1,0 +1,64 @@
+{
+  "parent": "strangematter:the_researcher",
+  "display": {
+    "icon": {
+      "item": "strangematter:research_tablet"
+    },
+    "title": {
+      "translate": "advancements.strangematter.knowledge_seeker.title"
+    },
+    "description": {
+      "translate": "advancements.strangematter.knowledge_seeker.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "complete_gravity_research": {
+      "trigger": "strangematter:complete_research_category",
+      "conditions": {
+        "research_category": "gravity"
+      }
+    },
+    "complete_temporal_research": {
+      "trigger": "strangematter:complete_research_category",
+      "conditions": {
+        "research_category": "time"
+      }
+    },
+    "complete_spatial_research": {
+      "trigger": "strangematter:complete_research_category",
+      "conditions": {
+        "research_category": "space"
+      }
+    },
+    "complete_energy_research": {
+      "trigger": "strangematter:complete_research_category",
+      "conditions": {
+        "research_category": "energy"
+      }
+    },
+    "complete_shadow_research": {
+      "trigger": "strangematter:complete_research_category",
+      "conditions": {
+        "research_category": "shadow"
+      }
+    },
+    "complete_cognitive_research": {
+      "trigger": "strangematter:complete_research_category",
+      "conditions": {
+        "research_category": "cognition"
+      }
+    }
+  },
+  "requirements": [
+    ["complete_gravity_research"],
+    ["complete_temporal_research"],
+    ["complete_spatial_research"],
+    ["complete_energy_research"],
+    ["complete_shadow_research"],
+    ["complete_cognitive_research"]
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "display": {
+    "icon": {
+      "item": "strangematter:field_scanner"
+    },
+    "title": {
+      "translate": "advancements.strangematter.root.title"
+    },
+    "description": {
+      "translate": "advancements.strangematter.root.description"
+    },
+    "background": "strangematter:textures/block/fancy_resonite_tile.png",
+    "show_toast": false,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "impossible": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

@@ -29,15 +29,15 @@ public class GravityMinigame extends ResearchMinigame {
     private static final int SLIDER_HANDLE_HEIGHT = 8;
     
     // Physics parameters
-    private double targetForce = 0.0; // The force that needs to be offset
-    private double sliderForce = 0.0; // The force applied by the slider
+    private int targetGravity = 0; // The target gravity value (-5 to 5, never 0)
+    private int sliderValue = 0; // The slider value (-5 to 5, center is 0)
     private double cubePosition = 0.5; // Position in tube (0.0 = bottom, 1.0 = top)
     private double cubeVelocity = 0.0; // Current velocity of the cube
     
-    // Force limits
-    private static final double MAX_FORCE = 0.3; // Keep original value - this affects both slider and target force generation
-    private static final double MAX_TARGET_FORCE = 0.2; // Smaller range for target force generation to make it more manageable
-    private static final double AUTO_SNAP_THRESHOLD = 0.1; // Auto-snap when within this range of target (30% of total range for more forgiving)
+    // Gravity limits
+    private static final int MIN_GRAVITY = -5;
+    private static final int MAX_GRAVITY = 5;
+    private static final int SLIDER_NOTCHES = 11; // -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5
     
     // Equilibrium detection
     private static final double CENTER_POSITION = 0.5; // Center of the tube
@@ -59,15 +59,10 @@ public class GravityMinigame extends ResearchMinigame {
     private boolean isDrifting = false;
     
     // Drift parameters
-    private double targetForceDrift = 0.0;
-    private double driftSpeed = 0.001; // How fast the target force drifts
+    private boolean needsNewTarget = false; // Flag to indicate when to choose new target gravity
     
     // Control states
     private boolean sliderActive = false;
-    private int lastSliderX = 0;
-    
-    // Hover states
-    private boolean sliderHovered = false;
     
     // Particle system for tube effect
     private BubblingParticleSystem particleSystem;
@@ -84,15 +79,23 @@ public class GravityMinigame extends ResearchMinigame {
         equilibriumTicks = 0;
         driftTicks = 0;
         isDrifting = false;
-        targetForceDrift = 0.0;
+        needsNewTarget = false;
         
-        // Randomize target force
-        targetForce = -MAX_TARGET_FORCE + Math.random() * (2 * MAX_TARGET_FORCE);
+        // Randomize target gravity (between -5 and 5, but never 0)
+        do {
+            targetGravity = MIN_GRAVITY + (int)(Math.random() * (MAX_GRAVITY - MIN_GRAVITY + 1));
+        } while (targetGravity == 0);
         
-        // Set initial values
-        sliderForce = 0.0;
+        // Ensure target gravity is properly constrained
+        targetGravity = Math.max(MIN_GRAVITY, Math.min(MAX_GRAVITY, targetGravity));
+        
+        // Set initial values - slider starts at center (0)
+        sliderValue = 0;
         cubePosition = 0.5;
         cubeVelocity = 0.0;
+        
+        // Start in unstable state since slider won't match target initially
+        setState(MinigameState.UNSTABLE);
         
         // Initialize particle system (will be positioned properly in render method)
         particleSystem = null; // Will be created in render method with proper coordinates
@@ -111,19 +114,21 @@ public class GravityMinigame extends ResearchMinigame {
     }
     
     private void updatePhysics() {
-        // Calculate net force (target force + slider force)
-        double netForce = targetForce + targetForceDrift + sliderForce;
+        // Calculate net force: target gravity + slider value (opposite for balance)
+        // When balanced: targetGravity + sliderValue = 0
+        int netForce = targetGravity + sliderValue;
         
-        // Auto-snap the effective force when close enough (but don't change slider position)
-        double targetSliderForce = -(targetForce + targetForceDrift);
-        if (Math.abs(sliderForce - targetSliderForce) < AUTO_SNAP_THRESHOLD) {
-            netForce = 0.0; // Perfect balance for physics, but keep slider position
+        if (netForce == 0) {
+            // Perfectly balanced - cube should move toward center and stay there
+            double centerForce = (CENTER_POSITION - cubePosition) * 0.1; // Force toward center
+            cubeVelocity += centerForce;
+            cubeVelocity *= 0.9; // Stronger damping when balanced
+        } else {
+            // Not balanced - apply gravity force
+            double acceleration = netForce * 0.01; // Scale down for reasonable movement
+            cubeVelocity += acceleration;
+            cubeVelocity *= 0.95; // Normal damping
         }
-        
-        // Apply physics (simplified gravity simulation)
-        double acceleration = netForce * 0.01; // Scale down for reasonable movement
-        cubeVelocity += acceleration;
-        cubeVelocity *= 0.95; // Damping to prevent infinite oscillation
         
         // Update position
         cubePosition += cubeVelocity;
@@ -138,10 +143,18 @@ public class GravityMinigame extends ResearchMinigame {
     }
     
     private void updateDrift() {
-        if (isDrifting) {
-            // Gradually drift the target force
-            targetForceDrift += (Math.random() - 0.5) * driftSpeed;
-            targetForceDrift = Math.max(-MAX_FORCE, Math.min(MAX_FORCE, targetForceDrift));
+        if (needsNewTarget) {
+            // Choose a new random target gravity (between -5 and 5, but never 0)
+            do {
+                targetGravity = MIN_GRAVITY + (int)(Math.random() * (MAX_GRAVITY - MIN_GRAVITY + 1));
+            } while (targetGravity == 0);
+            
+            // Ensure target gravity is properly constrained
+            targetGravity = Math.max(MIN_GRAVITY, Math.min(MAX_GRAVITY, targetGravity));
+            
+            needsNewTarget = false;
+            isDrifting = false;
+            driftTicks = 0;
         }
     }
     
@@ -192,9 +205,17 @@ public class GravityMinigame extends ResearchMinigame {
         // Render slider bar
         guiGraphics.blit(SLIDER_BAR_TEXTURE, x, y, 0, 0, width, height, width, height);
         
-        // Calculate handle position (-MAX_FORCE to +MAX_FORCE maps to 0 to width)
-        double normalizedForce = (sliderForce + MAX_FORCE) / (2 * MAX_FORCE);
-        int handleX = x + (int) (normalizedForce * (width - SLIDER_HANDLE_WIDTH));
+        // Render notches for each position (-5 to 5)
+        for (int i = 0; i < SLIDER_NOTCHES; i++) {
+            int notchX = x + (int) ((i / (double)(SLIDER_NOTCHES - 1)) * (width - 1));
+            int notchY = y - 2;
+            int notchHeight = 4;
+            guiGraphics.fill(notchX, notchY, notchX + 1, notchY + notchHeight, 0xFF666666);
+        }
+        
+        // Calculate handle position (sliderValue from -5 to 5 maps to 0 to width)
+        double normalizedValue = (sliderValue - MIN_GRAVITY) / (double)(MAX_GRAVITY - MIN_GRAVITY);
+        int handleX = x + (int) (normalizedValue * (width - SLIDER_HANDLE_WIDTH));
         int handleY = y - (SLIDER_HANDLE_HEIGHT - height) / 2;
         
         // Check if mouse is over handle for highlighting
@@ -232,7 +253,6 @@ public class GravityMinigame extends ResearchMinigame {
                 // Just reached equilibrium, reset drift timer
                 driftTicks = 0;
                 isDrifting = false;
-                targetForceDrift = 0.0;
             }
             
             equilibriumTicks++;
@@ -242,6 +262,7 @@ public class GravityMinigame extends ResearchMinigame {
                 int driftDelay = getDriftDelayTicks();
                 if (driftTicks >= driftDelay && !isDrifting) {
                     isDrifting = true;
+                    needsNewTarget = true; // Flag to choose new target gravity
                 }
             }
         } else {
@@ -249,7 +270,6 @@ public class GravityMinigame extends ResearchMinigame {
             equilibriumTicks = 0;
             driftTicks = 0;
             isDrifting = false;
-            targetForceDrift = 0.0;
         }
         
         // Update state based on equilibrium
@@ -272,7 +292,6 @@ public class GravityMinigame extends ResearchMinigame {
             mouseY >= sliderY && mouseY < sliderY + SLIDER_HEIGHT) {
             
             sliderActive = true;
-            lastSliderX = mouseX;
             
             // Play click sound
             if (minecraft != null && minecraft.player != null) {
@@ -287,12 +306,7 @@ public class GravityMinigame extends ResearchMinigame {
     public void updateHoverStates(int mouseX, int mouseY, int panelX, int panelY, int panelWidth, int panelHeight) {
         if (!isActive) return;
         
-        // Check slider hover (updated position)
-        int sliderX = panelX + panelWidth / 2 - SLIDER_WIDTH / 2;
-        int sliderY = panelY + panelHeight - 8;
-        
-        sliderHovered = (mouseX >= sliderX && mouseX < sliderX + SLIDER_WIDTH &&
-                        mouseY >= sliderY && mouseY < sliderY + SLIDER_HEIGHT);
+        // Hover states are handled in the render method for visual feedback
     }
     
     // Handle mouse drag and release through the base class system
@@ -302,16 +316,20 @@ public class GravityMinigame extends ResearchMinigame {
         // Calculate slider position relative to panel
         int sliderX = panelX + panelWidth / 2 - SLIDER_WIDTH / 2;
         
-        // Convert mouse position to force value (0.0 to 1.0 across slider width)
+        // Convert mouse position to slider value (0.0 to 1.0 across slider width)
         double relativeX = (mouseX - sliderX) / (double) SLIDER_WIDTH;
         relativeX = Math.max(0.0, Math.min(1.0, relativeX)); // Clamp to slider bounds
         
-        // Convert to force range (-MAX_FORCE to +MAX_FORCE)
-        sliderForce = (relativeX - 0.5) * 2.0 * MAX_FORCE;
+        // Convert to discrete slider value (-5 to 5) with snap to nearest notch
+        double normalizedValue = relativeX * (SLIDER_NOTCHES - 1);
+        int nearestNotch = (int) Math.round(normalizedValue);
+        sliderValue = MIN_GRAVITY + nearestNotch;
+        
+        // Clamp to valid range
+        sliderValue = Math.max(MIN_GRAVITY, Math.min(MAX_GRAVITY, sliderValue));
         
         // Reset drift when actively adjusting
         isDrifting = false;
-        targetForceDrift = 0.0;
         driftTicks = 0;
     }
     
@@ -336,12 +354,12 @@ public class GravityMinigame extends ResearchMinigame {
         return sliderActive;
     }
     
-    public double getSliderForce() {
-        return sliderForce;
+    public int getSliderValue() {
+        return sliderValue;
     }
     
-    public double getTargetForce() {
-        return targetForce;
+    public int getTargetGravity() {
+        return targetGravity;
     }
     
     public double getCubePosition() {
@@ -368,8 +386,13 @@ public class GravityMinigame extends ResearchMinigame {
         return isDrifting;
     }
     
-    public double getTargetForceDrift() {
-        return targetForceDrift;
+    public boolean getNeedsNewTarget() {
+        return needsNewTarget;
+    }
+    
+    public int getRequiredSliderValue() {
+        // The slider value needed to balance the target gravity
+        return -targetGravity;
     }
     
     // Setter methods for state restoration
@@ -377,12 +400,12 @@ public class GravityMinigame extends ResearchMinigame {
         this.sliderActive = sliderActive;
     }
     
-    public void setSliderForce(double sliderForce) {
-        this.sliderForce = sliderForce;
+    public void setSliderValue(int sliderValue) {
+        this.sliderValue = sliderValue;
     }
     
-    public void setTargetForce(double targetForce) {
-        this.targetForce = targetForce;
+    public void setTargetGravity(int targetGravity) {
+        this.targetGravity = targetGravity;
     }
     
     public void setCubePosition(double cubePosition) {
@@ -409,7 +432,12 @@ public class GravityMinigame extends ResearchMinigame {
         this.isDrifting = isDrifting;
     }
     
-    public void setTargetForceDrift(double targetForceDrift) {
-        this.targetForceDrift = targetForceDrift;
+    public void setNeedsNewTarget(boolean needsNewTarget) {
+        this.needsNewTarget = needsNewTarget;
+    }
+    
+    public void setRequiredSliderValue(int requiredValue) {
+        // This is a helper method - it sets the target gravity to the opposite of the required value
+        targetGravity = -requiredValue;
     }
 }

@@ -1,0 +1,30 @@
+{
+  "parent": "strangematter:reality_extractor",
+  "display": {
+    "icon": {
+      "item": "strangematter:warp_gun"
+    },
+    "title": {
+      "translate": "advancements.strangematter.portal_master.title"
+    },
+    "description": {
+      "translate": "advancements.strangematter.portal_master.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "use_warp_gun": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": ["strangematter:warp_gun"]
+          }
+        ]
+      }
+    }
+  }
+}

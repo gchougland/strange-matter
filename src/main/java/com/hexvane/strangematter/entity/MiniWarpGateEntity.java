@@ -51,7 +51,7 @@ public class MiniWarpGateEntity extends Entity {
     @Override
     protected void defineSynchedData() {
         this.entityData.define(ROTATION, 0.0f);
-        this.entityData.define(IS_ACTIVE, false);
+        this.entityData.define(IS_ACTIVE, true);
         this.entityData.define(PAIRED_GATE_ID, "");
         this.entityData.define(IS_PURPLE_PORTAL, false);
     }

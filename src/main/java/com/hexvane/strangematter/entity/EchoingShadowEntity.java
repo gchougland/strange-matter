@@ -3,6 +3,9 @@ package com.hexvane.strangematter.entity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -24,10 +27,19 @@ import java.util.HashSet;
 
 public class EchoingShadowEntity extends BaseAnomalyEntity {
     
+    // Entity data for syncing between client and server
+    private static final EntityDataAccessor<Boolean> IS_ACTIVE = SynchedEntityData.defineId(EchoingShadowEntity.class, EntityDataSerializers.BOOLEAN);
+    
     // Config-driven getters for echoing shadow parameters
-    private float getEffectRadius() {
+    private float getShadowEffectRadius() {
         return (float) com.hexvane.strangematter.Config.shadowEffectRadius;
     }
+    
+    @Override
+    protected float getEffectRadius() {
+        return getShadowEffectRadius();
+    }
+    
     
     private double getLightAbsorption() {
         return com.hexvane.strangematter.Config.shadowLightAbsorption;
@@ -53,6 +65,12 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
     }
     
     @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(IS_ACTIVE, true);
+    }
+    
+    @Override
     public void onAddedToWorld() {
         super.onAddedToWorld();
         // Register with shadow light provider when added to world
@@ -64,8 +82,8 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
     
     @Override
     protected void applyAnomalyEffects() {
-        if (this.isContained() || !com.hexvane.strangematter.Config.enableShadowEffects) {
-            return; // Don't apply effects if contained or effects disabled
+        if (!this.isActive() || this.isContained() || !com.hexvane.strangematter.Config.enableShadowEffects) {
+            return; // Don't apply effects if not active, contained, or effects disabled
         }
         
         // Apply light absorption effect
@@ -86,7 +104,7 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
         }
         
         BlockPos centerPos = this.blockPosition();
-        float effectRadius = getEffectRadius();
+        float effectRadius = getShadowEffectRadius();
         int radius = (int) effectRadius;
         
         // Clear previously affected positions
@@ -171,7 +189,7 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
                         
                         // Calculate distance-based reduction - make it DRASTIC
                         double distance = this.position().distanceTo(new Vec3(testPos.getX() + 0.5, testPos.getY() + 0.5, testPos.getZ() + 0.5));
-                        float localEffectRadius = getEffectRadius();
+                        float localEffectRadius = getShadowEffectRadius();
                         double reductionFactor = 1.0 - (distance / localEffectRadius);
                         
                         // Make the reduction much more dramatic - reduce to near 0
@@ -206,7 +224,7 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
             return;
         }
         
-        float effectRadius = getEffectRadius();
+        float effectRadius = getShadowEffectRadius();
         AABB shadowBox = this.getBoundingBox().inflate(effectRadius);
         List<Entity> entitiesInRange = this.level().getEntities(this, shadowBox);
         
@@ -290,7 +308,7 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
         // Try multiple spawn attempts
         for (int attempt = 0; attempt < 5; attempt++) {
             // Pick a random position within the shadow radius
-            float shadowRadius = getEffectRadius();
+            float shadowRadius = getShadowEffectRadius();
             int x = centerPos.getX() + this.level().getRandom().nextInt((int)(shadowRadius * 2)) - (int)shadowRadius;
             int z = centerPos.getZ() + this.level().getRandom().nextInt((int)(shadowRadius * 2)) - (int)shadowRadius;
             
@@ -525,7 +543,7 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
     public int getEffectiveLightLevel(BlockPos pos) {
         double distance = this.position().distanceTo(new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5));
         
-        float effectRadius = getEffectRadius();
+        float effectRadius = getShadowEffectRadius();
         if (distance <= effectRadius) {
             double reductionFactor = 1.0 - (distance / effectRadius);
             int lightReduction = (int) (LIGHT_LEVEL_REDUCTION * reductionFactor);
@@ -557,14 +575,14 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
      */
     public boolean isInShadowRadius(BlockPos pos) {
         double distance = this.position().distanceTo(new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5));
-        return distance <= getEffectRadius();
+        return distance <= getShadowEffectRadius();
     }
     
     /**
      * Get the light absorption radius for the custom light engine
      */
     public float getLightAbsorptionRadius() {
-        return getEffectRadius();
+        return getShadowEffectRadius();
     }
     
     /**
@@ -572,5 +590,13 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
      */
     public int getLightLevelReduction() {
         return LIGHT_LEVEL_REDUCTION;
+    }
+    
+    public boolean isActive() {
+        return this.entityData.get(IS_ACTIVE);
+    }
+    
+    public void setActive(boolean active) {
+        this.entityData.set(IS_ACTIVE, active);
     }
 }

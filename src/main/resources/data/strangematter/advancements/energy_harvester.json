@@ -1,0 +1,30 @@
+{
+  "parent": "strangematter:reality_forge",
+  "display": {
+    "icon": {
+      "item": "strangematter:resonance_condenser"
+    },
+    "title": {
+      "translate": "advancements.strangematter.energy_harvester.title"
+    },
+    "description": {
+      "translate": "advancements.strangematter.energy_harvester.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "craft_resonance_condenser": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": ["strangematter:resonance_condenser"]
+          }
+        ]
+      }
+    }
+  }
+}

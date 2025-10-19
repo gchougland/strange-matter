@@ -8,6 +8,9 @@ import net.minecraftforge.registries.RegistryObject;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -32,10 +35,19 @@ import java.util.ArrayList;
  */
 public class EnergeticRiftEntity extends BaseAnomalyEntity {
     
+    // Entity data for syncing between client and server
+    private static final EntityDataAccessor<Boolean> IS_ACTIVE = SynchedEntityData.defineId(EnergeticRiftEntity.class, EntityDataSerializers.BOOLEAN);
+    
     // Config-driven getters for energetic rift parameters
     private float getZapRadius() {
         return (float) com.hexvane.strangematter.Config.energeticZapRadius;
     }
+    
+    @Override
+    protected float getEffectRadius() {
+        return getZapRadius();
+    }
+    
     
     private float getLightningRodRadius() {
         return (float) com.hexvane.strangematter.Config.energeticLightningRadius;
@@ -64,6 +76,12 @@ public class EnergeticRiftEntity extends BaseAnomalyEntity {
         super(entityType, level);
     }
     
+    @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(IS_ACTIVE, true);
+    }
+    
     
     @Override
     protected void updatePulseAnimation() {
@@ -76,8 +94,8 @@ public class EnergeticRiftEntity extends BaseAnomalyEntity {
     
     @Override
     protected void applyAnomalyEffects() {
-        if (this.isContained() || !com.hexvane.strangematter.Config.enableEnergeticEffects) {
-            return; // Don't apply effects if contained or effects disabled
+        if (!this.isActive() || this.isContained() || !com.hexvane.strangematter.Config.enableEnergeticEffects) {
+            return; // Don't apply effects if not active, contained, or effects disabled
         }
         
         // Update cooldowns
@@ -329,5 +347,13 @@ public class EnergeticRiftEntity extends BaseAnomalyEntity {
             this.endPos = end;
             this.targetId = targetId;
         }
+    }
+    
+    public boolean isActive() {
+        return this.entityData.get(IS_ACTIVE);
+    }
+    
+    public void setActive(boolean active) {
+        this.entityData.set(IS_ACTIVE, active);
     }
 }

@@ -1,0 +1,30 @@
+{
+  "parent": "strangematter:field_researcher",
+  "display": {
+    "icon": {
+      "item": "strangematter:anomaly_resonator"
+    },
+    "title": {
+      "translate": "advancements.strangematter.anomaly_hunter.title"
+    },
+    "description": {
+      "translate": "advancements.strangematter.anomaly_hunter.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "craft_anomaly_resonator": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": ["strangematter:anomaly_resonator"]
+          }
+        ]
+      }
+    }
+  }
+}
