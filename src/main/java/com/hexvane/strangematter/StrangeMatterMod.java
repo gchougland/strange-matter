@@ -161,6 +161,7 @@ public class StrangeMatterMod
     // Creates a new research item with the id "strangematter:field_scanner"
     public static final RegistryObject<Item> FIELD_SCANNER = ITEMS.register("field_scanner", FieldScannerItem::new);
     
+    
     // Anomaly Resonator - compass for finding anomalies
     public static final RegistryObject<Item> ANOMALY_RESONATOR = ITEMS.register("anomaly_resonator", AnomalyResonatorItem::new);
     
@@ -450,6 +451,12 @@ public class StrangeMatterMod
             .sized(0.25f, 0.25f) // Small projectile size
             .build("throwable_containment_capsule"));
 
+    // Advancement Triggers
+    public static final com.hexvane.strangematter.advancement.AnomalyEffectTrigger ANOMALY_EFFECT_TRIGGER = new com.hexvane.strangematter.advancement.AnomalyEffectTrigger();
+    public static final com.hexvane.strangematter.advancement.ScanAnomalyTrigger SCAN_ANOMALY_TRIGGER = new com.hexvane.strangematter.advancement.ScanAnomalyTrigger();
+    public static final com.hexvane.strangematter.advancement.CompleteResearchCategoryTrigger COMPLETE_RESEARCH_CATEGORY_TRIGGER = new com.hexvane.strangematter.advancement.CompleteResearchCategoryTrigger();
+
+
     // Sound Events are now registered in StrangeMatterSounds class
 
     // World Generation Features
@@ -603,6 +610,11 @@ public class StrangeMatterMod
             com.hexvane.strangematter.research.ScannableObjectRegistry.init();
             // Initialize research nodes on server as well (not just in client screens)
             com.hexvane.strangematter.research.ResearchNodeRegistry.initializeDefaultNodes();
+            
+            // Register custom advancement triggers
+            net.minecraft.advancements.CriteriaTriggers.register(ANOMALY_EFFECT_TRIGGER);
+            net.minecraft.advancements.CriteriaTriggers.register(SCAN_ANOMALY_TRIGGER);
+            net.minecraft.advancements.CriteriaTriggers.register(COMPLETE_RESEARCH_CATEGORY_TRIGGER);
         });
     }
     
@@ -618,6 +630,7 @@ public class StrangeMatterMod
             e.printStackTrace();
         }
         ResearchCommand.register(event.getDispatcher());
+        com.hexvane.strangematter.command.ResearchPointsCommand.register(event.getDispatcher());
         
         // Register test command for gravity anomaly feature
         event.getDispatcher().register(Commands.literal("test_gravity_anomaly")

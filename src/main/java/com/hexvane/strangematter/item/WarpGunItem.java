@@ -82,6 +82,7 @@ public class WarpGunItem extends SwordItem {
         
         player.level().addFreshEntity(projectile);
         
+        
         System.out.println((isPurple ? "Right-click" : "Left-click") + ": Created " + (isPurple ? "purple" : "cyan") + " projectile");
     }
     

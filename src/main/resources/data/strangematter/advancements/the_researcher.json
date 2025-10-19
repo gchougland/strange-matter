@@ -1,0 +1,30 @@
+{
+  "parent": "strangematter:first_contact",
+  "display": {
+    "icon": {
+      "item": "strangematter:research_notes"
+    },
+    "title": {
+      "translate": "advancements.strangematter.the_researcher.title"
+    },
+    "description": {
+      "translate": "advancements.strangematter.the_researcher.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "complete_research": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": ["strangematter:research_notes"]
+          }
+        ]
+      }
+    }
+  }
+}

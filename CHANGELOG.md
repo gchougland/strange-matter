@@ -2,7 +2,54 @@
 
 All notable changes to Strange Matter will be documented in this file.
 
-## [0.2.2] - 2025-01-15
+## [0.2.4] - 2025-10-19
+
+### Added
+- **Advancement System**: Complete progression tracking system with 12 unique advancements
+  - **Discovery & Foundation**: First Contact, The Researcher, Anomaly Collector
+  - **Power & Energy**: Energy Harvester
+  - **Tools & Equipment**: Field Researcher, Anomaly Hunter, Reality Extractor, Portal Master
+  - **Advanced Crafting**: Reality Forge
+  - **Research Mastery**: Knowledge Seeker, Research Master
+  - **World Interaction**: Anomaly Tamer
+  - **Custom Triggers**: Advanced tracking for anomaly effects, scanning, research completion, and containment
+  - **Custom Tab**: Dedicated Strange Matter advancement tab with custom background
+- **Research Points Conditional Commands**: Command system for conditional execution based on player research progress
+  - **Execute If Integration**: Use research points as conditions in `/execute if` commands
+  - **Scoreboard Integration**: Store research check results for complex conditional logic
+  - **Command Block Ready**: Perfect for map makers and server administrators
+  - **All Research Types**: Support for all six research categories with range checking
+  - **Target Selectors**: Full support for Minecraft target selectors (@a, @p, @r, etc.)
+
+### Fixed
+- **Scanning anomalies from capsules**: You can no longer scan anomalies that were spawned from capsules
+- **Summoned warp gates function**: Warp gates spawned through /summon were inactive by default not they are active
+- **Resonite blasting recipe**: Fixed raw resonite blasting recipe
+- **Configurable Anomaly Scientist Rarity**: Added configuration option for setting the rarity of the anomaly scientist villager house
+- **Research Machine Texture Path**: Replaced MTL file texture paths with correct ones
+
+### Improved
+- **Time Research Minigame**: 
+  - Added faded hand that moves at the goal speed, providing visual target for synchronization
+  - Enhanced auto-snap feature for smoother speed adjustments
+  - Improved visual feedback with semi-transparent faded hand
+- **Gravity Research Minigame**:
+  - Completely redesigned balance system with discrete integer values (-5 to 5)
+  - Added 11-notch slider with snap-to-position functionality
+  - Fixed stabilization logic - cube now properly centers when balanced
+  - Improved drift system - randomly selects new target gravity instead of gradual drift
+  - Increased drift delay to 30 seconds for more rewarding gameplay
+  - Enhanced physics calculation for better balance detection
+
+## [0.2.3] - 2025-10-16
+
+### Fixed
+- **Echo Vacuum Recipe**: Fixed typo causing recipe to not function
+- **Gravity Issues**: Fixed gravity persisting between worlds and after containment
+- **Reality Forge Energy Storage**: Removed energy storage that was causing confusion with Reality Forge
+- **Warp Gun Server Error**: Fixed WarpGunEventHandler to only send packets client side
+
+## [0.2.2] - 2025-10-15
 
 ### Added
 
@@ -25,29 +72,14 @@ All notable changes to Strange Matter will be documented in this file.
   - **Configuration support**: Research cost configurable via config file
     - `levitationPad` (default: Gravity 15, Energy 10)
 
+- **Throwable Containment Capsules**
+  - **New deployment method**: Right-click any filled containment capsule to throw it like a potion
+  - **Anomaly deployment**: When capsule hits the ground, it spawns the contained anomaly at the impact location
+
 ### Changed
 
 - **Graviton Hammer Improvements**
   - **Precision mining mode**: Crouch + left-click now mines only a single block instead of 3x3 area
-  - **Enhanced tooltip**: Updated to show both mining modes clearly
-    - Left click: 3x3 area mining
-    - Left click + Crouch: Single block mining
-    - Right click hold: Charged tunnel mining
-
-### Added
-
-- **Throwable Containment Capsules**
-  - **New deployment method**: Right-click any filled containment capsule to throw it like a potion
-  - **Anomaly deployment**: When capsule hits the ground, it spawns the contained anomaly at the impact location
-  - **Clean deployment**: Spawned anomalies do not modify terrain (no grass/ore generation)
-  - **Realistic physics**: Uses proper projectile physics with arc trajectory
-  - **Sound effects**: 
-    - Potion throw sound when launched
-    - Glass breaking sound when it hits the ground
-  - **Visual feedback**: Capsule renders as the actual item model while flying
-  - **Universal support**: Works with all anomaly types (Gravity, Energetic, Echoing Shadow, Temporal Bloom, Thoughtwell, Warp Gate)
-  - **Consumption**: Capsule is consumed when thrown (unless in creative mode)
-  - **Enhanced tooltips**: Filled capsules now show "Right click to throw and release anomaly"
 
 ## [0.2.1] - 2025-10-14
 

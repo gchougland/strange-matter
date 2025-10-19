@@ -863,15 +863,15 @@ public class ResearchMachineScreen extends Screen {
                 com.hexvane.strangematter.client.screen.minigames.GravityMinigame gravityMinigame = 
                     (com.hexvane.strangematter.client.screen.minigames.GravityMinigame) minigame;
                 state.put("sliderActive", gravityMinigame.isSliderActive());
-                state.put("sliderForce", gravityMinigame.getSliderForce());
-                state.put("targetForce", gravityMinigame.getTargetForce());
+                state.put("sliderValue", gravityMinigame.getSliderValue());
+                state.put("targetGravity", gravityMinigame.getTargetGravity());
                 state.put("cubePosition", gravityMinigame.getCubePosition());
                 state.put("cubeVelocity", gravityMinigame.getCubeVelocity());
                 state.put("isInEquilibrium", gravityMinigame.isInEquilibrium());
                 state.put("equilibriumTicks", gravityMinigame.getEquilibriumTicks());
                 state.put("driftTicks", gravityMinigame.getDriftTicks());
                 state.put("isDrifting", gravityMinigame.isDrifting());
-                state.put("targetForceDrift", gravityMinigame.getTargetForceDrift());
+                state.put("needsNewTarget", gravityMinigame.getNeedsNewTarget());
             }
             
             minigameStates.put(type, state);
@@ -922,15 +922,15 @@ public class ResearchMachineScreen extends Screen {
                     (com.hexvane.strangematter.client.screen.minigames.GravityMinigame) minigame;
                 
                 gravityMinigame.setSliderActive((Boolean) state.getOrDefault("sliderActive", false));
-                gravityMinigame.setSliderForce((Double) state.getOrDefault("sliderForce", 0.0));
-                gravityMinigame.setTargetForce((Double) state.getOrDefault("targetForce", 0.0));
+                gravityMinigame.setSliderValue((Integer) state.getOrDefault("sliderValue", 0));
+                gravityMinigame.setTargetGravity((Integer) state.getOrDefault("targetGravity", 0));
                 gravityMinigame.setCubePosition((Double) state.getOrDefault("cubePosition", 0.5));
                 gravityMinigame.setCubeVelocity((Double) state.getOrDefault("cubeVelocity", 0.0));
                 gravityMinigame.setInEquilibrium((Boolean) state.getOrDefault("isInEquilibrium", false));
                 gravityMinigame.setEquilibriumTicks((Integer) state.getOrDefault("equilibriumTicks", 0));
                 gravityMinigame.setDriftTicks((Integer) state.getOrDefault("driftTicks", 0));
                 gravityMinigame.setDrifting((Boolean) state.getOrDefault("isDrifting", false));
-                gravityMinigame.setTargetForceDrift((Double) state.getOrDefault("targetForceDrift", 0.0));
+                gravityMinigame.setNeedsNewTarget((Boolean) state.getOrDefault("needsNewTarget", false));
             }
         }
     }

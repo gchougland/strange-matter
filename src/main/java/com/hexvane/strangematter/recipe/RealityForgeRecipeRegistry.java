@@ -28,18 +28,12 @@ public class RealityForgeRecipeRegistry {
         var recipeType = com.hexvane.strangematter.StrangeMatterMod.REALITY_FORGE_RECIPE_TYPE.get();
         
         var allRecipes = recipeManager.getAllRecipesFor(recipeType);
-        System.out.println("DEBUG: findMatchingRecipe - found " + allRecipes.size() + " recipes of type " + recipeType);
         
         for (var recipe : allRecipes) {
-            System.out.println("DEBUG: Testing recipe " + recipe.getId());
             if (recipe.matches(blockEntity, level)) {
-                System.out.println("DEBUG: Recipe " + recipe.getId() + " matches!");
                 return recipe;
-            } else {
-                System.out.println("DEBUG: Recipe " + recipe.getId() + " does not match");
             }
         }
-        System.out.println("DEBUG: No matching recipe found");
         return null;
     }
     

@@ -20,6 +20,7 @@ public class TimeMinigame extends ResearchMinigame {
     // Colors
     private static final int MINUTE_HAND_COLOR = 0xFF39e8e1; // Cyan
     private static final int SECOND_HAND_COLOR = 0xFF9641ba; // Purple
+    private static final int FADED_HAND_COLOR = 0x80FFFFFF; // Semi-transparent white
     
     // Speed and timing
     private static final double MAX_SPEED = 2.0; // Maximum speed multiplier
@@ -37,6 +38,11 @@ public class TimeMinigame extends ResearchMinigame {
         return com.hexvane.strangematter.Config.timeDriftDelayTicks;
     }
     
+    private double getSnapThreshold() {
+        return com.hexvane.strangematter.Config.timeSnapThreshold;
+    }
+    
+    
     // Textures
     private static final ResourceLocation CLOCK_TEXTURE = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/ui/time_clock.png");
     private static final ResourceLocation LEFT_BUTTON_TEXTURE = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/ui/left_button.png");
@@ -47,10 +53,13 @@ public class TimeMinigame extends ResearchMinigame {
     // Game state
     private double clockSpeed = 1.0; // Current speed multiplier (1.0 = normal speed)
     private double targetSpeed = 1.0; // Target speed to match (always 1.0 for blinking light)
+    private double fadedHandSpeed = 1.0; // Speed of the faded hand (goal speed)
     private double clockAngle = 0.0; // Current angle of the second hand (0-360 degrees)
     private double minuteAngle = 0.0; // Current angle of the minute hand (0-360 degrees)
+    private double fadedHandAngle = 0.0; // Current angle of the faded hand (0-360 degrees)
     private int secondCounter = 0; // Counter for seconds (0-59)
     private int minuteCounter = 0; // Counter for minutes (0-59)
+    private int fadedHandCounter = 0; // Counter for faded hand seconds (0-59)
     
     // Light blinking
     private boolean lightOn = false;
@@ -61,7 +70,6 @@ public class TimeMinigame extends ResearchMinigame {
     private int stableTicks = 0;
     private boolean isDrifting = false;
     private int driftTicks = 0;
-    private double speedDrift = 0.0;
     
     // Button states
     private boolean leftButtonHovered = false;
@@ -87,17 +95,19 @@ public class TimeMinigame extends ResearchMinigame {
         // Reset all values
         clockSpeed = 1.0;
         targetSpeed = 1.0;
+        fadedHandSpeed = 1.0;
         clockAngle = 0.0;
         minuteAngle = 0.0;
+        fadedHandAngle = 0.0;
         secondCounter = 0;
         minuteCounter = 0;
+        fadedHandCounter = 0;
         lightOn = false;
         lightTick = 0;
         isStable = false;
         stableTicks = 0;
         isDrifting = false;
         driftTicks = 0;
-        speedDrift = 0.0;
         leftButtonHovered = false;
         rightButtonHovered = false;
         leftButtonPressed = false;
@@ -113,6 +123,9 @@ public class TimeMinigame extends ResearchMinigame {
         
         // Randomize starting rotation of minute hand (0-360 degrees)
         minuteAngle = Math.random() * 360.0;
+        
+        // Randomize starting rotation of faded hand (0-360 degrees)
+        fadedHandAngle = Math.random() * 360.0;
         
         // Start in unstable state since speed won't match target initially
         setState(MinigameState.UNSTABLE);
@@ -231,11 +244,10 @@ public class TimeMinigame extends ResearchMinigame {
     }
     
     private void updateClock() {
-        // Update clock angle based on speed
-        double effectiveSpeed = clockSpeed + speedDrift;
-        clockAngle += effectiveSpeed * 6.0; // 6 degrees per second at normal speed
+        // Update main clock angle based on speed
+        clockAngle += clockSpeed * 6.0; // 6 degrees per second at normal speed
         
-        // Normalize angle
+        // Normalize main clock angle
         while (clockAngle >= 360.0) {
             clockAngle -= 360.0;
             secondCounter++;
@@ -259,6 +271,22 @@ public class TimeMinigame extends ResearchMinigame {
         // Normalize minute angle
         while (minuteAngle >= 360.0) minuteAngle -= 360.0;
         while (minuteAngle < 0.0) minuteAngle += 360.0;
+        
+        // Update faded hand angle based on its speed
+        fadedHandAngle += fadedHandSpeed * 6.0; // 6 degrees per second at normal speed
+        
+        // Normalize faded hand angle
+        while (fadedHandAngle >= 360.0) {
+            fadedHandAngle -= 360.0;
+            fadedHandCounter++;
+        }
+        while (fadedHandAngle < 0.0) {
+            fadedHandAngle += 360.0;
+            fadedHandCounter--;
+        }
+        
+        // Check for auto-snap when speeds are close
+        checkAutoSnap();
     }
     
     private void updateLight() {
@@ -272,15 +300,18 @@ public class TimeMinigame extends ResearchMinigame {
     }
     
     private void checkStability() {
-        // Check if speed is close to target (1.0)
+        // Check if main hand speed is close to faded hand speed
         double threshold = getSpeedThreshold();
-        boolean speedMatch = Math.abs(clockSpeed - targetSpeed) < threshold;
+        boolean speedMatch = Math.abs(clockSpeed - fadedHandSpeed) < threshold;
         
         if (speedMatch) {
             if (!isStable) {
                 isStable = true;
                 stableTicks = 0;
                 setState(MinigameState.STABLE); // Set the minigame state to stable
+                
+                // Synchronize angles when speeds first match
+                syncHandAngles();
             } else {
                 stableTicks++;
             }
@@ -299,14 +330,13 @@ public class TimeMinigame extends ResearchMinigame {
                 driftTicks = 0;
             } else {
                 driftTicks++;
-                // Add small random drift
+                // Add small random drift to faded hand speed
                 double driftSpeed = 0.01;
-                speedDrift += (Math.random() - 0.5) * driftSpeed;
-                speedDrift = Math.max(-0.1, Math.min(0.1, speedDrift)); // Clamp drift
+                fadedHandSpeed += (Math.random() - 0.5) * driftSpeed;
+                fadedHandSpeed = Math.max(0.1, Math.min(2.0, fadedHandSpeed)); // Clamp speed
             }
         } else {
             isDrifting = false;
-            speedDrift = 0.0;
         }
     }
     
@@ -315,10 +345,23 @@ public class TimeMinigame extends ResearchMinigame {
         clockSpeed += adjustment * step;
         clockSpeed = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, clockSpeed));
         
-        // Reset drift when actively adjusting
-        isDrifting = false;
-        speedDrift = 0.0;
-        driftTicks = 0;
+        // Check for auto-snap when adjusting
+        checkAutoSnap();
+    }
+    
+    private void checkAutoSnap() {
+        double snapThreshold = getSnapThreshold();
+        if (Math.abs(clockSpeed - fadedHandSpeed) < snapThreshold) {
+            clockSpeed = fadedHandSpeed; // Snap to faded hand speed
+        }
+    }
+    
+    private void syncHandAngles() {
+        // Align the main hand angle with the faded hand angle
+        clockAngle = fadedHandAngle;
+        
+        // Also sync the counters to maintain consistency
+        secondCounter = fadedHandCounter;
     }
     
     @Override
@@ -349,17 +392,23 @@ public class TimeMinigame extends ResearchMinigame {
         // Convert angles to radians
         double minuteRad = Math.toRadians(minuteAngle - 90); // -90 to start at 12 o'clock
         double secondRad = Math.toRadians(clockAngle - 90);
+        double fadedRad = Math.toRadians(fadedHandAngle - 90);
         
         // Calculate hand endpoints
         int minuteEndX = centerX + (int) (Math.cos(minuteRad) * MINUTE_HAND_LENGTH);
         int minuteEndY = centerY + (int) (Math.sin(minuteRad) * MINUTE_HAND_LENGTH);
         int secondEndX = centerX + (int) (Math.cos(secondRad) * SECOND_HAND_LENGTH);
         int secondEndY = centerY + (int) (Math.sin(secondRad) * SECOND_HAND_LENGTH);
+        int fadedEndX = centerX + (int) (Math.cos(fadedRad) * SECOND_HAND_LENGTH);
+        int fadedEndY = centerY + (int) (Math.sin(fadedRad) * SECOND_HAND_LENGTH);
         
-        // Render minute hand (behind second hand) - draw line from center to endpoint
+        // Render minute hand (behind all other hands) - draw line from center to endpoint
         drawLine(guiGraphics, centerX, centerY, minuteEndX, minuteEndY, MINUTE_HAND_COLOR);
         
-        // Render second hand (on top) - draw line from center to endpoint
+        // Render faded hand (behind main second hand) - draw line from center to endpoint
+        drawLine(guiGraphics, centerX, centerY, fadedEndX, fadedEndY, FADED_HAND_COLOR);
+        
+        // Render main second hand (on top) - draw line from center to endpoint
         drawLine(guiGraphics, centerX, centerY, secondEndX, secondEndY, SECOND_HAND_COLOR);
     }
     
@@ -435,17 +484,26 @@ public class TimeMinigame extends ResearchMinigame {
     public double getTargetSpeed() { return targetSpeed; }
     public void setTargetSpeed(double targetSpeed) { this.targetSpeed = targetSpeed; }
     
+    public double getFadedHandSpeed() { return fadedHandSpeed; }
+    public void setFadedHandSpeed(double fadedHandSpeed) { this.fadedHandSpeed = fadedHandSpeed; }
+    
     public double getClockAngle() { return clockAngle; }
     public void setClockAngle(double clockAngle) { this.clockAngle = clockAngle; }
     
     public double getMinuteAngle() { return minuteAngle; }
     public void setMinuteAngle(double minuteAngle) { this.minuteAngle = minuteAngle; }
     
+    public double getFadedHandAngle() { return fadedHandAngle; }
+    public void setFadedHandAngle(double fadedHandAngle) { this.fadedHandAngle = fadedHandAngle; }
+    
     public int getSecondCounter() { return secondCounter; }
     public void setSecondCounter(int secondCounter) { this.secondCounter = secondCounter; }
     
     public int getMinuteCounter() { return minuteCounter; }
     public void setMinuteCounter(int minuteCounter) { this.minuteCounter = minuteCounter; }
+    
+    public int getFadedHandCounter() { return fadedHandCounter; }
+    public void setFadedHandCounter(int fadedHandCounter) { this.fadedHandCounter = fadedHandCounter; }
     
     public boolean isLightOn() { return lightOn; }
     public void setLightOn(boolean lightOn) { this.lightOn = lightOn; }
@@ -465,8 +523,6 @@ public class TimeMinigame extends ResearchMinigame {
     public int getDriftTicks() { return driftTicks; }
     public void setDriftTicks(int driftTicks) { this.driftTicks = driftTicks; }
     
-    public double getSpeedDrift() { return speedDrift; }
-    public void setSpeedDrift(double speedDrift) { this.speedDrift = speedDrift; }
     
     public int getButtonCooldown() { return buttonCooldown; }
     public void setButtonCooldown(int buttonCooldown) { this.buttonCooldown = buttonCooldown; }

@@ -1,0 +1,30 @@
+{
+  "parent": "strangematter:reality_forge",
+  "display": {
+    "icon": {
+      "item": "strangematter:echo_vacuum"
+    },
+    "title": {
+      "translate": "advancements.strangematter.reality_extractor.title"
+    },
+    "description": {
+      "translate": "advancements.strangematter.reality_extractor.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "craft_echo_vacuum": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": ["strangematter:echo_vacuum"]
+          }
+        ]
+      }
+    }
+  }
+}

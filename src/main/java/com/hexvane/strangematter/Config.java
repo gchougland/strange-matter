@@ -51,6 +51,13 @@ public class Config {
     private static final ForgeConfigSpec.DoubleValue SHARD_ORE_SPAWN_CHANCE_NEAR_ANOMALY;
 
     // ========================================
+    // WORLD GENERATION - VILLAGER STRUCTURES
+    // ========================================
+    
+    private static final ForgeConfigSpec.BooleanValue ENABLE_ANOMALY_SCIENTIST_HOUSE;
+    private static final ForgeConfigSpec.IntValue ANOMALY_SCIENTIST_HOUSE_WEIGHT;
+
+    // ========================================
     // ANOMALY EFFECTS CONFIG VALUES
     // ========================================
     
@@ -190,6 +197,7 @@ public class Config {
     private static final ForgeConfigSpec.DoubleValue TIME_SPEED_THRESHOLD;
     private static final ForgeConfigSpec.IntValue TIME_DRIFT_DELAY_TICKS;
     private static final ForgeConfigSpec.DoubleValue TIME_SPEED_ADJUSTMENT;
+    private static final ForgeConfigSpec.DoubleValue TIME_SNAP_THRESHOLD;
     
     // Gravity Minigame
     private static final ForgeConfigSpec.DoubleValue GRAVITY_BALANCE_THRESHOLD;
@@ -287,6 +295,21 @@ public class Config {
                 .defineInRange("shardOreSpawnChanceNearAnomaly", 0.2, 0.0, 1.0);
         
         BUILDER.pop(); // terrain
+        
+        // Villager Structures
+        BUILDER.comment("Villager Structure Configuration",
+                "Control the generation of custom villager structures")
+                .push("villager_structures");
+        
+        ENABLE_ANOMALY_SCIENTIST_HOUSE = BUILDER
+                .comment("Enable Anomaly Scientist Lab generation in villages")
+                .define("enableAnomalyScientistHouse", true);
+        ANOMALY_SCIENTIST_HOUSE_WEIGHT = BUILDER
+                .comment("Weight for Anomaly Scientist Lab in village generation (higher = more common)",
+                        "Default village houses have weights around 1-10, with 5 being moderately common")
+                .defineInRange("anomalyScientistHouseWeight", 6, 1, 100);
+        
+        BUILDER.pop(); // villager_structures
         BUILDER.pop(); // worldgen
         
         // ========================================
@@ -679,6 +702,9 @@ public class Config {
         TIME_SPEED_ADJUSTMENT = BUILDER
                 .comment("Speed adjustment step size per button press")
                 .defineInRange("speedAdjustment", 0.1, 0.01, 1.0);
+        TIME_SNAP_THRESHOLD = BUILDER
+                .comment("Speed difference threshold for auto-snapping main hand to faded hand")
+                .defineInRange("snapThreshold", 0.05, 0.01, 0.5);
         BUILDER.pop();
         
         // Gravity Minigame
@@ -688,7 +714,7 @@ public class Config {
                 .defineInRange("balanceThreshold", 0.1, 0.01, 1.0);
         GRAVITY_DRIFT_DELAY_TICKS = BUILDER
                 .comment("Ticks before balance starts drifting")
-                .defineInRange("driftDelayTicks", 200, 20, 1200);
+                .defineInRange("driftDelayTicks", 1000, 20, 1200);
         BUILDER.pop();
         
         // Shadow Minigame
@@ -744,6 +770,10 @@ public class Config {
     public static boolean enableAnomalousGrass;
     public static double resoniteOreSpawnChanceNearAnomaly;
     public static double shardOreSpawnChanceNearAnomaly;
+    
+    // Villager structures
+    public static boolean enableAnomalyScientistHouse;
+    public static int anomalyScientistHouseWeight;
     
     // Anomaly effects
     // Gravity Anomaly
@@ -870,6 +900,7 @@ public class Config {
     public static double timeSpeedThreshold;
     public static int timeDriftDelayTicks;
     public static double timeSpeedAdjustment;
+    public static double timeSnapThreshold;
     
     // Gravity Minigame
     public static double gravityBalanceThreshold;
@@ -913,6 +944,10 @@ public class Config {
         enableAnomalousGrass = ENABLE_ANOMALOUS_GRASS.get();
         resoniteOreSpawnChanceNearAnomaly = RESONITE_ORE_SPAWN_CHANCE_NEAR_ANOMALY.get();
         shardOreSpawnChanceNearAnomaly = SHARD_ORE_SPAWN_CHANCE_NEAR_ANOMALY.get();
+        
+        // Villager structures
+        enableAnomalyScientistHouse = ENABLE_ANOMALY_SCIENTIST_HOUSE.get();
+        anomalyScientistHouseWeight = ANOMALY_SCIENTIST_HOUSE_WEIGHT.get();
         
         // Anomaly effects
         // Gravity Anomaly
@@ -1039,6 +1074,7 @@ public class Config {
         timeSpeedThreshold = TIME_SPEED_THRESHOLD.get();
         timeDriftDelayTicks = TIME_DRIFT_DELAY_TICKS.get();
         timeSpeedAdjustment = TIME_SPEED_ADJUSTMENT.get();
+        timeSnapThreshold = TIME_SNAP_THRESHOLD.get();
         
         // Gravity Minigame
         gravityBalanceThreshold = GRAVITY_BALANCE_THRESHOLD.get();

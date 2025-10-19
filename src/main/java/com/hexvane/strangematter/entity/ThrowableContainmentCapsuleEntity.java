@@ -85,6 +85,7 @@ public class ThrowableContainmentCapsuleEntity extends ThrowableItemProjectile {
                 if (gravityAnomaly != null) {
                     gravityAnomaly.setPos(spawnPos.getX() + 0.5, spawnPos.getY() + 1.0, spawnPos.getZ() + 0.5);
                     gravityAnomaly.setTerrainModificationEnabled(false);
+                    gravityAnomaly.setSpawnedFromCapsule(true);
                     level.addFreshEntity(gravityAnomaly);
                 }
                 break;
@@ -94,6 +95,7 @@ public class ThrowableContainmentCapsuleEntity extends ThrowableItemProjectile {
                 if (energeticRift != null) {
                     energeticRift.setPos(spawnPos.getX() + 0.5, spawnPos.getY() + 1.0, spawnPos.getZ() + 0.5);
                     energeticRift.setTerrainModificationEnabled(false);
+                    energeticRift.setSpawnedFromCapsule(true);
                     level.addFreshEntity(energeticRift);
                 }
                 break;
@@ -103,6 +105,7 @@ public class ThrowableContainmentCapsuleEntity extends ThrowableItemProjectile {
                 if (echoingShadow != null) {
                     echoingShadow.setPos(spawnPos.getX() + 0.5, spawnPos.getY() + 1.0, spawnPos.getZ() + 0.5);
                     echoingShadow.setTerrainModificationEnabled(false);
+                    echoingShadow.setSpawnedFromCapsule(true);
                     level.addFreshEntity(echoingShadow);
                 }
                 break;
@@ -112,6 +115,7 @@ public class ThrowableContainmentCapsuleEntity extends ThrowableItemProjectile {
                 if (temporalBloom != null) {
                     temporalBloom.setPos(spawnPos.getX() + 0.5, spawnPos.getY() + 1.0, spawnPos.getZ() + 0.5);
                     temporalBloom.setTerrainModificationEnabled(false);
+                    temporalBloom.setSpawnedFromCapsule(true);
                     level.addFreshEntity(temporalBloom);
                 }
                 break;
@@ -121,6 +125,7 @@ public class ThrowableContainmentCapsuleEntity extends ThrowableItemProjectile {
                 if (thoughtwell != null) {
                     thoughtwell.setPos(spawnPos.getX() + 0.5, spawnPos.getY() + 1.0, spawnPos.getZ() + 0.5);
                     thoughtwell.setTerrainModificationEnabled(false);
+                    thoughtwell.setSpawnedFromCapsule(true);
                     level.addFreshEntity(thoughtwell);
                 }
                 break;
@@ -131,6 +136,7 @@ public class ThrowableContainmentCapsuleEntity extends ThrowableItemProjectile {
                     warpGate.setPos(spawnPos.getX() + 0.5, spawnPos.getY() + 2.0, spawnPos.getZ() + 0.5);
                     warpGate.setActive(true);
                     warpGate.setTerrainModificationEnabled(false);
+                    warpGate.setSpawnedFromCapsule(true);
                     level.addFreshEntity(warpGate);
                 }
                 break;

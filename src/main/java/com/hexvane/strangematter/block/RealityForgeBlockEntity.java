@@ -3,26 +3,14 @@ package com.hexvane.strangematter.block;
 import com.hexvane.strangematter.StrangeMatterMod;
 import com.hexvane.strangematter.recipe.RealityForgeRecipe;
 import com.hexvane.strangematter.recipe.RealityForgeRecipeRegistry;
+import com.hexvane.strangematter.energy.ResonanceEnergyStorage;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.*;
 
 public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
@@ -59,9 +47,9 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
         @Override
         public int get(int index) {
             return switch (index) {
-                // Base class data (indexes 0-6)
-                case 0 -> energyStorage.getEnergyStored();
-                case 1 -> energyStorage.getMaxEnergyStored();
+                // Base class data (indexes 0-6) - Reality Forge always has 0 energy
+                case 0 -> 0; // energyStorage.getEnergyStored() - always 0 for Reality Forge
+                case 1 -> 0; // energyStorage.getMaxEnergyStored() - always 0 for Reality Forge
                 case 2 -> isActive ? 1 : 0;
                 case 3 -> energyPerTick;
                 case 4 -> maxEnergyStorage;
@@ -80,9 +68,9 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
         @Override
         public void set(int index, int value) {
             switch (index) {
-                // Base class data
-                case 0 -> energyStorage.setEnergy(value);
-                case 1 -> energyStorage.setCapacity(value);
+                // Base class data - Reality Forge ignores energy changes
+                case 0 -> { /* energyStorage.setEnergy(value) - ignored for Reality Forge */ }
+                case 1 -> { /* energyStorage.setCapacity(value) - ignored for Reality Forge */ }
                 case 2 -> isActive = value != 0;
                 case 3 -> energyPerTick = value;
                 case 4 -> maxEnergyStorage = value;
@@ -119,11 +107,42 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
         
         boolean[] outputSides = {false, false, false, false, false, false};
         this.setEnergyOutputSides(outputSides);
+        
+        // Set energy storage capacity to 0 since Reality Forge doesn't use energy
+        this.energyStorage.setCapacity(0);
+        this.energyStorage.setEnergy(0);
     }
     
     @Override
     protected MachineEnergyRole getEnergyRole() {
         return MachineEnergyRole.ENERGY_INDEPENDENT; // Explicitly define as energy-independent
+    }
+    
+    // Override energy methods to ensure Reality Forge never stores energy
+    @Override
+    public int getEnergyStored() {
+        return 0; // Reality Forge never stores energy
+    }
+    
+    @Override
+    public int getMaxEnergyStored() {
+        return 0; // Reality Forge has no energy capacity
+    }
+    
+    @Override
+    public float getEnergyPercentage() {
+        return 0.0f; // Always 0% since no energy is stored
+    }
+    
+    @Override
+    public int getEnergyPercentageInt() {
+        return 0; // Always 0% since no energy is stored
+    }
+    
+    @Override
+    public ResonanceEnergyStorage getEnergyStorage() {
+        // Return a dummy energy storage that always has 0 capacity and energy
+        return new ResonanceEnergyStorage(0, 0, 0);
     }
     
     @Override
@@ -444,6 +463,7 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
 
             // Set output
             setItem(10, currentRecipe.getResultItem(level.registryAccess()).copy());
+
 
             // Play sound
             if (level != null && !level.isClientSide) {

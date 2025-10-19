@@ -34,6 +34,7 @@ public class FieldScannerItem extends Item {
     private static final String SCANNING_TAG = "scanning";
     private static final String SCAN_TARGET_TAG = "scan_target";
     private static final String SCAN_PROGRESS_TAG = "scan_progress";
+    private static final String SCAN_ENTITY_TAG = "scan_entity";
     
     public FieldScannerItem() {
         super(new Item.Properties().stacksTo(1));
@@ -65,6 +66,14 @@ public class FieldScannerItem extends Item {
         }
         
         if (ScannableObjectRegistry.isEntityScannable(entity)) {
+            // Check if this is an anomaly spawned from a capsule
+            if (entity instanceof com.hexvane.strangematter.entity.BaseAnomalyEntity anomaly) {
+                if (anomaly.isSpawnedFromCapsule()) {
+                    player.sendSystemMessage(Component.literal("§cThis anomaly was spawned from a containment capsule and cannot be scanned for research."));
+                    return;
+                }
+            }
+            
             Optional<ScannableObject> scannable = ScannableObjectRegistry.getScannableForEntity(entity);
             if (scannable.isPresent()) {
                 String objectId = scannable.get().generateObjectId(entity);
@@ -73,7 +82,7 @@ public class FieldScannerItem extends Item {
                 if (!researchData.hasScanned(objectId)) {
                     // Only show message if not already scanning
                     if (!isScanning(stack)) {
-                        startScanning(stack, objectId, scannable.get());
+                        startScanning(stack, objectId, scannable.get(), entity);
                         player.sendSystemMessage(Component.literal("§eScanning " + entity.getDisplayName().getString() + "..."));
                         
                         // Start the use animation
@@ -189,6 +198,19 @@ public class FieldScannerItem extends Item {
         // This will trigger the onUseTick method
     }
     
+    private void startScanning(ItemStack stack, String objectId, ScannableObject scannable, Entity entity) {
+        CompoundTag tag = stack.getOrCreateTag();
+        tag.putBoolean(SCANNING_TAG, true);
+        tag.putString(SCAN_TARGET_TAG, objectId);
+        tag.putString("scan_type", scannable.getResearchType().getName());
+        tag.putInt("scan_amount", scannable.getResearchAmount());
+        tag.putInt(SCAN_PROGRESS_TAG, 0);
+        tag.putString(SCAN_ENTITY_TAG, entity.getType().toString());
+        
+        // Start the use animation by setting the use duration
+        // This will trigger the onUseTick method
+    }
+    
     private void stopScanning(ItemStack stack) {
         CompoundTag tag = stack.getOrCreateTag();
         tag.putBoolean(SCANNING_TAG, false);
@@ -196,6 +218,7 @@ public class FieldScannerItem extends Item {
         tag.remove("scan_type");
         tag.remove("scan_amount");
         tag.remove(SCAN_PROGRESS_TAG);
+        tag.remove(SCAN_ENTITY_TAG);
         // Add a cooldown to prevent immediate re-scanning
         tag.putLong("scan_cooldown", System.currentTimeMillis() + 1000); // 1 second cooldown
     }
@@ -221,6 +244,19 @@ public class FieldScannerItem extends Item {
                     net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> serverPlayer), 
                     new ResearchGainPacket(researchType, amount)
                 );
+                
+                // Trigger advancement for scanning anomaly
+                String entityType = tag.getString(SCAN_ENTITY_TAG);
+                if (!entityType.isEmpty()) {
+                    // Find the entity by type to trigger the advancement
+                    level.getEntitiesOfClass(Entity.class, player.getBoundingBox().inflate(10.0))
+                        .stream()
+                        .filter(entity -> entity.getType().toString().equals(entityType))
+                        .findFirst()
+                        .ifPresent(entity -> {
+                            StrangeMatterMod.SCAN_ANOMALY_TRIGGER.trigger(serverPlayer, entity);
+                        });
+                }
             }
             
             // Play success sound

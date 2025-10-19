@@ -116,6 +116,14 @@ public class ResearchMachineBlockEntity extends BlockEntity {
                     researchData.unlockResearch(currentResearchId);
                     researchData.syncToClient((net.minecraft.server.level.ServerPlayer) player);
                     
+                    // Trigger advancement for each research category used in this research
+                    com.hexvane.strangematter.research.ResearchNode researchNode = com.hexvane.strangematter.research.ResearchNodeRegistry.getNode(currentResearchId);
+                    if (researchNode != null && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+                        for (com.hexvane.strangematter.research.ResearchType researchType : researchNode.getResearchCosts().keySet()) {
+                            StrangeMatterMod.COMPLETE_RESEARCH_CATEGORY_TRIGGER.trigger(serverPlayer, researchType.getName());
+                        }
+                    }
+                    
                     // Send success message
                     player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
                         "block.strangematter.research_machine.research_completed_success", 

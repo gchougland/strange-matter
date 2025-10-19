@@ -1,6 +1,7 @@
 package com.hexvane.strangematter.event;
 
 import com.hexvane.strangematter.StrangeMatterMod;
+import com.hexvane.strangematter.Config;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
@@ -32,6 +33,12 @@ public class VillageStructureAddition {
     public static void onTagsUpdated(TagsUpdatedEvent event) {
         if (event.getUpdateCause() != TagsUpdatedEvent.UpdateCause.SERVER_DATA_LOAD)
             return;
+        
+        // Check if anomaly scientist house is enabled
+        if (!Config.enableAnomalyScientistHouse) {
+            LOGGER.info("Anomaly Scientist House generation is disabled in config");
+            return;
+        }
         
         // Register Anomaly Scientist Lab for each biome type
         for (String biome : new String[]{"plains", "snowy", "savanna", "desert", "taiga"}) {
@@ -125,11 +132,12 @@ public class VillageStructureAddition {
             SinglePoolElement addedElement = SinglePoolElement.single(toAdd.toString())
                 .apply(StructureTemplatePool.Projection.RIGID);
             
-            // Add to both lists
-            rawTemplates.add(Pair.of(addedElement, 5));
+            // Add to both lists with configurable weight
+            int weight = Config.anomalyScientistHouseWeight;
+            rawTemplates.add(Pair.of(addedElement, weight));
             templates.add(addedElement);
             
-            LOGGER.info("Successfully added structure " + toAdd + " to pool " + poolId);
+            LOGGER.info("Successfully added structure " + toAdd + " to pool " + poolId + " with weight " + weight);
             
         } catch (Exception e) {
             LOGGER.error("Failed to add structure to pool " + poolId, e);

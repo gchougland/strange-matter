@@ -1,16 +1,15 @@
 package com.hexvane.strangematter.event;
 
 import com.hexvane.strangematter.StrangeMatterMod;
-import com.hexvane.strangematter.entity.WarpProjectileEntity;
 import com.hexvane.strangematter.item.WarpGunItem;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-@Mod.EventBusSubscriber(modid = StrangeMatterMod.MODID)
+@Mod.EventBusSubscriber(modid = StrangeMatterMod.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class WarpGunEventHandler {
     
     @SubscribeEvent

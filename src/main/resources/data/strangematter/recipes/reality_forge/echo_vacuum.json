@@ -22,7 +22,7 @@
   "shards": {
     "spatial": 2,
     "energetic": 2,
-    "temporal": 1
+    "chrono": 1
   },
   "required_research": "containment_basics",
   "result": {

@@ -1,0 +1,30 @@
+{
+  "parent": "strangematter:the_researcher",
+  "display": {
+    "icon": {
+      "item": "strangematter:research_machine"
+    },
+    "title": {
+      "translate": "advancements.strangematter.research_master.title"
+    },
+    "description": {
+      "translate": "advancements.strangematter.research_master.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "complete_all_research": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": ["strangematter:research_machine"]
+          }
+        ]
+      }
+    }
+  }
+}

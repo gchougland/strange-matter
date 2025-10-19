@@ -4,6 +4,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.living.LivingFallEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.slf4j.Logger;
@@ -78,6 +80,69 @@ public class GravityEventHandler {
                 float originalDistance = event.getDistance();
                 float newDistance = originalDistance * (1.0f - (float)(Math.abs(forceMultiplier) * 0.8));
                 event.setDistance(newDistance);
+            }
+        }
+    }
+    
+    @SubscribeEvent
+    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+        Player player = event.getEntity();
+        
+        // Clear gravity data when player leaves the world
+        if (player.getPersistentData().contains("strangematter.gravity_force")) {
+            // Remove from static data
+            com.hexvane.strangematter.GravityData.removePlayerGravityForce(player.getUUID());
+            
+            // Clear persistent data
+            player.getPersistentData().remove("strangematter.gravity_force");
+            
+            LOGGER.info("[GRAVITY HANDLER] Cleared gravity effects for player {} who left the world", player.getName().getString());
+        }
+    }
+    
+    @SubscribeEvent
+    public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
+        Player player = event.getEntity();
+        
+        // Clear gravity data when player changes dimensions
+        if (player.getPersistentData().contains("strangematter.gravity_force")) {
+            // Remove from static data
+            com.hexvane.strangematter.GravityData.removePlayerGravityForce(player.getUUID());
+            
+            // Clear persistent data
+            player.getPersistentData().remove("strangematter.gravity_force");
+            
+            LOGGER.info("[GRAVITY HANDLER] Cleared gravity effects for player {} who changed dimension", player.getName().getString());
+        }
+    }
+    
+    @SubscribeEvent
+    public static void onEntityLeaveLevel(EntityLeaveLevelEvent event) {
+        // Check if the removed entity is a Gravity Anomaly
+        if (event.getEntity().getType().toString().equals("strangematter:gravity_anomaly") ||
+            event.getEntity().getClass().getSimpleName().equals("GravityAnomalyEntity")) {
+            
+            // Clear gravity effects for all players in the world
+            if (event.getLevel() != null) {
+                for (Player player : event.getLevel().players()) {
+                    if (player.getPersistentData().contains("strangematter.gravity_force")) {
+                        // Remove from static data
+                        com.hexvane.strangematter.GravityData.removePlayerGravityForce(player.getUUID());
+                        
+                        // Clear persistent data
+                        player.getPersistentData().remove("strangematter.gravity_force");
+                        
+                        // Send packet to clear gravity force on client
+                        if (!event.getLevel().isClientSide && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+                            com.hexvane.strangematter.network.NetworkHandler.INSTANCE.send(
+                                net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> serverPlayer), 
+                                new com.hexvane.strangematter.network.GravitySyncPacket(0.0)
+                            );
+                        }
+                        
+                        LOGGER.info("[GRAVITY HANDLER] Cleared gravity effects for player {} due to Gravity Anomaly removal", player.getName().getString());
+                    }
+                }
             }
         }
     }
