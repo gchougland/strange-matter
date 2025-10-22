@@ -15,129 +15,116 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.item.ItemEntity;
 
 public class HoverboardEntity extends Entity {
     
     // Entity data for syncing between client and server
     private static final EntityDataAccessor<Float> BOARD_ROTATION = SynchedEntityData.defineId(HoverboardEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> FORWARD_MOMENTUM = SynchedEntityData.defineId(HoverboardEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Boolean> IS_BOOSTING = SynchedEntityData.defineId(HoverboardEntity.class, EntityDataSerializers.BOOLEAN);
     
-    // Add rotation tracking to entity data
-    private static final EntityDataAccessor<Float> BOARD_YAW = SynchedEntityData.defineId(HoverboardEntity.class, EntityDataSerializers.FLOAT);
+    // Movement constants (configurable via Config class)
+    private static final float FRICTION = 0.85f;
+    private static final float ROTATION_SPEED = 3.0f; // Degrees per tick when turning
+    private static final float BRAKE_FORCE = 0.95f; // How much S key slows down
     
-    // Add movement constants
-    private static final float ACCELERATION = 0.02f;
-    private static final float MAX_SPEED = 0.3f;
-    private static final float FRICTION = 0.9f;
+    // Speed boost constants (Control key) - multipliers for config values
+    private static final float BOOST_ACCELERATION_MULTIPLIER = 2.0f; // Double acceleration when boosting
+    private static final float BOOST_MAX_SPEED_MULTIPLIER = 1.5f; // 1.5x max speed when boosting
     
-    // Add to constants
-    private static final float ROTATION_SPEED = 2.0f; // Degrees per tick when turning
-    
-    // Add hover constants
+    // Hover constants
     private static final float TARGET_HOVER_HEIGHT = 0.5f; // Half block above ground
-    private static final float HOVER_ADJUSTMENT_SPEED = 0.15f; // Increased from 0.05 for faster climbing
+    private static final float HOVER_ADJUSTMENT_SPEED = 0.2f;
     private static final float MAX_HOVER_SCAN_DISTANCE = 10.0f;
-    private static final float CLIMB_BOOST = 0.2f; // Extra boost when detecting obstacle ahead
+    private static final float CLIMB_BOOST = 0.25f; // Extra boost when detecting obstacle ahead
     
     public HoverboardEntity(EntityType<?> entityType, Level level) {
         super(entityType, level);
-        System.out.println("HoverboardEntity constructor called!");
-        // Remove this line - size should be set in registration
-        // this.setBoundingBox(this.getBoundingBox().inflate(0.0, -0.4, 0.0));
+        this.setNoGravity(true); // Hoverboards don't fall
+        this.setMaxUpStep(1.0f); // Allow stepping up 1 block like a horse
     }
-    
-    // ========== REQUIRED METHODS (CANNOT BE REMOVED) ==========
-    // These are abstract in Entity class and must be implemented
     
     @Override
     protected void defineSynchedData() {
-        // REQUIRED: Abstract method in Entity - defines what data syncs between client/server
         this.entityData.define(BOARD_ROTATION, 0.0f);
-        this.entityData.define(BOARD_YAW, 0.0f); // Track hoverboard's facing direction
+        this.entityData.define(FORWARD_MOMENTUM, 0.0f);
+        this.entityData.define(IS_BOOSTING, false);
     }
     
     @Override
     protected void addAdditionalSaveData(CompoundTag compound) {
-        // REQUIRED: Abstract method in Entity - saves entity data to NBT
         compound.putFloat("BoardRotation", this.entityData.get(BOARD_ROTATION));
-        compound.putFloat("BoardYaw", this.entityData.get(BOARD_YAW));
+        compound.putFloat("ForwardMomentum", this.entityData.get(FORWARD_MOMENTUM));
+        compound.putBoolean("IsBoosting", this.entityData.get(IS_BOOSTING));
     }
     
     @Override
     protected void readAdditionalSaveData(CompoundTag compound) {
-        // REQUIRED: Abstract method in Entity - loads entity data from NBT
         if (compound.contains("BoardRotation")) {
             this.entityData.set(BOARD_ROTATION, compound.getFloat("BoardRotation"));
         }
-        if (compound.contains("BoardYaw")) {
-            this.entityData.set(BOARD_YAW, compound.getFloat("BoardYaw"));
-            this.setYRot(compound.getFloat("BoardYaw")); // Set entity rotation
+        if (compound.contains("ForwardMomentum")) {
+            this.entityData.set(FORWARD_MOMENTUM, compound.getFloat("ForwardMomentum"));
+        }
+        if (compound.contains("IsBoosting")) {
+            this.entityData.set(IS_BOOSTING, compound.getBoolean("IsBoosting"));
         }
     }
     
     // ========== OPTIONAL OVERRIDES (FOR FUNCTIONALITY) ==========
     // These have default implementations but we override for specific behavior
     
-    @Override
-    public boolean isPickable() {
-        // OPTIONAL: Override to allow player interaction with the hoverboard
-        // Default: depends on entity type, usually true for most entities
-        return true;
-    }
-    
-    @Override
-    public boolean isPushable() {
-        // OPTIONAL: Override to prevent other entities from pushing the hoverboard around
-        // Default: true for most entities
-        return false;
-    }
     
     @Override
     public void tick() {
         super.tick();
-        if (this.level().isClientSide) return;
         
-        // Add basic debug to see if tick is running
-        if (this.tickCount % 60 == 0) {
-            System.out.println("HoverboardEntity tick - isVehicle: " + this.isVehicle() + ", passengers: " + this.getPassengers().size());
-        }
-         
         // Handle dismount when player sneaks
         handleDismount();
         
-        // Only hover when someone is riding
         if (this.isVehicle()) {
             // Maintain hover height
             maintainHoverHeight();
             
             // Handle movement input
             handleMovement();
+            
+            // Ensure smooth following of the player
+            ensureSmoothFollowing();
         } else {
-            // No rider - apply gravity and friction, don't hover
+            // No rider - apply friction and fall slowly
             applyFriction();
-            
-            // Apply gravity
             Vec3 currentVelocity = this.getDeltaMovement();
-            this.setDeltaMovement(currentVelocity.x, currentVelocity.y - 0.08, currentVelocity.z);
-            
-            // Move with gravity
-            this.move(MoverType.SELF, this.getDeltaMovement());
+            this.setDeltaMovement(currentVelocity.x, currentVelocity.y - 0.02, currentVelocity.z);
         }
+        
+        // Move the entity
+        this.move(MoverType.SELF, this.getDeltaMovement());
     }
     
-    /**
-     * Handle player interaction (right-click to mount or remove)
-     */
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
         if (this.level().isClientSide) {
             return InteractionResult.SUCCESS;
         }
         
-        // If player is sneaking, remove the hoverboard
+        // If player is sneaking, pick up the hoverboard
         if (player.isShiftKeyDown()) {
-            System.out.println("Removing hoverboard");
-            this.discard(); // Remove the entity
+            // Drop hoverboard item
+            ItemStack hoverboardItem = new ItemStack(com.hexvane.strangematter.StrangeMatterMod.HOVERBOARD.get());
+            ItemEntity itemEntity = new ItemEntity(this.level(), this.getX(), this.getY(), this.getZ(), hoverboardItem);
+            this.level().addFreshEntity(itemEntity);
+            
+            // Play pickup sound
+            this.level().playSound(null, this.getX(), this.getY(), this.getZ(), 
+                SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.8f, 1.0f);
+            
+            // Remove the entity
+            this.discard();
             return InteractionResult.SUCCESS;
         }
         
@@ -152,9 +139,7 @@ public class HoverboardEntity extends Entity {
         }
         
         // Mount the player on the hoverboard
-        boolean success = player.startRiding(this);
-        System.out.println("startRiding result: " + success);
-        
+        player.startRiding(this);
         return InteractionResult.SUCCESS;
     }
     
@@ -175,82 +160,80 @@ public class HoverboardEntity extends Entity {
     }
     
     /**
-     * Handle movement input from the rider - Tank controls version
+     * Handle movement input from the rider using keyboard input
      */
     private void handleMovement() {
-        if (this.isVehicle()) {
-            Entity rider = this.getControllingPassenger();
-            if (rider == null && !this.getPassengers().isEmpty()) {
-                rider = this.getPassengers().get(0);
-            }
+        if (!this.isVehicle()) return;
+        
+        Entity rider = this.getControllingPassenger();
+        if (rider == null && !this.getPassengers().isEmpty()) {
+            rider = this.getPassengers().get(0);
+        }
+        
+        if (rider instanceof Player player) {
+            // Get input from player's movement keys
+            // Note: zza > 0 means forward (W key), zza < 0 means backward (S key)
+            boolean forwardPressed = player.zza > 0; // Moving forward (W key)
+            boolean backwardPressed = player.zza < 0; // Moving backward (S key)
             
-            if (rider instanceof Player player) {
-                float forward = 0.0f;
-                float turn = 0.0f;
-                
-                // Get player's movement input
-                Vec3 playerMovement = player.getDeltaMovement();
-                Vec3 lookDirection = player.getLookAngle().normalize();
-                
-                if (playerMovement.horizontalDistance() > 0.01) {
-                    Vec3 horizontalMovement = new Vec3(playerMovement.x, 0, playerMovement.z).normalize();
-                    
-                    // Get the forward/backward component (W/S)
-                    double forwardComponent = horizontalMovement.dot(lookDirection);
-                    
-                    // Get the left/right component (A/D)
-                    // Cross product to get the "right" vector, then dot product for strafe
-                    Vec3 rightDirection = new Vec3(lookDirection.z, 0, -lookDirection.x).normalize();
-                    double strafeComponent = horizontalMovement.dot(rightDirection);
-                    
-                    // Forward/backward movement
-                    if (Math.abs(forwardComponent) > 0.3) {
-                        forward = (float)forwardComponent;
-                    }
-                    
-                    // Left/right rotation
-                    if (Math.abs(strafeComponent) > 0.3) {
-                        turn = (float)strafeComponent;
-                    }
-                }
-                
-                if (this.tickCount % 60 == 0) {
-                    System.out.println("Forward: " + forward + ", Turn: " + turn);
-                }
-                
-                // Apply rotation
-                if (Math.abs(turn) > 0.001f) {
-                    float currentYaw = this.getYRot();
-                    float newYaw = currentYaw - (turn * ROTATION_SPEED);
-                    this.setYRot(newYaw);
-                    this.entityData.set(BOARD_YAW, newYaw);
-                }
-                
-                // Apply forward/backward movement in the direction the hoverboard is facing
-                if (Math.abs(forward) > 0.001f) {
-                    applyMovementTankStyle(forward);
-                } else {
-                    applyFriction();
-                }
-                
-                this.move(MoverType.SELF, this.getDeltaMovement());
+            // Try different methods to detect Control key
+            boolean boostPressed = player.isSprinting();
+            
+            // Sync boost state to entity data
+            this.entityData.set(IS_BOOSTING, boostPressed);
+            
+            // Handle forward/backward movement (W/S keys) with boost
+            // Rotation is now handled by ensureSmoothFollowing() which follows look direction
+            if (forwardPressed) {
+                applyForwardMovement(boostPressed);
+            } else if (backwardPressed) {
+                applyBackwardMovement(boostPressed);
+            } else {
+                // No input - apply friction
+                applyFriction();
             }
-        } else {
-            applyFriction();
-            this.move(MoverType.SELF, this.getDeltaMovement());
         }
     }
     
     /**
-     * Apply movement based on hoverboard's facing direction (not player's look direction)
+     * Ensure the hoverboard follows the player's look direction smoothly
      */
-    private void applyMovementTankStyle(float forwardInput) {
-        // Use the hoverboard's rotation, not the player's look direction
+    private void ensureSmoothFollowing() {
+        if (!this.isVehicle()) return;
+        
+        Entity rider = this.getControllingPassenger();
+        if (rider == null && !this.getPassengers().isEmpty()) {
+            rider = this.getPassengers().get(0);
+        }
+        
+        if (rider != null) {
+            // Make the hoverboard follow the player's look direction
+            this.setYRot(rider.getYRot());
+            this.yRotO = rider.yRotO;
+            
+            // Sync the rider's rotation to match the hoverboard's rotation
+            rider.setYRot(this.getYRot());
+            rider.yRotO = this.yRotO;
+        }
+    }
+    
+    /**
+     * Apply forward movement with momentum and optional boost
+     */
+    private void applyForwardMovement(boolean boost) {
         double yaw = Math.toRadians(this.getYRot());
         
+        // Use config values with boost multipliers if Control key is pressed
+        float acceleration = boost ? 
+            (float)(com.hexvane.strangematter.Config.hoverboardAcceleration * BOOST_ACCELERATION_MULTIPLIER) : 
+            (float)com.hexvane.strangematter.Config.hoverboardAcceleration;
+        float maxSpeed = boost ? 
+            (float)(com.hexvane.strangematter.Config.hoverboardMaxSpeed * BOOST_MAX_SPEED_MULTIPLIER) : 
+            (float)com.hexvane.strangematter.Config.hoverboardMaxSpeed;
+        
         // Calculate movement direction based on hoverboard's facing
-        double moveX = -Math.sin(yaw) * forwardInput * ACCELERATION;
-        double moveZ = Math.cos(yaw) * forwardInput * ACCELERATION;
+        double moveX = -Math.sin(yaw) * acceleration;
+        double moveZ = Math.cos(yaw) * acceleration;
         
         // Get current velocity
         Vec3 currentVelocity = this.getDeltaMovement();
@@ -260,12 +243,38 @@ public class HoverboardEntity extends Entity {
         
         // Limit maximum speed
         double horizontalSpeed = Math.sqrt(newVelocity.x * newVelocity.x + newVelocity.z * newVelocity.z);
-        if (horizontalSpeed > MAX_SPEED) {
-            double scale = MAX_SPEED / horizontalSpeed;
+        if (horizontalSpeed > maxSpeed) {
+            double scale = maxSpeed / horizontalSpeed;
             newVelocity = new Vec3(newVelocity.x * scale, newVelocity.y, newVelocity.z * scale);
         }
         
+        // Update momentum
+        this.entityData.set(FORWARD_MOMENTUM, (float)horizontalSpeed);
+        
         // Set the new velocity
+        this.setDeltaMovement(newVelocity);
+    }
+    
+    /**
+     * Apply backward movement (braking) with optional boost
+     */
+    private void applyBackwardMovement(boolean boost) {
+        Vec3 currentVelocity = this.getDeltaMovement();
+        
+        // Use stronger braking when boosting (more responsive)
+        float brakeForce = boost ? BRAKE_FORCE * 0.9f : BRAKE_FORCE;
+        
+        // Apply braking force
+        Vec3 newVelocity = new Vec3(
+            currentVelocity.x * brakeForce,
+            currentVelocity.y,
+            currentVelocity.z * brakeForce
+        );
+        
+        // Update momentum
+        double horizontalSpeed = Math.sqrt(newVelocity.x * newVelocity.x + newVelocity.z * newVelocity.z);
+        this.entityData.set(FORWARD_MOMENTUM, (float)horizontalSpeed);
+        
         this.setDeltaMovement(newVelocity);
     }
     
@@ -275,51 +284,48 @@ public class HoverboardEntity extends Entity {
     private void applyFriction() {
         Vec3 velocity = this.getDeltaMovement();
         
-        // Apply horizontal friction - convert FRICTION to double
+        // Apply horizontal friction
         Vec3 newVelocity = new Vec3(
-            velocity.x * (double)FRICTION,
+            velocity.x * FRICTION,
             velocity.y, // Don't apply friction to Y (vertical movement)
-            velocity.z * (double)FRICTION
+            velocity.z * FRICTION
         );
+        
+        // Update momentum
+        double horizontalSpeed = Math.sqrt(newVelocity.x * newVelocity.x + newVelocity.z * newVelocity.z);
+        this.entityData.set(FORWARD_MOMENTUM, (float)horizontalSpeed);
         
         this.setDeltaMovement(newVelocity);
     }
     
     /**
-     * Maintain hover height above ground
+     * Maintain hover height above ground with smart height detection
      */
     private void maintainHoverHeight() {
         // Find ground below
         BlockPos groundPos = findGroundBelow();
         
         if (groundPos != null) {
-            // Calculate target Y position
-            double targetY = groundPos.getY() + 1.0 + TARGET_HOVER_HEIGHT;
+            // Calculate base target Y position (add half block to base height)
+            double baseTargetY = groundPos.getY() + 1.0 + TARGET_HOVER_HEIGHT + 0.5;
+            
+            // Find the highest block in a radius around the hoverboard
+            double maxHeightAdjustment = findMaxHeightInRadius();
+            
+            // Calculate final target Y with height adjustment
+            double targetY = baseTargetY + maxHeightAdjustment;
             double currentY = this.getY();
             double heightDifference = targetY - currentY;
-            
-            // Check if there's a block ahead that we need to climb
-            boolean needsClimb = checkForObstacleAhead();
             
             // Apply gradual adjustment to Y velocity
             Vec3 currentVelocity = this.getDeltaMovement();
             double verticalAdjustment = heightDifference * HOVER_ADJUSTMENT_SPEED;
             
-            // If moving and there's an obstacle, add extra upward boost
-            if (needsClimb && currentVelocity.horizontalDistance() > 0.01) {
-                verticalAdjustment += CLIMB_BOOST;
-            }
-            
-            // Clamp the adjustment
-            verticalAdjustment = Math.max(-0.2, Math.min(0.3, verticalAdjustment));
+            // Clamp the adjustment to prevent excessive movement
+            verticalAdjustment = Math.max(-0.3, Math.min(0.4, verticalAdjustment));
             
             // Set new velocity with hover adjustment
             this.setDeltaMovement(currentVelocity.x, verticalAdjustment, currentVelocity.z);
-            
-            if (this.tickCount % 60 == 0) {
-                System.out.println("Hover: ground=" + groundPos.getY() + ", current=" + String.format("%.2f", currentY) + 
-                                 ", target=" + String.format("%.2f", targetY) + ", climb=" + needsClimb);
-            }
         } else {
             // No ground found, apply gravity slowly
             Vec3 currentVelocity = this.getDeltaMovement();
@@ -348,7 +354,7 @@ public class HoverboardEntity extends Entity {
             }
             
             // Check if this block is solid and can support the hoverboard
-            if (!blockState.isAir() && blockState.isSolid()) {
+            if (!blockState.isAir() && blockState.isSolidRender(this.level(), checkPos)) {
                 return checkPos;
             }
         }
@@ -369,44 +375,41 @@ public class HoverboardEntity extends Entity {
     }
 
     /**
-     * Check if there's a block directly ahead that we need to climb over
+     * Find the maximum height adjustment needed in a radius around the hoverboard
      */
-    private boolean checkForObstacleAhead() {
-        Vec3 velocity = this.getDeltaMovement();
+    private double findMaxHeightInRadius() {
+        BlockPos currentPos = this.blockPosition();
+        double maxHeightAdjustment = 0.0;
+        int radius = 2; // Check 2 blocks in each direction
+        int maxHeightCap = 1; // Cap at 1 block higher than current height
         
-        // Only check if we're moving
-        if (velocity.horizontalDistance() < 0.01) {
-            return false;
+        // Scan a radius around the hoverboard
+        for (int x = -radius; x <= radius; x++) {
+            for (int z = -radius; z <= radius; z++) {
+                // Skip the center position (where we are)
+                if (x == 0 && z == 0) continue;
+                
+                BlockPos checkPos = currentPos.offset(x, 0, z);
+                
+                // Check from ground level up to the height cap
+                for (int y = 0; y <= maxHeightCap; y++) {
+                    BlockPos heightCheckPos = checkPos.above(y);
+                    BlockState blockState = this.level().getBlockState(heightCheckPos);
+                    
+                    // If there's a solid block at this height, we need to account for it
+                    if (!blockState.isAir() && blockState.isSolidRender(this.level(), heightCheckPos)) {
+                        // Calculate how much we need to raise to clear this block
+                        double requiredHeight = y + 1.0; // +1 to clear the block
+                        maxHeightAdjustment = Math.max(maxHeightAdjustment, requiredHeight);
+                    }
+                }
+            }
         }
         
-        // Get movement direction
-        Vec3 direction = new Vec3(velocity.x, 0, velocity.z).normalize();
-        
-        // Check 1-2 blocks ahead at ground level
-        BlockPos currentPos = this.blockPosition();
-        BlockPos aheadPos = currentPos.offset(
-            (int)Math.round(direction.x),
-            0,
-            (int)Math.round(direction.z)
-        );
-        
-        // Check if there's a solid block at or above current level
-        BlockState aheadBlock = this.level().getBlockState(aheadPos);
-        BlockState aboveAheadBlock = this.level().getBlockState(aheadPos.above());
-        FluidState aheadFluid = this.level().getFluidState(aheadPos);
-        
-        // Return true if there's a solid block we need to climb
-        // Don't count fluids as obstacles
-        boolean hasObstacle = ((!aheadBlock.isAir() && aheadBlock.isSolid()) || 
-                              (!aboveAheadBlock.isAir() && aboveAheadBlock.isSolid())) &&
-                              aheadFluid.isEmpty();
-        
-        return hasObstacle;
+        // Cap the height adjustment to prevent excessive changes
+        return Math.min(maxHeightAdjustment, maxHeightCap);
     }
     
-    /**
-     * Prevent the hoverboard from being destroyed when ridden
-     */
     @Override
     public boolean hurt(net.minecraft.world.damagesource.DamageSource damageSource, float amount) {
         if (this.isVehicle()) {
@@ -416,27 +419,28 @@ public class HoverboardEntity extends Entity {
         return super.hurt(damageSource, amount);
     }
 
-    /**
-     * Override to control passenger behavior - try to make it more like standing on a platform
-     */
     @Override
     public double getPassengersRidingOffset() {
-        return 0.8; // Keep the height offset
+        return 0.2; // Height offset for rider - lower so player stands on the board
     }
 
-    /**
-     * Try to override the vehicle type behavior
-     */
     @Override
     public boolean shouldRiderSit() {
-        return false; // Tell Minecraft the rider shouldn't sit
+        return false; // Rider should stand, not sit
     }
 
-    /**
-     * Override to prevent default sitting behavior
-     */
     @Override
     protected boolean canRide(Entity entity) {
         return entity instanceof Player;
+    }
+    
+    @Override
+    public boolean isPickable() {
+        return true;
+    }
+    
+    @Override
+    public boolean isPushable() {
+        return false; // Prevent other entities from pushing the hoverboard
     }
 }

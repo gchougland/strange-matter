@@ -1,7 +1,7 @@
 {
 	"textures": {
-		"0": "strangematter:item/hoverboard",
-		"particle": "strangematter:item/hoverboard"
+		"0": "strangematter:entity/hoverboard",
+		"particle": "strangematter:entity/hoverboard"
 	},
 	"elements": [
 		{

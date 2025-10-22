@@ -91,6 +91,8 @@ public class ResearchNodeInfoScreen extends Screen {
             initializeRiftStabilizerPages();
         } else if (node.getId().equals("levitation_pad")) {
             initializeLevitationPadPages();
+        } else if (node.getId().equals("hoverboard")) {
+            initializeHoverboardPages();
         } else if (node.getId().equals("graviton_hammer")) {
             initializeGravitonHammerPages();
         } else if (node.getId().equals("gravity_anomalies")) {
@@ -719,6 +721,18 @@ public class ResearchNodeInfoScreen extends Screen {
         mechanics.hasRecipes = false;
         mechanics.hasScreenshots = false;
         pages.add(mechanics);
+    }
+    
+    private void initializeHoverboardPages() {
+        // Page 1: Introduction with Recipe (Half Page)
+        InfoPage intro = new InfoPage();
+        intro.title = "research.strangematter.hoverboard.intro.title";
+        intro.content = "research.strangematter.hoverboard.intro.content";
+        intro.hasRecipes = true;
+        intro.hasScreenshots = false;
+        intro.recipeName = "hoverboard";
+        intro.isRealityForgeRecipe = true;
+        pages.add(intro);
     }
     
     private void initializeDefaultPages() {

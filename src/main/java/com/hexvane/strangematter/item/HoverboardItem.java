@@ -79,12 +79,17 @@ public class HoverboardItem extends Item {
             targetPos.getZ() + 0.5
         );
         
-        // Spawn the hoverboard (using boat as placeholder)
+        // Spawn the hoverboard
         spawnHoverboard(level, placementPos, player);
         
         // Play deployment sound
         level.playSound(null, placementPos.x, placementPos.y, placementPos.z, 
                SoundEvents.DISPENSER_DISPENSE, SoundSource.PLAYERS, 0.8f, 1.4f);
+        
+        // Consume the item (unless in creative mode)
+        if (!player.getAbilities().instabuild) {
+            stack.shrink(1);
+        }
         
         return InteractionResultHolder.success(stack);
     }

@@ -160,6 +160,9 @@ public class Config {
     private static final ForgeConfigSpec.IntValue COGNITIVE_ANOMALIES_COST;
     private static final ForgeConfigSpec.IntValue LEVITATION_PAD_COST;
     private static final ForgeConfigSpec.IntValue LEVITATION_PAD_MAX_HEIGHT;
+    private static final ForgeConfigSpec.IntValue HOVERBOARD_COST;
+    private static final ForgeConfigSpec.DoubleValue HOVERBOARD_MAX_SPEED;
+    private static final ForgeConfigSpec.DoubleValue HOVERBOARD_ACCELERATION;
 
     // ========================================
     // GRAVITON HAMMER CONFIG VALUES
@@ -633,6 +636,18 @@ public class Config {
                 .comment("Levitation Pad maximum beam height in blocks (default: 16)")
                 .defineInRange("levitationPadMaxHeight", 16, 1, 64);
         
+        HOVERBOARD_COST = BUILDER
+                .comment("Hoverboard total cost (-1 for default: Gravity 10, Energy 15)")
+                .defineInRange("hoverboard", -1, -1, 10000);
+        
+        HOVERBOARD_MAX_SPEED = BUILDER
+                .comment("Hoverboard maximum speed (default: 0.8)")
+                .defineInRange("hoverboardMaxSpeed", 0.8, 0.1, 2.0);
+        
+        HOVERBOARD_ACCELERATION = BUILDER
+                .comment("Hoverboard acceleration (default: 0.03)")
+                .defineInRange("hoverboardAcceleration", 0.03, 0.01, 0.2);
+        
         BUILDER.pop(); // node_costs
         BUILDER.pop(); // research
         
@@ -869,6 +884,9 @@ public class Config {
     public static int cognitiveAnomaliesCost;
     public static int levitationPadCost;
     public static int levitationPadMaxHeight;
+    public static int hoverboardCost;
+    public static double hoverboardMaxSpeed;
+    public static double hoverboardAcceleration;
     
     // Graviton Hammer
     public static int gravitonHammerChargeLevel1Time;
@@ -1043,6 +1061,9 @@ public class Config {
         cognitiveAnomaliesCost = COGNITIVE_ANOMALIES_COST.get();
         levitationPadCost = LEVITATION_PAD_COST.get();
         levitationPadMaxHeight = LEVITATION_PAD_MAX_HEIGHT.get();
+        hoverboardCost = HOVERBOARD_COST.get();
+        hoverboardMaxSpeed = HOVERBOARD_MAX_SPEED.get();
+        hoverboardAcceleration = HOVERBOARD_ACCELERATION.get();
         
         // Graviton Hammer
         gravitonHammerChargeLevel1Time = GRAVITON_HAMMER_CHARGE_LEVEL_1_TIME.get();
