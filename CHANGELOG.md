@@ -2,6 +2,24 @@
 
 All notable changes to Strange Matter will be documented in this file.
 
+
+## [0.2.5] - 2025-10-20
+
+### Added
+- **Hoverboard Vehicle**: Revolutionary personal transportation device
+  - **Anti-Gravity Technology**: Hovers smoothly above any surface with configurable height
+  - **Momentum-Based Movement**: Realistic physics with acceleration, friction, and momentum
+  - **Smart Terrain Navigation**: Automatically adjusts hover height based on surrounding blocks
+  - **Speed Boost System**: Control key provides enhanced acceleration and top speed
+  - **Smooth Controls**: W/S for forward/backward movement, follows player look direction for rotation
+  - **Reality Forge Recipe**: Craftable using resonite ingots, resonant circuit, and containment capsule
+  - **Research Integration**: Locked behind containment basics research with configurable costs
+  - **Configurable Performance**: Adjustable max speed and acceleration via config file
+
+### Improved
+- **Research System**: Added comprehensive info page for hoverboard with recipe display
+- **Configuration Options**: Added hoverboard-specific config settings for customization
+
 ## [0.2.4] - 2025-10-19
 
 ### Added

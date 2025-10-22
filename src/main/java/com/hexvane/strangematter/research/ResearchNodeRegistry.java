@@ -67,6 +67,7 @@ public class ResearchNodeRegistry {
             case "shadow_anomalies" -> Config.shadowAnomaliesCost;
             case "cognitive_anomalies" -> Config.cognitiveAnomaliesCost;
             case "levitation_pad" -> Config.levitationPadCost;
+            case "hoverboard" -> Config.hoverboardCost;
             default -> -1; // Use default
         };
     }
@@ -101,42 +102,6 @@ public class ResearchNodeRegistry {
         }
         
         /*
-         * RESEARCH TREE STRUCTURE
-         * 
-         * Mermaid Diagram Code:
-         * 
-         * graph TD
-         *     A["Research<br/>(unlocked)"] --> B["Field Scanner<br/>(unlocked)"]
-         *     A --> C["Anomaly Shards<br/>(unlocked)"]
-         *     A --> D["Anomaly Types<br/>(unlocked)"]
-         *     A --> E["Resonite<br/>(unlocked)"]
-         *     A --> F["Resonant Energy<br/>(unlocked)"]
-         *     
-         *     B --> G["Anomaly Resonator<br/>(locked)"]
-         *     
-         *     E --> H["Reality Forge<br/>(locked)"]
-         *     D --> H
-         *     
-         *     H --> I["Resonance Condenser<br/>(locked)"]
-         *     H --> J["Containment Basics<br/>(locked)"]
-         *     
-         *     H --> K["Warp Gun<br/>(locked)"]
-         *     
-         *     D --> L["Gravity Anomalies<br/>(locked)"]
-         *     D --> M["Temporal Anomalies<br/>(locked)"]
-         *     D --> N["Spatial Anomalies<br/>(locked)"]
-         *     D --> O["Energy Anomalies<br/>(locked)"]
-         *     D --> P["Shadow Anomalies<br/>(locked)"]
-         *     D --> Q["Cognitive Anomalies<br/>(locked)"]
-         *     
-         *     classDef unlocked fill:#41B280,stroke:#333,stroke-width:2px,color:#fff
-         *     classDef locked fill:#808080,stroke:#333,stroke-width:2px,color:#fff
-         *     classDef advanced fill:#FF6B6B,stroke:#333,stroke-width:2px,color:#fff
-         *     
-         *     class A,B,C,D,E,F unlocked
-         *     class G,I,J,K,L,M,N,O,P,Q locked
-         *     class H advanced
-         * 
          * Research Tree Layout:
          * - Default unlocked research forms a central hub around "Research"
          * - Reality Forge is the gateway to advanced crafting
@@ -236,7 +201,7 @@ public class ResearchNodeRegistry {
         register(new ResearchNode(
             "resonance_condenser",
             "general",
-            -160, 80,
+            -160, 160,
             applyConfigCosts("resonance_condenser", Map.of(ResearchType.ENERGY, 25, ResearchType.SPACE, 15)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.RESONANCE_CONDENSER_ITEM.get()),
@@ -248,7 +213,7 @@ public class ResearchNodeRegistry {
         register(new ResearchNode(
             "containment_basics",
             "general",
-            0, 160,
+            -80, 400,
             applyConfigCosts("containment_basics", Map.of(ResearchType.ENERGY, 20, ResearchType.SHADOW, 15)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.ECHO_VACUUM.get()),
@@ -260,7 +225,7 @@ public class ResearchNodeRegistry {
         register(new ResearchNode(
             "echoform_imprinter",
             "general",
-            80, 160,
+            80, 400,
             applyConfigCosts("echoform_imprinter", Map.of(ResearchType.SHADOW, 25, ResearchType.COGNITION, 20)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.ECHOFORM_IMPRINTER.get()),
@@ -272,7 +237,7 @@ public class ResearchNodeRegistry {
         register(new ResearchNode(
             "reality_forge",
             "general",
-            -80, 200,
+            -80, 240,
             applyConfigCosts("reality_forge", Map.of(ResearchType.ENERGY, 5, ResearchType.SPACE, 5, ResearchType.TIME, 5)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.REALITY_FORGE_ITEM.get()),
@@ -284,31 +249,31 @@ public class ResearchNodeRegistry {
         register(new ResearchNode(
             "warp_gun",
             "general",
-            -80, 280,
+            0, 320,
             applyConfigCosts("warp_gun", Map.of(ResearchType.SPACE, 15, ResearchType.ENERGY, 10)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.WARP_GUN.get()),
             true,
-            List.of("reality_forge") // Requires reality forge
+            List.of("containment_basics") // Requires reality forge
         ));
         
         // Graviton Hammer tool (locked) - Connected to reality_forge
         register(new ResearchNode(
             "graviton_hammer",
             "general",
-            0, 80,
+            -80, 480,
             applyConfigCosts("graviton_hammer", Map.of(ResearchType.GRAVITY, 20, ResearchType.ENERGY, 5)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.GRAVITON_HAMMER.get()),
             true,
-            List.of("reality_forge") // Requires reality forge
+            List.of("containment_basics") // Requires reality forge
         ));
         
         // Stasis Projector device (locked) - Connected to reality_forge
         register(new ResearchNode(
             "stasis_projector",
             "general",
-            80, 200,
+            80, 240,
             applyConfigCosts("stasis_projector", Map.of(ResearchType.GRAVITY, 5, ResearchType.TIME, 5)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.STASIS_PROJECTOR_ITEM.get()),
@@ -319,7 +284,7 @@ public class ResearchNodeRegistry {
         register(new ResearchNode(
             "rift_stabilizer",
             "general",
-            0, 280,
+            0, 160,
             applyConfigCosts("rift_stabilizer", Map.of(ResearchType.ENERGY, 20, ResearchType.SPACE, 10)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.RIFT_STABILIZER_ITEM.get()),
@@ -331,12 +296,24 @@ public class ResearchNodeRegistry {
         register(new ResearchNode(
             "levitation_pad",
             "general",
-            -160, 320,
+            -240, 240,
             applyConfigCosts("levitation_pad", Map.of(ResearchType.GRAVITY, 15, ResearchType.ENERGY, 10)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.LEVITATION_PAD_ITEM.get()),
             true,
             List.of("reality_forge") // Requires reality forge
+        ));
+        
+        // Hoverboard vehicle (locked) - Connected to containment_basics
+        register(new ResearchNode(
+            "hoverboard",
+            "general",
+            -240, 400,
+            applyConfigCosts("hoverboard", Map.of(ResearchType.GRAVITY, 10, ResearchType.ENERGY, 15)),
+            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.HOVERBOARD.get()),
+            true,
+            List.of("containment_basics") // Requires containment basics
         ));
         
         // ===== ANOMALY TYPES (SPECIALIZED RESEARCH) =====
