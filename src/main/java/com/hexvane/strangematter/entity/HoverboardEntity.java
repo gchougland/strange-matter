@@ -20,6 +20,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
 
 public class HoverboardEntity extends Entity {
     
@@ -96,6 +98,9 @@ public class HoverboardEntity extends Entity {
             
             // Ensure smooth following of the player
             ensureSmoothFollowing();
+            
+            // Prevent fall damage for riders
+            preventFallDamageForRiders();
         } else {
             // No rider - apply friction and fall slowly
             applyFriction();
@@ -157,6 +162,24 @@ public class HoverboardEntity extends Entity {
                 if (!player.isShiftKeyDown()) continue;
 
                 passenger.stopRiding();
+        }
+    }
+    
+    /**
+     * Prevent fall damage for players riding the hoverboard
+     */
+    private void preventFallDamageForRiders() {
+        for (Entity passenger : this.getPassengers()) {
+            if (passenger instanceof Player player) {
+                // Aggressively reset fall distance to prevent fall damage
+                player.fallDistance = 0.0f;
+                
+                // Also reset the player's vertical velocity if they're falling too fast
+                Vec3 playerVelocity = player.getDeltaMovement();
+                if (playerVelocity.y < -0.5) { // If falling faster than 0.5 blocks/tick
+                    player.setDeltaMovement(playerVelocity.x, -0.1, playerVelocity.z); // Slow down the fall
+                }
+            }
         }
     }
     
@@ -354,9 +377,12 @@ public class HoverboardEntity extends Entity {
                 }
             }
             
-            // Check if this block is solid and can support the hoverboard
-            if (!blockState.isAir() && blockState.isSolidRender(this.level(), checkPos)) {
-                return checkPos;
+            // Check if this block has a collision shape that can support the hoverboard
+            if (!blockState.isAir()) {
+                VoxelShape collisionShape = blockState.getCollisionShape(this.level(), checkPos);
+                if (!collisionShape.isEmpty() && !collisionShape.equals(Shapes.empty())) {
+                    return checkPos;
+                }
             }
         }
         
@@ -397,11 +423,14 @@ public class HoverboardEntity extends Entity {
                     BlockPos heightCheckPos = checkPos.above(y);
                     BlockState blockState = this.level().getBlockState(heightCheckPos);
                     
-                    // If there's a solid block at this height, we need to account for it
-                    if (!blockState.isAir() && blockState.isSolidRender(this.level(), heightCheckPos)) {
-                        // Calculate how much we need to raise to clear this block
-                        double requiredHeight = y + 1.0; // +1 to clear the block
-                        maxHeightAdjustment = Math.max(maxHeightAdjustment, requiredHeight);
+                    // If there's a block with collision at this height, we need to account for it
+                    if (!blockState.isAir()) {
+                        VoxelShape collisionShape = blockState.getCollisionShape(this.level(), heightCheckPos);
+                        if (!collisionShape.isEmpty() && !collisionShape.equals(Shapes.empty())) {
+                            // Calculate how much we need to raise to clear this block
+                            double requiredHeight = y + 1.0; // +1 to clear the block
+                            maxHeightAdjustment = Math.max(maxHeightAdjustment, requiredHeight);
+                        }
                     }
                 }
             }
@@ -419,6 +448,13 @@ public class HoverboardEntity extends Entity {
         }
         return super.hurt(damageSource, amount);
     }
+    
+    @Override
+    public boolean causeFallDamage(float fallDistance, float damageMultiplier, net.minecraft.world.damagesource.DamageSource damageSource) {
+        // Prevent fall damage for the hoverboard itself
+        return false;
+    }
+    
 
     @Override
     protected Vec3 getPassengerAttachmentPoint(Entity passenger, EntityDimensions dimensions, float scale) {

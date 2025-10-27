@@ -73,6 +73,12 @@ public class GravityEventHandler {
     @SubscribeEvent
     public static void onLivingFall(LivingFallEvent event) {
         if (event.getEntity() instanceof Player player) {
+            // Check if player is riding a hoverboard - completely prevent fall damage
+            if (player.isPassenger() && player.getVehicle() instanceof com.hexvane.strangematter.entity.HoverboardEntity) {
+                event.setDistance(0.0f); // Set fall distance to 0 to prevent any fall damage
+                return;
+            }
+            
             // Check if player has gravity modification data
             if (player.getPersistentData().contains("strangematter.gravity_force")) {
                 double forceMultiplier = player.getPersistentData().getDouble("strangematter.gravity_force");
