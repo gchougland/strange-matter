@@ -4,7 +4,12 @@ All notable changes to Strange Matter will be documented in this file.
 
 ## [0.2.6] - Unreleased
 
+### Added
+- **Dimension Config**: Added configurable list of dimensions for anomalies to spawn in.
+
 ### Fixed
+- **Warp Gate Entity Language Entry**: Added missing language entry for Warp Gate Entity
+- **Hoverboard**: Fixed issue with hoverboard sinking inside slabs and causing fall damage.
 
 
 ## [0.2.5] - 2025-10-20

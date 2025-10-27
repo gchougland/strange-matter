@@ -18,6 +18,21 @@ public class GravityEventHandler {
     @SubscribeEvent
     public static void onLivingTick(LivingEvent.LivingTickEvent event) {
         if (event.getEntity() instanceof Player player) {
+            // Check if player was riding a hoverboard and just got off
+            boolean wasRidingHoverboard = player.getPersistentData().getBoolean("strangematter.was_riding_hoverboard");
+            boolean currentlyRidingHoverboard = player.isPassenger() && 
+                player.getVehicle() != null && 
+                player.getVehicle().getClass().getSimpleName().equals("HoverboardEntity");
+            
+            if (!wasRidingHoverboard && currentlyRidingHoverboard) {
+                // Just got on the hoverboard
+                player.getPersistentData().putBoolean("strangematter.was_riding_hoverboard", true);
+            } else if (wasRidingHoverboard && !currentlyRidingHoverboard && !player.level().isClientSide) {
+                // Just got off the hoverboard - reset fall distance to prevent accumulated damage
+                player.fallDistance = 0.0f;
+                player.getPersistentData().putBoolean("strangematter.was_riding_hoverboard", false);
+            }
+            
             // Check if player has gravity modification data
             if (player.getPersistentData().contains("strangematter.gravity_force")) {
                 double forceMultiplier = player.getPersistentData().getDouble("strangematter.gravity_force");
@@ -72,6 +87,15 @@ public class GravityEventHandler {
     @SubscribeEvent
     public static void onLivingFall(LivingFallEvent event) {
         if (event.getEntity() instanceof Player player) {
+            // Check if player is riding a hoverboard - completely prevent fall damage
+            if (player.isPassenger() && player.getVehicle() != null) {
+                String vehicleClassName = player.getVehicle().getClass().getSimpleName();
+                if (vehicleClassName.equals("HoverboardEntity")) {
+                    event.setCanceled(true);
+                    return;
+                }
+            }
+            
             // Check if player has gravity modification data
             if (player.getPersistentData().contains("strangematter.gravity_force")) {
                 double forceMultiplier = player.getPersistentData().getDouble("strangematter.gravity_force");

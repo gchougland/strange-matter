@@ -87,6 +87,9 @@ public class HoverboardEntity extends Entity {
         handleDismount();
         
         if (this.isVehicle()) {
+            // Prevent fall damage for riders
+            preventFallDamageForRiders();
+            
             // Maintain hover height
             maintainHoverHeight();
             
@@ -155,7 +158,30 @@ public class HoverboardEntity extends Entity {
                 Player player = (Player) passenger;
                 if (!player.isShiftKeyDown()) continue;
 
+                // Reset fall distance before dismounting to prevent accumulated fall damage
+                player.fallDistance = 0.0f;
+                if (passenger instanceof net.minecraft.world.entity.LivingEntity living) {
+                    living.fallDistance = 0.0f;
+                }
+                
                 passenger.stopRiding();
+        }
+    }
+    
+    /**
+     * Prevent fall damage for players riding the hoverboard
+     */
+    private void preventFallDamageForRiders() {
+        for (Entity passenger : this.getPassengers()) {
+            if (passenger instanceof Player player) {
+                // Reset fall distance to prevent fall damage
+                player.fallDistance = 0.0f;
+                
+                // Also reset for any LivingEntity to be safe
+                if (passenger instanceof net.minecraft.world.entity.LivingEntity living) {
+                    living.fallDistance = 0.0f;
+                }
+            }
         }
     }
     
@@ -353,13 +379,35 @@ public class HoverboardEntity extends Entity {
                 }
             }
             
-            // Check if this block is solid and can support the hoverboard
-            if (!blockState.isAir() && blockState.isSolidRender(this.level(), checkPos)) {
+            // Check if this block can support the hoverboard
+            if (!blockState.isAir() && canBlockSupportHoverboard(blockState, checkPos)) {
                 return checkPos;
             }
         }
         
         return null;
+    }
+    
+    /**
+     * Check if a block can support the hoverboard, including partial blocks like slabs and snow
+     */
+    private boolean canBlockSupportHoverboard(BlockState blockState, BlockPos pos) {
+        // Check if the block has a collision shape that can support the hoverboard
+        if (blockState.isSolidRender(this.level(), pos)) {
+            return true;
+        }
+        
+        // Check for partial blocks that can still support the hoverboard
+        // This includes slabs, snow layers, stairs, etc.
+        var shape = blockState.getCollisionShape(this.level(), pos);
+        if (!shape.isEmpty()) {
+            // Check if the collision shape has any solid parts at the top
+            // We consider it supportive if there's collision at Y=1.0 (top of block)
+            var topBox = shape.bounds().maxY;
+            return topBox >= 0.5; // At least half a block high
+        }
+        
+        return false;
     }
 
     /**
