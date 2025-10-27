@@ -417,9 +417,11 @@ public class AnomalyCommand {
                 
                 // Check if we should place grass here (not always 100% chance)
                 if (random.nextFloat() < 0.8f) {
-                    if (level.getBlockState(grassPos).is(net.minecraft.world.level.block.Blocks.GRASS_BLOCK) || 
-                        level.getBlockState(grassPos).is(net.minecraft.world.level.block.Blocks.DIRT)) {
-                        level.setBlock(grassPos, StrangeMatterMod.ANOMALOUS_GRASS_BLOCK.get().defaultBlockState(), 2);
+                    // Use WorldGenUtils to find the proper position for anomalous grass
+                    BlockPos properGrassPos = com.hexvane.strangematter.worldgen.WorldGenUtils.findAnomalousGrassPosition(level, 
+                        grassPos.getX(), grassPos.getZ());
+                    if (properGrassPos != null) {
+                        level.setBlock(properGrassPos, StrangeMatterMod.ANOMALOUS_GRASS_BLOCK.get().defaultBlockState(), 2);
                     }
                 }
             }

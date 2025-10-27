@@ -294,13 +294,10 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
                     for (int x = -5; x <= 5; x++) {
                         for (int z = -5; z <= 5; z++) {
                             if (x*x + z*z <= 25) { // Circular pattern
-                                BlockPos grassPos = entitySpawnPos.offset(x, -1, z);
-                                var currentBlock = serverLevel.getBlockState(grassPos);
-                                if (currentBlock.is(net.minecraft.world.level.block.Blocks.GRASS_BLOCK) || 
-                                    currentBlock.is(net.minecraft.world.level.block.Blocks.DIRT) ||
-                                    currentBlock.is(net.minecraft.world.level.block.Blocks.COARSE_DIRT) ||
-                                    currentBlock.is(net.minecraft.world.level.block.Blocks.PODZOL) ||
-                                    currentBlock.is(net.minecraft.world.level.block.Blocks.STONE)) {
+                                // Use WorldGenUtils to find the proper position for anomalous grass
+                                BlockPos grassPos = com.hexvane.strangematter.worldgen.WorldGenUtils.findAnomalousGrassPosition(serverLevel, 
+                                    entitySpawnPos.getX() + x, entitySpawnPos.getZ() + z);
+                                if (grassPos != null) {
                                     serverLevel.setBlock(grassPos, StrangeMatterMod.ANOMALOUS_GRASS_BLOCK.get().defaultBlockState(), 3);
                                 }
                             }

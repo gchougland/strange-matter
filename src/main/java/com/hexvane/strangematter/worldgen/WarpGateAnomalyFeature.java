@@ -10,6 +10,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
+import javax.annotation.Nonnull;
 
 public class WarpGateAnomalyFeature extends Feature<NoneFeatureConfiguration> {
     public WarpGateAnomalyFeature(Codec<NoneFeatureConfiguration> codec) {
@@ -17,7 +18,7 @@ public class WarpGateAnomalyFeature extends Feature<NoneFeatureConfiguration> {
     }
 
     @Override
-    public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
+    public boolean place(@Nonnull FeaturePlaceContext<NoneFeatureConfiguration> context) {
         WorldGenLevel level = context.level();
         BlockPos pos = context.origin();
 
@@ -29,15 +30,11 @@ public class WarpGateAnomalyFeature extends Feature<NoneFeatureConfiguration> {
         int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, pos.getX(), pos.getZ());
         BlockPos surfacePos = new BlockPos(pos.getX(), surfaceY, pos.getZ());
 
-        System.out.println("WarpGate Feature: Spawning warp gate at " + surfacePos);
-
         // Check if a WarpGateAnomalyEntity already exists at this location
         var existingGates = serverLevel.getEntitiesOfClass(WarpGateAnomalyEntity.class,
             new net.minecraft.world.phys.AABB(surfacePos).inflate(5)); // Search a small area
 
         if (existingGates.isEmpty()) {
-            System.out.println("WarpGate Feature: No existing WarpGateAnomalyEntity found, spawning one at " + surfacePos);
-
             WarpGateAnomalyEntity newWarpGate = new WarpGateAnomalyEntity(
                 StrangeMatterMod.WARP_GATE_ANOMALY_ENTITY.get(),
                 serverLevel
@@ -47,11 +44,8 @@ public class WarpGateAnomalyFeature extends Feature<NoneFeatureConfiguration> {
             serverLevel.addFreshEntity(newWarpGate);
 
             // Terrain generation will be handled by WarpGateSpawnEventHandler
-
-            System.out.println("WarpGate Feature: Successfully spawned WarpGateAnomalyEntity at " + surfacePos);
             return true;
         } else {
-            System.out.println("WarpGate Feature: WarpGateAnomalyEntity already exists at " + surfacePos + ", skipping spawn.");
             return false;
         }
     }

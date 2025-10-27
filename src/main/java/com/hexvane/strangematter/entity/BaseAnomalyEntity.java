@@ -296,22 +296,15 @@ public abstract class BaseAnomalyEntity extends Entity {
                         }
                         
                         // Place anomalous grass on suitable surface blocks (if enabled in config)
-                        if (Config.enableAnomalousGrass && 
-                            (currentState.is(Blocks.GRASS_BLOCK) || currentState.is(Blocks.DIRT) || 
-                            currentState.is(Blocks.COARSE_DIRT) || currentState.is(Blocks.PODZOL) ||
-                            currentState.is(Blocks.SAND) || currentState.is(Blocks.RED_SAND) ||
-                            currentState.is(Blocks.TERRACOTTA) || currentState.is(Blocks.WHITE_TERRACOTTA) ||
-                            currentState.is(Blocks.ORANGE_TERRACOTTA) || currentState.is(Blocks.MAGENTA_TERRACOTTA) ||
-                            currentState.is(Blocks.LIGHT_BLUE_TERRACOTTA) || currentState.is(Blocks.YELLOW_TERRACOTTA) ||
-                            currentState.is(Blocks.LIME_TERRACOTTA) || currentState.is(Blocks.PINK_TERRACOTTA) ||
-                            currentState.is(Blocks.GRAY_TERRACOTTA) || currentState.is(Blocks.LIGHT_GRAY_TERRACOTTA) ||
-                            currentState.is(Blocks.CYAN_TERRACOTTA) || currentState.is(Blocks.PURPLE_TERRACOTTA) ||
-                            currentState.is(Blocks.BLUE_TERRACOTTA) || currentState.is(Blocks.BROWN_TERRACOTTA) ||
-                            currentState.is(Blocks.GREEN_TERRACOTTA) || currentState.is(Blocks.RED_TERRACOTTA) ||
-                            currentState.is(Blocks.BLACK_TERRACOTTA) || currentState.is(Blocks.SNOW) ||
-                            currentState.is(Blocks.SNOW_BLOCK))) {
-                            this.level().setBlock(targetPos, StrangeMatterMod.ANOMALOUS_GRASS_BLOCK.get().defaultBlockState(), 3);
-                            modifiedBlocks.add(targetPos);
+                        if (Config.enableAnomalousGrass) {
+                            // Use WorldGenUtils to find the proper position for anomalous grass
+                            if (this.level() instanceof net.minecraft.world.level.WorldGenLevel worldGenLevel) {
+                                BlockPos grassPos = com.hexvane.strangematter.worldgen.WorldGenUtils.findAnomalousGrassPosition(worldGenLevel, targetPos.getX(), targetPos.getZ());
+                                if (grassPos != null) {
+                                    this.level().setBlock(grassPos, StrangeMatterMod.ANOMALOUS_GRASS_BLOCK.get().defaultBlockState(), 3);
+                                    modifiedBlocks.add(grassPos);
+                                }
+                            }
                         }
                     }
                     

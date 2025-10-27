@@ -13,6 +13,7 @@ All notable changes to Strange Matter will be documented in this file.
 - **Hoverboard**: Fixed issue with hoverboard sinking inside slabs and causing fall damage. Smoothed out turning as well.
 - **Improved slider responsiveness**: Improved the responsiveness of the gravity minigames slider.
 - **More Aggressive Stasis Projector**: Improved stasis projector to better counteract gravity from other mods.
+- **Optimized World Gen**: Removed logging and improved peformance of anomaly world gen.
 
 
 ## [0.2.5] - 2025-10-20

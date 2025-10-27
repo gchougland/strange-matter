@@ -61,7 +61,6 @@ import com.hexvane.strangematter.client.HoverboardRenderer;
 import com.hexvane.strangematter.worldgen.GravityAnomalyConfiguredFeature;
 import com.hexvane.strangematter.worldgen.EchoingShadowConfiguredFeature;
 import com.hexvane.strangematter.worldgen.ThoughtwellConfiguredFeature;
-import com.hexvane.strangematter.worldgen.WarpGateAnomalyStructure;
 import com.hexvane.strangematter.worldgen.WarpGateAnomalyConfiguredFeature;
 import com.hexvane.strangematter.network.NetworkHandler;
 import com.mojang.logging.LogUtils;
@@ -490,12 +489,6 @@ public class StrangeMatterMod
     
     public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> WARP_GATE_ANOMALY_FEATURE = FEATURES.register("warp_gate_anomaly", 
         () -> new WarpGateAnomalyConfiguredFeature());
-    
-
-    // Structure Types
-    public static final RegistryObject<StructureType<WarpGateAnomalyStructure>> WARP_GATE_ANOMALY_STRUCTURE = STRUCTURE_TYPES.register("warp_gate_anomaly_structure", 
-        () -> () -> WarpGateAnomalyStructure.CODEC);
-
 
 
     // Creates a creative tab with the id "strangematter:strange_matter_tab" for the anomaly items
@@ -689,29 +682,11 @@ public class StrangeMatterMod
                             
                             // Only place grass within the circle and with some randomness for patchiness
                             if (distance <= radius && level.random.nextFloat() < 0.7f) { // 70% chance for patchiness
-                                // Find the surface height at this offset position
-                                int offsetSurfaceY = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE, 
+                                // Use WorldGenUtils to find the proper position for anomalous grass
+                                BlockPos grassPos = com.hexvane.strangematter.worldgen.WorldGenUtils.findAnomalousGrassPosition(level, 
                                     (int)pos.x + x, (int)pos.z + z);
-                                BlockPos offsetSurfacePos = new BlockPos((int)pos.x + x, offsetSurfaceY, (int)pos.z + z);
-                                
-                                // Find solid ground below this surface position
-                                BlockPos grassPos = offsetSurfacePos;
-                                while (grassPos.getY() > level.getMinBuildHeight() + 10) {
-                                    var blockState = level.getBlockState(grassPos);
-                                    if (blockState.isSolid() && !blockState.isAir() && 
-                                        !blockState.getBlock().getDescriptionId().contains("leaves")) {
-                                        break; // Found solid ground at this position
-                                    }
-                                    grassPos = grassPos.below();
-                                }
-                                
-                                // Only place grass if we found valid solid ground
-                                if (grassPos.getY() > level.getMinBuildHeight() + 10) {
-                                    var blockState = level.getBlockState(grassPos);
-                                    if (blockState.isSolid() && !blockState.isAir() && 
-                                        !blockState.getBlock().getDescriptionId().contains("leaves")) {
-                                        level.setBlock(grassPos, ANOMALOUS_GRASS_BLOCK.get().defaultBlockState(), 3);
-                                    }
+                                if (grassPos != null) {
+                                    level.setBlock(grassPos, ANOMALOUS_GRASS_BLOCK.get().defaultBlockState(), 3);
                                 }
                             }
                         }
