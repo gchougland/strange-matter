@@ -19,8 +19,10 @@ public class ResearchDataManager extends SavedData {
     
     public static ResearchDataManager get(ServerLevel level) {
         return level.getDataStorage().computeIfAbsent(
-            ResearchDataManager::load,
-            ResearchDataManager::new,
+            new net.minecraft.world.level.saveddata.SavedData.Factory<ResearchDataManager>(
+                ResearchDataManager::new,
+                (tag, provider) -> ResearchDataManager.load(tag)
+            ),
             DATA_NAME
         );
     }
@@ -51,7 +53,7 @@ public class ResearchDataManager extends SavedData {
     }
     
     @Override
-    public CompoundTag save(@org.jetbrains.annotations.NotNull CompoundTag tag) {
+    public CompoundTag save(@org.jetbrains.annotations.NotNull CompoundTag tag, @org.jetbrains.annotations.NotNull net.minecraft.core.HolderLookup.Provider provider) {
         CompoundTag playersTag = new CompoundTag();
         for (Map.Entry<UUID, ResearchData> entry : playerResearchData.entrySet()) {
             playersTag.put(entry.getKey().toString(), entry.getValue().serializeNBT());

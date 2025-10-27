@@ -8,8 +8,8 @@ import com.hexvane.strangematter.StrangeMatterMod;
 public class InstabilityGauge {
     
     // Textures
-    private static final ResourceLocation TUBE_TEXTURE = new ResourceLocation(StrangeMatterMod.MODID, "textures/ui/instability_tube.png");
-    private static final ResourceLocation FILL_TEXTURE = new ResourceLocation(StrangeMatterMod.MODID, "textures/ui/instability_tube_fill.png");
+    private static final ResourceLocation TUBE_TEXTURE = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/ui/instability_tube.png");
+    private static final ResourceLocation FILL_TEXTURE = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/ui/instability_tube_fill.png");
     
     // Colors
     private static final int TEXT_COLOR = 0xFF3dc7c7;

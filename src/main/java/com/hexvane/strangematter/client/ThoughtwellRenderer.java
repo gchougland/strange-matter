@@ -111,14 +111,14 @@ public class ThoughtwellRenderer extends EntityRenderer<ThoughtwellEntity> {
         float alpha = 0.8f;
         
         // Simple quad with cyan tint
-        consumer.vertex(matrix4f, -size, -size, 0).color(0.6f, 1.0f, 1.0f, alpha)
-               .uv(0.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-        consumer.vertex(matrix4f, size, -size, 0).color(0.6f, 1.0f, 1.0f, alpha)
-               .uv(1.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-        consumer.vertex(matrix4f, size, size, 0).color(0.6f, 1.0f, 1.0f, alpha)
-               .uv(1.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-        consumer.vertex(matrix4f, -size, size, 0).color(0.6f, 1.0f, 1.0f, alpha)
-               .uv(0.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
+        consumer.addVertex(matrix4f, -size, -size, 0).setColor((int)(0.6f * 255), (int)(1.0f * 255), (int)(1.0f * 255), (int)(alpha * 255))
+               .setUv(0.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
+        consumer.addVertex(matrix4f, size, -size, 0).setColor((int)(0.6f * 255), (int)(1.0f * 255), (int)(1.0f * 255), (int)(alpha * 255))
+               .setUv(1.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
+        consumer.addVertex(matrix4f, size, size, 0).setColor((int)(0.6f * 255), (int)(1.0f * 255), (int)(1.0f * 255), (int)(alpha * 255))
+               .setUv(1.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
+        consumer.addVertex(matrix4f, -size, size, 0).setColor((int)(0.6f * 255), (int)(1.0f * 255), (int)(1.0f * 255), (int)(alpha * 255))
+               .setUv(0.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
         
         poseStack.popPose();
     }
@@ -167,10 +167,10 @@ public class ThoughtwellRenderer extends EntityRenderer<ThoughtwellEntity> {
             float b = 1.0f;
             
             // Render a quad facing the camera
-            consumer.vertex(matrix4f, -size, -size, 0).color(r, g, b, alpha).uv(0.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-            consumer.vertex(matrix4f, size, -size, 0).color(r, g, b, alpha).uv(1.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-            consumer.vertex(matrix4f, size, size, 0).color(r, g, b, alpha).uv(1.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-            consumer.vertex(matrix4f, -size, size, 0).color(r, g, b, alpha).uv(0.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
+            consumer.addVertex(matrix4f, -size, -size, 0).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(alpha * 255)).setUv(0.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
+            consumer.addVertex(matrix4f, size, -size, 0).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(alpha * 255)).setUv(1.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
+            consumer.addVertex(matrix4f, size, size, 0).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(alpha * 255)).setUv(1.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
+            consumer.addVertex(matrix4f, -size, size, 0).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(alpha * 255)).setUv(0.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
             
             poseStack.popPose();
         }

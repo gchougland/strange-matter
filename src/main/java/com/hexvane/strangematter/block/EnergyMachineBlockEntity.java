@@ -1,6 +1,7 @@
 package com.hexvane.strangematter.block;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -26,7 +27,7 @@ public abstract class EnergyMachineBlockEntity extends BaseMachineBlockEntity {
     
     public EnergyMachineBlockEntity(BlockEntityType<?> blockEntityType, BlockPos pos, BlockState state, int inventorySize) {
         super(blockEntityType, pos, state, inventorySize);
-        this.maxEnergyLevel = maxEnergyStorage;
+        // maxEnergyLevel is no longer used in the new energy system
     }
     
     @Override
@@ -112,8 +113,8 @@ public abstract class EnergyMachineBlockEntity extends BaseMachineBlockEntity {
     protected abstract int getOutputSlotIndex();
     
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.saveAdditional(tag, provider);
         tag.putInt("fuel_time", fuelTime);
         tag.putInt("max_fuel_time", maxFuelTime);
         tag.putInt("burn_time", burnTime);
@@ -123,8 +124,8 @@ public abstract class EnergyMachineBlockEntity extends BaseMachineBlockEntity {
     }
     
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.loadAdditional(tag, provider);
         fuelTime = tag.getInt("fuel_time");
         maxFuelTime = tag.getInt("max_fuel_time");
         burnTime = tag.getInt("burn_time");

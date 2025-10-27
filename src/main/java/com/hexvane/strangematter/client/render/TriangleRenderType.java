@@ -19,7 +19,8 @@ public class TriangleRenderType extends RenderType {
                 .setLightmapState(LIGHTMAP)
                 .setTextureState(new TextureStateShard(texture, false, false))
                 .setTransparencyState(NO_TRANSPARENCY)
-                .setCullState(NO_CULL)
+                .setCullState(CULL)
+                .setWriteMaskState(COLOR_DEPTH_WRITE)
                 .setDepthTestState(LEQUAL_DEPTH_TEST)
                 .createCompositeState(false));
     }
@@ -36,7 +37,7 @@ public class TriangleRenderType extends RenderType {
                 .setLightmapState(LIGHTMAP)
                 .setTextureState(new TextureStateShard(texture, false, false))
                 .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-                .setCullState(NO_CULL)
+                .setCullState(CULL)
                 .setWriteMaskState(COLOR_WRITE)
                 .setDepthTestState(LEQUAL_DEPTH_TEST)
                 .createCompositeState(false));

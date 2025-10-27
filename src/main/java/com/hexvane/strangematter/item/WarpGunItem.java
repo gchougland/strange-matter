@@ -13,14 +13,14 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import com.hexvane.strangematter.entity.WarpProjectileEntity;
 import com.hexvane.strangematter.StrangeMatterMod;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
 
 public class WarpGunItem extends SwordItem {
     
     public WarpGunItem() {
-        super(Tiers.WOOD, 3, -2.4f, new Item.Properties().stacksTo(1).durability(100));
+        super(Tiers.WOOD, new Item.Properties().stacksTo(1).durability(100));
     }
     
     @Override
@@ -48,7 +48,7 @@ public class WarpGunItem extends SwordItem {
     }
     
     @Override
-    public boolean isCorrectToolForDrops(net.minecraft.world.level.block.state.BlockState state) {
+    public boolean isCorrectToolForDrops(ItemStack stack, net.minecraft.world.level.block.state.BlockState state) {
         return false; // Don't actually mine blocks
     }
     

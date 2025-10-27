@@ -30,8 +30,26 @@ public class RealityForgeRecipeRegistry {
         var allRecipes = recipeManager.getAllRecipesFor(recipeType);
         
         for (var recipe : allRecipes) {
-            if (recipe.matches(blockEntity, level)) {
-                return recipe;
+            // Create a RecipeInput wrapper around the block entity
+            var recipeInput = new net.minecraft.world.item.crafting.RecipeInput() {
+                @Override
+                public int size() {
+                    return blockEntity.getContainerSize();
+                }
+                
+                @Override
+                public net.minecraft.world.item.ItemStack getItem(int slot) {
+                    return blockEntity.getItem(slot);
+                }
+                
+                @Override
+                public boolean isEmpty() {
+                    return blockEntity.isEmpty();
+                }
+            };
+            
+            if (recipe.value().matches(recipeInput, level)) {
+                return recipe.value();
             }
         }
         return null;
@@ -50,9 +68,9 @@ public class RealityForgeRecipeRegistry {
         var allRecipes = recipeManager.getAllRecipesFor(recipeType);
         
         for (var recipe : allRecipes) {
-            ResourceLocation recipeResultId = net.minecraftforge.registries.ForgeRegistries.ITEMS.getKey(recipe.getResultItem(null).getItem());
+            ResourceLocation recipeResultId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(recipe.value().getResultItem(null).getItem());
             if (recipeResultId != null && recipeResultId.equals(resultItemId)) {
-                return recipe;
+                return recipe.value();
             }
         }
         

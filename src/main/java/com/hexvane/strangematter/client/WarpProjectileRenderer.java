@@ -39,37 +39,37 @@ public class WarpProjectileRenderer extends EntityRenderer<WarpProjectileEntity>
         float alpha = 0.8f;
         
         // Render the quad
-        vertexConsumer.vertex(matrix, -size, -size, 0.0f)
-            .color(1.0f, 1.0f, 1.0f, alpha)
-            .uv(0.0f, 1.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, 1.0f)
-            .endVertex();
+        vertexConsumer.addVertex(matrix, -size, -size, 0.0f)
+            .setColor((int)(1.0f * 255), (int)(1.0f * 255), (int)(1.0f * 255), (int)(alpha * 255))
+            .setUv(0.0f, 1.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
+;
             
-        vertexConsumer.vertex(matrix, size, -size, 0.0f)
-            .color(1.0f, 1.0f, 1.0f, alpha)
-            .uv(1.0f, 1.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, 1.0f)
-            .endVertex();
+        vertexConsumer.addVertex(matrix, size, -size, 0.0f)
+            .setColor((int)(1.0f * 255), (int)(1.0f * 255), (int)(1.0f * 255), (int)(alpha * 255))
+            .setUv(1.0f, 1.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
+;
             
-        vertexConsumer.vertex(matrix, size, size, 0.0f)
-            .color(1.0f, 1.0f, 1.0f, alpha)
-            .uv(1.0f, 0.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, 1.0f)
-            .endVertex();
+        vertexConsumer.addVertex(matrix, size, size, 0.0f)
+            .setColor((int)(1.0f * 255), (int)(1.0f * 255), (int)(1.0f * 255), (int)(alpha * 255))
+            .setUv(1.0f, 0.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
+;
             
-        vertexConsumer.vertex(matrix, -size, size, 0.0f)
-            .color(1.0f, 1.0f, 1.0f, alpha)
-            .uv(0.0f, 0.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, 1.0f)
-            .endVertex();
+        vertexConsumer.addVertex(matrix, -size, size, 0.0f)
+            .setColor((int)(1.0f * 255), (int)(1.0f * 255), (int)(1.0f * 255), (int)(alpha * 255))
+            .setUv(0.0f, 0.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
+;
         
         poseStack.popPose();
         

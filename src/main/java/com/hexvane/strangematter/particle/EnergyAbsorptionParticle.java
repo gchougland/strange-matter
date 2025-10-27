@@ -94,6 +94,7 @@ public class EnergyAbsorptionParticle extends TextureSheetParticle {
         return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
     }
     
+    
     public static class Provider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet spriteSet;
         
@@ -108,10 +109,14 @@ public class EnergyAbsorptionParticle extends TextureSheetParticle {
             // Extract target position and pull strength from speed parameters
             // We'll use xSpeed, ySpeed, zSpeed to pass target position
             // and use a fixed pull strength for now
+            System.out.println("EnergyAbsorptionParticle.Provider: Creating particle at (" + x + ", " + y + ", " + z + ") targeting (" + xSpeed + ", " + ySpeed + ", " + zSpeed + ")");
             EnergyAbsorptionParticle particle = new EnergyAbsorptionParticle(
                 level, x, y, z, xSpeed, ySpeed, zSpeed, 0.05
             );
-            particle.pickSprite(this.spriteSet);
+            // Use sprite set if available, otherwise skip
+            if (this.spriteSet != null) {
+                particle.pickSprite(this.spriteSet);
+            }
             return particle;
         }
     }

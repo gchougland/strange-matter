@@ -72,7 +72,7 @@ public class PlayerMorphData {
         
         try {
             ResourceLocation resourceLocation = ResourceLocation.parse(entityTypeId);
-            return net.minecraftforge.registries.ForgeRegistries.ENTITY_TYPES.getValue(resourceLocation);
+            return net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.get(resourceLocation);
         } catch (Exception e) {
             return null;
         }

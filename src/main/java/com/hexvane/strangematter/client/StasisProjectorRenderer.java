@@ -81,77 +81,69 @@ public class StasisProjectorRenderer implements BlockEntityRenderer<StasisProjec
         if (!reversed) {
             // Front face (normal winding order)
             // Bottom-left
-            consumer.vertex(matrix, -size, -size, 0.0f)
-                .color(1.0f, 1.0f, 1.0f, alpha)
-                .uv(0.0f, 1.0f)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(packedLight)
-                .normal(normal, 0.0f, 0.0f, 1.0f)
-                .endVertex();
+            consumer.addVertex(matrix, -size, -size, 0.0f)
+                .setColor((int)(1.0f * 255), (int)(1.0f * 255), (int)(1.0f * 255), (int)(alpha * 255))
+                .setUv(0.0f, 1.0f)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(packedLight)
+                .setNormal(0.0f, 0.0f, 1.0f);
             
             // Bottom-right
-            consumer.vertex(matrix, size, -size, 0.0f)
-                .color(1.0f, 1.0f, 1.0f, alpha)
-                .uv(1.0f, 1.0f)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(packedLight)
-                .normal(normal, 0.0f, 0.0f, 1.0f)
-                .endVertex();
+            consumer.addVertex(matrix, size, -size, 0.0f)
+                .setColor((int)(1.0f * 255), (int)(1.0f * 255), (int)(1.0f * 255), (int)(alpha * 255))
+                .setUv(1.0f, 1.0f)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(packedLight)
+                .setNormal(0.0f, 0.0f, 1.0f);
             
             // Top-right
-            consumer.vertex(matrix, size, size, 0.0f)
-                .color(1.0f, 1.0f, 1.0f, alpha)
-                .uv(1.0f, 0.0f)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(packedLight)
-                .normal(normal, 0.0f, 0.0f, 1.0f)
-                .endVertex();
+            consumer.addVertex(matrix, size, size, 0.0f)
+                .setColor((int)(1.0f * 255), (int)(1.0f * 255), (int)(1.0f * 255), (int)(alpha * 255))
+                .setUv(1.0f, 0.0f)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(packedLight)
+                .setNormal(0.0f, 0.0f, 1.0f);
             
             // Top-left
-            consumer.vertex(matrix, -size, size, 0.0f)
-                .color(1.0f, 1.0f, 1.0f, alpha)
-                .uv(0.0f, 0.0f)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(packedLight)
-                .normal(normal, 0.0f, 0.0f, 1.0f)
-                .endVertex();
+            consumer.addVertex(matrix, -size, size, 0.0f)
+                .setColor((int)(1.0f * 255), (int)(1.0f * 255), (int)(1.0f * 255), (int)(alpha * 255))
+                .setUv(0.0f, 0.0f)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(packedLight)
+                .setNormal(0.0f, 0.0f, 1.0f);
         } else {
             // Back face (reversed winding order)
             // Top-left
-            consumer.vertex(matrix, -size, size, 0.0f)
-                .color(1.0f, 1.0f, 1.0f, alpha)
-                .uv(0.0f, 0.0f)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(packedLight)
-                .normal(normal, 0.0f, 0.0f, -1.0f)
-                .endVertex();
+            consumer.addVertex(matrix, -size, size, 0.0f)
+                .setColor((int)(1.0f * 255), (int)(1.0f * 255), (int)(1.0f * 255), (int)(alpha * 255))
+                .setUv(0.0f, 0.0f)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(packedLight)
+                .setNormal(0.0f, 0.0f, -1.0f);
             
             // Top-right
-            consumer.vertex(matrix, size, size, 0.0f)
-                .color(1.0f, 1.0f, 1.0f, alpha)
-                .uv(1.0f, 0.0f)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(packedLight)
-                .normal(normal, 0.0f, 0.0f, -1.0f)
-                .endVertex();
+            consumer.addVertex(matrix, size, size, 0.0f)
+                .setColor((int)(1.0f * 255), (int)(1.0f * 255), (int)(1.0f * 255), (int)(alpha * 255))
+                .setUv(1.0f, 0.0f)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(packedLight)
+                .setNormal(0.0f, 0.0f, -1.0f);
             
             // Bottom-right
-            consumer.vertex(matrix, size, -size, 0.0f)
-                .color(1.0f, 1.0f, 1.0f, alpha)
-                .uv(1.0f, 1.0f)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(packedLight)
-                .normal(normal, 0.0f, 0.0f, -1.0f)
-                .endVertex();
+            consumer.addVertex(matrix, size, -size, 0.0f)
+                .setColor((int)(1.0f * 255), (int)(1.0f * 255), (int)(1.0f * 255), (int)(alpha * 255))
+                .setUv(1.0f, 1.0f)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(packedLight)
+                .setNormal(0.0f, 0.0f, -1.0f);
             
             // Bottom-left
-            consumer.vertex(matrix, -size, -size, 0.0f)
-                .color(1.0f, 1.0f, 1.0f, alpha)
-                .uv(0.0f, 1.0f)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(packedLight)
-                .normal(normal, 0.0f, 0.0f, -1.0f)
-                .endVertex();
+            consumer.addVertex(matrix, -size, -size, 0.0f)
+                .setColor((int)(1.0f * 255), (int)(1.0f * 255), (int)(1.0f * 255), (int)(alpha * 255))
+                .setUv(0.0f, 1.0f)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(packedLight)
+                .setNormal(0.0f, 0.0f, -1.0f);
         }
     }
 }

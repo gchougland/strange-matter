@@ -1,219 +1,219 @@
 package com.hexvane.strangematter;
 
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.config.ModConfigEvent;
 
 /**
  * Configuration file for Strange Matter mod.
  * All configuration options are defined here and synced on load.
  */
-@Mod.EventBusSubscriber(modid = StrangeMatterMod.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Config {
-    private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
+    private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
     // ========================================
     // WORLD GENERATION - ANOMALY SPAWN RATES
     // ========================================
     
-    private static final ForgeConfigSpec.BooleanValue ENABLE_GRAVITY_ANOMALY;
-    private static final ForgeConfigSpec.IntValue GRAVITY_ANOMALY_RARITY;
+    private static final ModConfigSpec.BooleanValue ENABLE_GRAVITY_ANOMALY;
+    private static final ModConfigSpec.IntValue GRAVITY_ANOMALY_RARITY;
     
-    private static final ForgeConfigSpec.BooleanValue ENABLE_TEMPORAL_BLOOM;
-    private static final ForgeConfigSpec.IntValue TEMPORAL_BLOOM_RARITY;
+    private static final ModConfigSpec.BooleanValue ENABLE_TEMPORAL_BLOOM;
+    private static final ModConfigSpec.IntValue TEMPORAL_BLOOM_RARITY;
     
-    private static final ForgeConfigSpec.BooleanValue ENABLE_WARP_GATE;
-    private static final ForgeConfigSpec.IntValue WARP_GATE_RARITY;
+    private static final ModConfigSpec.BooleanValue ENABLE_WARP_GATE;
+    private static final ModConfigSpec.IntValue WARP_GATE_RARITY;
     
-    private static final ForgeConfigSpec.BooleanValue ENABLE_ENERGETIC_RIFT;
-    private static final ForgeConfigSpec.IntValue ENERGETIC_RIFT_RARITY;
+    private static final ModConfigSpec.BooleanValue ENABLE_ENERGETIC_RIFT;
+    private static final ModConfigSpec.IntValue ENERGETIC_RIFT_RARITY;
     
-    private static final ForgeConfigSpec.BooleanValue ENABLE_ECHOING_SHADOW;
-    private static final ForgeConfigSpec.IntValue ECHOING_SHADOW_RARITY;
+    private static final ModConfigSpec.BooleanValue ENABLE_ECHOING_SHADOW;
+    private static final ModConfigSpec.IntValue ECHOING_SHADOW_RARITY;
     
-    private static final ForgeConfigSpec.BooleanValue ENABLE_THOUGHTWELL;
-    private static final ForgeConfigSpec.IntValue THOUGHTWELL_RARITY;
+    private static final ModConfigSpec.BooleanValue ENABLE_THOUGHTWELL;
+    private static final ModConfigSpec.IntValue THOUGHTWELL_RARITY;
 
     // ========================================
     // WORLD GENERATION - ORE GENERATION
     // ========================================
     
-    private static final ForgeConfigSpec.BooleanValue ENABLE_RESONITE_ORE;
-    private static final ForgeConfigSpec.IntValue RESONITE_ORE_VEINS_PER_CHUNK;
+    private static final ModConfigSpec.BooleanValue ENABLE_RESONITE_ORE;
+    private static final ModConfigSpec.IntValue RESONITE_ORE_VEINS_PER_CHUNK;
 
     // ========================================
     // WORLD GENERATION - TERRAIN MODIFICATION
     // ========================================
     
-    private static final ForgeConfigSpec.BooleanValue ENABLE_ANOMALOUS_GRASS;
-    private static final ForgeConfigSpec.DoubleValue RESONITE_ORE_SPAWN_CHANCE_NEAR_ANOMALY;
-    private static final ForgeConfigSpec.DoubleValue SHARD_ORE_SPAWN_CHANCE_NEAR_ANOMALY;
+    private static final ModConfigSpec.BooleanValue ENABLE_ANOMALOUS_GRASS;
+    private static final ModConfigSpec.DoubleValue RESONITE_ORE_SPAWN_CHANCE_NEAR_ANOMALY;
+    private static final ModConfigSpec.DoubleValue SHARD_ORE_SPAWN_CHANCE_NEAR_ANOMALY;
+
 
     // ========================================
     // WORLD GENERATION - VILLAGER STRUCTURES
     // ========================================
     
-    private static final ForgeConfigSpec.BooleanValue ENABLE_ANOMALY_SCIENTIST_HOUSE;
-    private static final ForgeConfigSpec.IntValue ANOMALY_SCIENTIST_HOUSE_WEIGHT;
+    private static final ModConfigSpec.BooleanValue ENABLE_ANOMALY_SCIENTIST_HOUSE;
+    private static final ModConfigSpec.IntValue ANOMALY_SCIENTIST_HOUSE_WEIGHT;
 
     // ========================================
     // ANOMALY EFFECTS CONFIG VALUES
     // ========================================
     
     // Gravity Anomaly
-    private static final ForgeConfigSpec.BooleanValue ENABLE_GRAVITY_EFFECTS;
-    private static final ForgeConfigSpec.DoubleValue GRAVITY_LEVITATION_RADIUS;
-    private static final ForgeConfigSpec.DoubleValue GRAVITY_LEVITATION_FORCE;
-    private static final ForgeConfigSpec.IntValue GRAVITY_RESEARCH_POINTS;
+    private static final ModConfigSpec.BooleanValue ENABLE_GRAVITY_EFFECTS;
+    private static final ModConfigSpec.DoubleValue GRAVITY_LEVITATION_RADIUS;
+    private static final ModConfigSpec.DoubleValue GRAVITY_LEVITATION_FORCE;
+    private static final ModConfigSpec.IntValue GRAVITY_RESEARCH_POINTS;
     
     // Temporal Bloom
-    private static final ForgeConfigSpec.BooleanValue ENABLE_TEMPORAL_EFFECTS;
-    private static final ForgeConfigSpec.DoubleValue TEMPORAL_EFFECT_RADIUS;
-    private static final ForgeConfigSpec.IntValue TEMPORAL_CROP_GROWTH_STAGES;
-    private static final ForgeConfigSpec.IntValue TEMPORAL_CROP_COOLDOWN;
-    private static final ForgeConfigSpec.IntValue TEMPORAL_MOB_COOLDOWN;
-    private static final ForgeConfigSpec.IntValue TEMPORAL_RESEARCH_POINTS;
+    private static final ModConfigSpec.BooleanValue ENABLE_TEMPORAL_EFFECTS;
+    private static final ModConfigSpec.DoubleValue TEMPORAL_EFFECT_RADIUS;
+    private static final ModConfigSpec.IntValue TEMPORAL_CROP_GROWTH_STAGES;
+    private static final ModConfigSpec.IntValue TEMPORAL_CROP_COOLDOWN;
+    private static final ModConfigSpec.IntValue TEMPORAL_MOB_COOLDOWN;
+    private static final ModConfigSpec.IntValue TEMPORAL_RESEARCH_POINTS;
     
     // Energetic Rift
-    private static final ForgeConfigSpec.BooleanValue ENABLE_ENERGETIC_EFFECTS;
-    private static final ForgeConfigSpec.DoubleValue ENERGETIC_ZAP_RADIUS;
-    private static final ForgeConfigSpec.DoubleValue ENERGETIC_LIGHTNING_RADIUS;
-    private static final ForgeConfigSpec.DoubleValue ENERGETIC_ZAP_DAMAGE;
-    private static final ForgeConfigSpec.IntValue ENERGETIC_ZAP_COOLDOWN;
-    private static final ForgeConfigSpec.IntValue ENERGETIC_LIGHTNING_COOLDOWN;
-    private static final ForgeConfigSpec.IntValue ENERGETIC_RESEARCH_POINTS;
+    private static final ModConfigSpec.BooleanValue ENABLE_ENERGETIC_EFFECTS;
+    private static final ModConfigSpec.DoubleValue ENERGETIC_ZAP_RADIUS;
+    private static final ModConfigSpec.DoubleValue ENERGETIC_LIGHTNING_RADIUS;
+    private static final ModConfigSpec.DoubleValue ENERGETIC_ZAP_DAMAGE;
+    private static final ModConfigSpec.IntValue ENERGETIC_ZAP_COOLDOWN;
+    private static final ModConfigSpec.IntValue ENERGETIC_LIGHTNING_COOLDOWN;
+    private static final ModConfigSpec.IntValue ENERGETIC_RESEARCH_POINTS;
     
     // Warp Gate
-    private static final ForgeConfigSpec.BooleanValue ENABLE_WARP_EFFECTS;
-    private static final ForgeConfigSpec.DoubleValue WARP_TELEPORT_RADIUS;
-    private static final ForgeConfigSpec.IntValue WARP_TELEPORT_COOLDOWN;
-    private static final ForgeConfigSpec.IntValue WARP_RESEARCH_POINTS;
+    private static final ModConfigSpec.BooleanValue ENABLE_WARP_EFFECTS;
+    private static final ModConfigSpec.DoubleValue WARP_TELEPORT_RADIUS;
+    private static final ModConfigSpec.IntValue WARP_TELEPORT_COOLDOWN;
+    private static final ModConfigSpec.IntValue WARP_RESEARCH_POINTS;
     
     // Echoing Shadow
-    private static final ForgeConfigSpec.BooleanValue ENABLE_SHADOW_EFFECTS;
-    private static final ForgeConfigSpec.DoubleValue SHADOW_EFFECT_RADIUS;
-    private static final ForgeConfigSpec.DoubleValue SHADOW_LIGHT_ABSORPTION;
-    private static final ForgeConfigSpec.DoubleValue SHADOW_MOB_SPAWN_BOOST;
-    private static final ForgeConfigSpec.IntValue SHADOW_RESEARCH_POINTS;
+    private static final ModConfigSpec.BooleanValue ENABLE_SHADOW_EFFECTS;
+    private static final ModConfigSpec.DoubleValue SHADOW_EFFECT_RADIUS;
+    private static final ModConfigSpec.DoubleValue SHADOW_LIGHT_ABSORPTION;
+    private static final ModConfigSpec.DoubleValue SHADOW_MOB_SPAWN_BOOST;
+    private static final ModConfigSpec.IntValue SHADOW_RESEARCH_POINTS;
     
     // Thoughtwell
-    private static final ForgeConfigSpec.BooleanValue ENABLE_THOUGHTWELL_EFFECTS;
-    private static final ForgeConfigSpec.DoubleValue THOUGHTWELL_EFFECT_RADIUS;
-    private static final ForgeConfigSpec.IntValue THOUGHTWELL_CONFUSION_DURATION;
-    private static final ForgeConfigSpec.IntValue THOUGHTWELL_RESEARCH_POINTS;
+    private static final ModConfigSpec.BooleanValue ENABLE_THOUGHTWELL_EFFECTS;
+    private static final ModConfigSpec.DoubleValue THOUGHTWELL_EFFECT_RADIUS;
+    private static final ModConfigSpec.IntValue THOUGHTWELL_CONFUSION_DURATION;
+    private static final ModConfigSpec.IntValue THOUGHTWELL_RESEARCH_POINTS;
 
     // ========================================
     // ENERGY SYSTEM CONFIG VALUES
     // ========================================
     
     // Resonant Burner
-    private static final ForgeConfigSpec.IntValue RESONANT_BURNER_ENERGY_PER_TICK;
-    private static final ForgeConfigSpec.IntValue RESONANT_BURNER_ENERGY_STORAGE;
-    private static final ForgeConfigSpec.IntValue RESONANT_BURNER_TRANSFER_RATE;
+    private static final ModConfigSpec.IntValue RESONANT_BURNER_ENERGY_PER_TICK;
+    private static final ModConfigSpec.IntValue RESONANT_BURNER_ENERGY_STORAGE;
+    private static final ModConfigSpec.IntValue RESONANT_BURNER_TRANSFER_RATE;
     
     // Resonance Condenser
-    private static final ForgeConfigSpec.IntValue RESONANCE_CONDENSER_ENERGY_PER_TICK;
-    private static final ForgeConfigSpec.IntValue RESONANCE_CONDENSER_ENERGY_STORAGE;
-    private static final ForgeConfigSpec.IntValue RESONANCE_CONDENSER_PROGRESS_SPEED;
+    private static final ModConfigSpec.IntValue RESONANCE_CONDENSER_ENERGY_PER_TICK;
+    private static final ModConfigSpec.IntValue RESONANCE_CONDENSER_ENERGY_STORAGE;
+    private static final ModConfigSpec.IntValue RESONANCE_CONDENSER_PROGRESS_SPEED;
     
     // Paradoxical Energy Cell
-    private static final ForgeConfigSpec.IntValue PARADOXICAL_CELL_TRANSFER_RATE;
+    private static final ModConfigSpec.IntValue PARADOXICAL_CELL_TRANSFER_RATE;
     
     // Reality Forge
-    private static final ForgeConfigSpec.IntValue REALITY_FORGE_CRAFT_TIME;
+    private static final ModConfigSpec.IntValue REALITY_FORGE_CRAFT_TIME;
     
     // Rift Stabilizer
-    private static final ForgeConfigSpec.IntValue RIFT_STABILIZER_ENERGY_PER_TICK;
-    private static final ForgeConfigSpec.IntValue RIFT_STABILIZER_ENERGY_STORAGE;
-    private static final ForgeConfigSpec.IntValue RIFT_STABILIZER_TRANSFER_RATE;
-    private static final ForgeConfigSpec.DoubleValue RIFT_STABILIZER_RADIUS;
-    private static final ForgeConfigSpec.IntValue RIFT_STABILIZER_MAX_PER_RIFT;
+    private static final ModConfigSpec.IntValue RIFT_STABILIZER_ENERGY_PER_TICK;
+    private static final ModConfigSpec.IntValue RIFT_STABILIZER_ENERGY_STORAGE;
+    private static final ModConfigSpec.IntValue RIFT_STABILIZER_TRANSFER_RATE;
+    private static final ModConfigSpec.DoubleValue RIFT_STABILIZER_RADIUS;
+    private static final ModConfigSpec.IntValue RIFT_STABILIZER_MAX_PER_RIFT;
     
     // Resonant Conduit
-    private static final ForgeConfigSpec.IntValue RESONANT_CONDUIT_TRANSFER_RATE;
-    private static final ForgeConfigSpec.IntValue RESONANT_CONDUIT_NETWORK_UPDATE_INTERVAL;
-    private static final ForgeConfigSpec.IntValue RESONANT_CONDUIT_MAX_NETWORK_SIZE;
-    private static final ForgeConfigSpec.DoubleValue RESONANT_CONDUIT_DISTANCE_PENALTY;
+    private static final ModConfigSpec.IntValue RESONANT_CONDUIT_TRANSFER_RATE;
+    private static final ModConfigSpec.IntValue RESONANT_CONDUIT_NETWORK_UPDATE_INTERVAL;
+    private static final ModConfigSpec.IntValue RESONANT_CONDUIT_MAX_NETWORK_SIZE;
+    private static final ModConfigSpec.DoubleValue RESONANT_CONDUIT_DISTANCE_PENALTY;
 
     // ========================================
     // RESEARCH SYSTEM CONFIG VALUES
     // ========================================
     
-    private static final ForgeConfigSpec.DoubleValue RESEARCH_COST_MULTIPLIER;
+    private static final ModConfigSpec.DoubleValue RESEARCH_COST_MULTIPLIER;
     
     // Individual research node costs
-    private static final ForgeConfigSpec.IntValue ANOMALY_RESONATOR_COST;
-    private static final ForgeConfigSpec.IntValue RESONANCE_CONDENSER_COST;
-    private static final ForgeConfigSpec.IntValue CONTAINMENT_BASICS_COST;
-    private static final ForgeConfigSpec.IntValue ECHOFORM_IMPRINTER_COST;
-    private static final ForgeConfigSpec.IntValue REALITY_FORGE_COST;
-    private static final ForgeConfigSpec.IntValue WARP_GUN_COST;
-    private static final ForgeConfigSpec.IntValue GRAVITON_HAMMER_COST;
-    private static final ForgeConfigSpec.IntValue STASIS_PROJECTOR_COST;
-    private static final ForgeConfigSpec.IntValue RIFT_STABILIZER_COST;
-    private static final ForgeConfigSpec.IntValue GRAVITY_ANOMALIES_COST;
-    private static final ForgeConfigSpec.IntValue TEMPORAL_ANOMALIES_COST;
-    private static final ForgeConfigSpec.IntValue SPATIAL_ANOMALIES_COST;
-    private static final ForgeConfigSpec.IntValue ENERGY_ANOMALIES_COST;
-    private static final ForgeConfigSpec.IntValue SHADOW_ANOMALIES_COST;
-    private static final ForgeConfigSpec.IntValue COGNITIVE_ANOMALIES_COST;
-    private static final ForgeConfigSpec.IntValue LEVITATION_PAD_COST;
-    private static final ForgeConfigSpec.IntValue LEVITATION_PAD_MAX_HEIGHT;
-    private static final ForgeConfigSpec.IntValue HOVERBOARD_COST;
-    private static final ForgeConfigSpec.DoubleValue HOVERBOARD_MAX_SPEED;
-    private static final ForgeConfigSpec.DoubleValue HOVERBOARD_ACCELERATION;
+    private static final ModConfigSpec.IntValue ANOMALY_RESONATOR_COST;
+    private static final ModConfigSpec.IntValue RESONANCE_CONDENSER_COST;
+    private static final ModConfigSpec.IntValue CONTAINMENT_BASICS_COST;
+    private static final ModConfigSpec.IntValue ECHOFORM_IMPRINTER_COST;
+    private static final ModConfigSpec.IntValue REALITY_FORGE_COST;
+    private static final ModConfigSpec.IntValue WARP_GUN_COST;
+    private static final ModConfigSpec.IntValue GRAVITON_HAMMER_COST;
+    private static final ModConfigSpec.IntValue STASIS_PROJECTOR_COST;
+    private static final ModConfigSpec.IntValue RIFT_STABILIZER_COST;
+    private static final ModConfigSpec.IntValue GRAVITY_ANOMALIES_COST;
+    private static final ModConfigSpec.IntValue TEMPORAL_ANOMALIES_COST;
+    private static final ModConfigSpec.IntValue SPATIAL_ANOMALIES_COST;
+    private static final ModConfigSpec.IntValue ENERGY_ANOMALIES_COST;
+    private static final ModConfigSpec.IntValue SHADOW_ANOMALIES_COST;
+    private static final ModConfigSpec.IntValue COGNITIVE_ANOMALIES_COST;
+    private static final ModConfigSpec.IntValue LEVITATION_PAD_COST;
+    private static final ModConfigSpec.IntValue LEVITATION_PAD_MAX_HEIGHT;
+    private static final ModConfigSpec.IntValue HOVERBOARD_COST;
+    private static final ModConfigSpec.DoubleValue HOVERBOARD_MAX_SPEED;
+    private static final ModConfigSpec.DoubleValue HOVERBOARD_ACCELERATION;
 
     // ========================================
     // GRAVITON HAMMER CONFIG VALUES
     // ========================================
     
-    private static final ForgeConfigSpec.IntValue GRAVITON_HAMMER_CHARGE_LEVEL_1_TIME;
-    private static final ForgeConfigSpec.IntValue GRAVITON_HAMMER_CHARGE_LEVEL_2_TIME;
-    private static final ForgeConfigSpec.IntValue GRAVITON_HAMMER_CHARGE_LEVEL_3_TIME;
-    private static final ForgeConfigSpec.IntValue GRAVITON_HAMMER_TUNNEL_DEPTH_LEVEL_1;
-    private static final ForgeConfigSpec.IntValue GRAVITON_HAMMER_TUNNEL_DEPTH_LEVEL_2;
-    private static final ForgeConfigSpec.IntValue GRAVITON_HAMMER_TUNNEL_DEPTH_LEVEL_3;
+    private static final ModConfigSpec.IntValue GRAVITON_HAMMER_CHARGE_LEVEL_1_TIME;
+    private static final ModConfigSpec.IntValue GRAVITON_HAMMER_CHARGE_LEVEL_2_TIME;
+    private static final ModConfigSpec.IntValue GRAVITON_HAMMER_CHARGE_LEVEL_3_TIME;
+    private static final ModConfigSpec.IntValue GRAVITON_HAMMER_TUNNEL_DEPTH_LEVEL_1;
+    private static final ModConfigSpec.IntValue GRAVITON_HAMMER_TUNNEL_DEPTH_LEVEL_2;
+    private static final ModConfigSpec.IntValue GRAVITON_HAMMER_TUNNEL_DEPTH_LEVEL_3;
 
     // ========================================
     // RESEARCH MINIGAMES CONFIG VALUES
     // ========================================
     
-    private static final ForgeConfigSpec.BooleanValue ENABLE_MINIGAMES;
+    private static final ModConfigSpec.BooleanValue ENABLE_MINIGAMES;
     
     // Instability
-    private static final ForgeConfigSpec.DoubleValue INSTABILITY_DECREASE_RATE;
-    private static final ForgeConfigSpec.DoubleValue INSTABILITY_BASE_INCREASE_RATE;
+    private static final ModConfigSpec.DoubleValue INSTABILITY_DECREASE_RATE;
+    private static final ModConfigSpec.DoubleValue INSTABILITY_BASE_INCREASE_RATE;
     
     // Energy Minigame
-    private static final ForgeConfigSpec.IntValue ENERGY_REQUIRED_ALIGNMENT_TICKS;
-    private static final ForgeConfigSpec.IntValue ENERGY_DRIFT_DELAY_TICKS;
-    private static final ForgeConfigSpec.DoubleValue ENERGY_AMPLITUDE_STEP;
-    private static final ForgeConfigSpec.DoubleValue ENERGY_PERIOD_STEP;
+    private static final ModConfigSpec.IntValue ENERGY_REQUIRED_ALIGNMENT_TICKS;
+    private static final ModConfigSpec.IntValue ENERGY_DRIFT_DELAY_TICKS;
+    private static final ModConfigSpec.DoubleValue ENERGY_AMPLITUDE_STEP;
+    private static final ModConfigSpec.DoubleValue ENERGY_PERIOD_STEP;
     
     // Space Minigame
-    private static final ForgeConfigSpec.DoubleValue SPACE_STABILITY_THRESHOLD;
-    private static final ForgeConfigSpec.IntValue SPACE_DRIFT_DELAY_TICKS;
-    private static final ForgeConfigSpec.DoubleValue SPACE_WARP_ADJUSTMENT;
+    private static final ModConfigSpec.DoubleValue SPACE_STABILITY_THRESHOLD;
+    private static final ModConfigSpec.IntValue SPACE_DRIFT_DELAY_TICKS;
+    private static final ModConfigSpec.DoubleValue SPACE_WARP_ADJUSTMENT;
     
     // Time Minigame
-    private static final ForgeConfigSpec.DoubleValue TIME_SPEED_THRESHOLD;
-    private static final ForgeConfigSpec.IntValue TIME_DRIFT_DELAY_TICKS;
-    private static final ForgeConfigSpec.DoubleValue TIME_SPEED_ADJUSTMENT;
-    private static final ForgeConfigSpec.DoubleValue TIME_SNAP_THRESHOLD;
+    private static final ModConfigSpec.DoubleValue TIME_SPEED_THRESHOLD;
+    private static final ModConfigSpec.IntValue TIME_DRIFT_DELAY_TICKS;
+    private static final ModConfigSpec.DoubleValue TIME_SPEED_ADJUSTMENT;
+    private static final ModConfigSpec.DoubleValue TIME_SNAP_THRESHOLD;
     
     // Gravity Minigame
-    private static final ForgeConfigSpec.DoubleValue GRAVITY_BALANCE_THRESHOLD;
-    private static final ForgeConfigSpec.IntValue GRAVITY_DRIFT_DELAY_TICKS;
+    private static final ModConfigSpec.DoubleValue GRAVITY_BALANCE_THRESHOLD;
+    private static final ModConfigSpec.IntValue GRAVITY_DRIFT_DELAY_TICKS;
     
     // Shadow Minigame
-    private static final ForgeConfigSpec.DoubleValue SHADOW_ALIGNMENT_THRESHOLD;
-    private static final ForgeConfigSpec.IntValue SHADOW_DRIFT_DELAY_TICKS;
-    private static final ForgeConfigSpec.DoubleValue SHADOW_ROTATION_STEP;
+    private static final ModConfigSpec.DoubleValue SHADOW_ALIGNMENT_THRESHOLD;
+    private static final ModConfigSpec.IntValue SHADOW_DRIFT_DELAY_TICKS;
+    private static final ModConfigSpec.DoubleValue SHADOW_ROTATION_STEP;
     
     // Cognition Minigame
-    private static final ForgeConfigSpec.IntValue COGNITION_MATCH_DURATION;
-    private static final ForgeConfigSpec.IntValue COGNITION_DIFFICULTY;
+    private static final ModConfigSpec.IntValue COGNITION_MATCH_DURATION;
+    private static final ModConfigSpec.IntValue COGNITION_DIFFICULTY;
 
     static {
         BUILDER.comment("World Generation Settings").push("worldgen");
@@ -451,23 +451,23 @@ public class Config {
         BUILDER.comment("Resonant Burner Settings").push("resonant_burner");
         RESONANT_BURNER_ENERGY_PER_TICK = BUILDER
                 .comment("Energy generated per tick (RE/t)")
-                .defineInRange("energyPerTick", 20, 1, 10000);
+                .defineInRange("energyPerTick", 50, 1, 10000);
         RESONANT_BURNER_ENERGY_STORAGE = BUILDER
                 .comment("Internal energy storage capacity (RE)")
-                .defineInRange("energyStorage", 10000, 100, 1000000);
+                .defineInRange("energyStorage", 50000, 100, 1000000);
         RESONANT_BURNER_TRANSFER_RATE = BUILDER
                 .comment("Energy transfer rate to adjacent blocks per tick (RE/t)")
-                .defineInRange("transferRate", 1000, 1, 100000);
+                .defineInRange("transferRate", 800, 1, 100000);
         BUILDER.pop();
         
         // Resonance Condenser
         BUILDER.comment("Resonance Condenser Settings").push("resonance_condenser");
         RESONANCE_CONDENSER_ENERGY_PER_TICK = BUILDER
                 .comment("Energy consumed per tick (RE/t)")
-                .defineInRange("energyPerTick", 2, 1, 1000);
+                .defineInRange("energyPerTick", 10, 1, 1000);
         RESONANCE_CONDENSER_ENERGY_STORAGE = BUILDER
                 .comment("Internal energy storage capacity (RE)")
-                .defineInRange("energyStorage", 1000, 100, 100000);
+                .defineInRange("energyStorage", 25000, 100, 100000);
         RESONANCE_CONDENSER_PROGRESS_SPEED = BUILDER
                 .comment("Ticks required to progress shard generation (lower = faster)")
                 .defineInRange("progressSpeed", 15, 1, 600);
@@ -491,13 +491,13 @@ public class Config {
         BUILDER.push("riftStabilizer");
         RIFT_STABILIZER_ENERGY_PER_TICK = BUILDER
                 .comment("Energy generated per tick")
-                .defineInRange("energyPerTick", 100, 1, 10000);
+                .defineInRange("energyPerTick", 40, 1, 10000);
         RIFT_STABILIZER_ENERGY_STORAGE = BUILDER
                 .comment("Maximum energy storage")
-                .defineInRange("energyStorage", 100000, 1000, 1000000);
+                .defineInRange("energyStorage", 40000, 1000, 1000000);
         RIFT_STABILIZER_TRANSFER_RATE = BUILDER
                 .comment("Energy transfer rate per tick")
-                .defineInRange("transferRate", 1000, 1, 10000);
+                .defineInRange("transferRate", 800, 1, 10000);
         RIFT_STABILIZER_RADIUS = BUILDER
                 .comment("Radius to detect Energetic Rift anomalies")
                 .defineInRange("radius", 16.0, 1.0, 64.0);
@@ -755,10 +755,11 @@ public class Config {
                 .defineInRange("difficulty", 3, 2, 8);
         BUILDER.pop();
         
+        
         BUILDER.pop(); // minigames
     }
 
-    static final ForgeConfigSpec SPEC = BUILDER.build();
+    static final ModConfigSpec SPEC = BUILDER.build();
 
     // Public static fields to access config values
     public static boolean enableGravityAnomaly;
@@ -928,6 +929,7 @@ public class Config {
     public static double shadowAlignmentThreshold;
     public static int shadowDriftDelayTicks;
     public static double shadowRotationStep;
+    
     
     // Cognition Minigame
     public static int cognitionMatchDuration;
@@ -1109,5 +1111,6 @@ public class Config {
         // Cognition Minigame
         cognitionMatchDuration = COGNITION_MATCH_DURATION.get();
         cognitionDifficulty = COGNITION_DIFFICULTY.get();
+        
     }
 }

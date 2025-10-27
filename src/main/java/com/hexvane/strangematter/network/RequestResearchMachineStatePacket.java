@@ -2,32 +2,38 @@ package com.hexvane.strangematter.network;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Supplier;
-
-public class RequestResearchMachineStatePacket {
+public class RequestResearchMachineStatePacket implements CustomPacketPayload {
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("strangematter", "request_research_machine_state");
+    public static final Type<RequestResearchMachineStatePacket> TYPE = new Type<>(ID);
+    
     private final BlockPos pos;
     
     public RequestResearchMachineStatePacket(BlockPos pos) {
         this.pos = pos;
     }
     
-    public static void encode(RequestResearchMachineStatePacket packet, FriendlyByteBuf buffer) {
-        buffer.writeBlockPos(packet.pos);
+    public RequestResearchMachineStatePacket(FriendlyByteBuf buffer) {
+        this.pos = buffer.readBlockPos();
     }
     
-    public static RequestResearchMachineStatePacket decode(FriendlyByteBuf buffer) {
-        BlockPos pos = buffer.readBlockPos();
-        return new RequestResearchMachineStatePacket(pos);
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
     
-    public static void handle(RequestResearchMachineStatePacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
+    public void write(FriendlyByteBuf buffer) {
+        buffer.writeBlockPos(pos);
+    }
+    
+    public static void handle(RequestResearchMachineStatePacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
-            if (context.getSender() != null) {
+            if (context.player() != null) {
                 // Server side - send current state back to client
-                var player = context.getSender();
+                var player = context.player();
                 var level = player.level();
                 var blockEntity = level.getBlockEntity(packet.pos);
                 
@@ -38,6 +44,9 @@ public class RequestResearchMachineStatePacket {
                 }
             }
         });
-        context.setPacketHandled(true);
+    }
+    
+    public BlockPos getPos() {
+        return pos;
     }
 }

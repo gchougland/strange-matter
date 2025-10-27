@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "NNN",
+    "NNN",
+    "NNN"
+  ],
+  "key": {
+    "N": {
+      "item": "strangematter:resonite_nugget"
+    }
+  },
+  "result": {
+    "id": "strangematter:resonite_ingot",
+    "count": 1
+  }
+}

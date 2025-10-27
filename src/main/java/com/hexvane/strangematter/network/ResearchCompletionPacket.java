@@ -3,11 +3,14 @@ package com.hexvane.strangematter.network;
 import com.hexvane.strangematter.block.ResearchMachineBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Supplier;
-
-public class ResearchCompletionPacket {
+public class ResearchCompletionPacket implements CustomPacketPayload {
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("strangematter", "research_completion");
+    public static final Type<ResearchCompletionPacket> TYPE = new Type<>(ID);
+    
     private final BlockPos pos;
     private final boolean success;
     
@@ -16,23 +19,26 @@ public class ResearchCompletionPacket {
         this.success = success;
     }
     
-    public static void encode(ResearchCompletionPacket packet, FriendlyByteBuf buffer) {
-        buffer.writeBlockPos(packet.pos);
-        buffer.writeBoolean(packet.success);
+    public ResearchCompletionPacket(FriendlyByteBuf buffer) {
+        this.pos = buffer.readBlockPos();
+        this.success = buffer.readBoolean();
     }
     
-    public static ResearchCompletionPacket new_(FriendlyByteBuf buffer) {
-        BlockPos pos = buffer.readBlockPos();
-        boolean success = buffer.readBoolean();
-        return new ResearchCompletionPacket(pos, success);
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
     
-    public static void handle(ResearchCompletionPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
+    public void write(FriendlyByteBuf buffer) {
+        buffer.writeBlockPos(pos);
+        buffer.writeBoolean(success);
+    }
+    
+    public static void handle(ResearchCompletionPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
-            if (context.getSender() != null) {
+            if (context.player() != null) {
                 // Server side - handle research completion/failure
-                var player = context.getSender();
+                var player = context.player();
                 var level = player.level();
                 var blockEntity = level.getBlockEntity(packet.pos);
                 
@@ -45,6 +51,13 @@ public class ResearchCompletionPacket {
                 }
             }
         });
-        context.setPacketHandled(true);
+    }
+    
+    public BlockPos getPos() {
+        return pos;
+    }
+    
+    public boolean isSuccess() {
+        return success;
     }
 }

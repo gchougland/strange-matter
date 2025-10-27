@@ -43,7 +43,7 @@ public class ResonantBurnerRenderer implements BlockEntityRenderer<ResonantBurne
         poseStack.pushPose();
         
         // Position at the center of the block, slightly above the surface
-        poseStack.translate(0.5, 0.1, 0.5);
+        poseStack.translate(0.5, 1.1, 0.5);
         
         // Scale based on burn progress
         float burnProgress = blockEntity.getBurnProgress();
@@ -68,18 +68,30 @@ public class ResonantBurnerRenderer implements BlockEntityRenderer<ResonantBurne
         float a = 0.8f;
         
         // Render flame quad (billboarded)
-        consumer.vertex(matrix, -0.5f, -0.5f, 0.0f)
-            .color(r, g, b, a).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight)
-            .normal(0, 0, 1).endVertex();
-        consumer.vertex(matrix, 0.5f, -0.5f, 0.0f)
-            .color(r, g, b, a).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight)
-            .normal(0, 0, 1).endVertex();
-        consumer.vertex(matrix, 0.5f, 0.5f, 0.0f)
-            .color(r, g, b, a).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight)
-            .normal(0, 0, 1).endVertex();
-        consumer.vertex(matrix, -0.5f, 0.5f, 0.0f)
-            .color(r, g, b, a).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight)
-            .normal(0, 0, 1).endVertex();
+        consumer.addVertex(matrix, -0.5f, -0.5f, 0.0f)
+            .setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255))
+            .setUv(0, 0)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
+        consumer.addVertex(matrix, 0.5f, -0.5f, 0.0f)
+            .setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255))
+            .setUv(1, 0)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
+        consumer.addVertex(matrix, 0.5f, 0.5f, 0.0f)
+            .setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255))
+            .setUv(1, 1)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
+        consumer.addVertex(matrix, -0.5f, 0.5f, 0.0f)
+            .setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255))
+            .setUv(0, 1)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
         
         poseStack.popPose();
     }

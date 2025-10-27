@@ -19,14 +19,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.Heightmap;
 import com.hexvane.strangematter.registry.WarpGateRegistry;
-import net.minecraftforge.common.world.ForgeChunkManager;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import com.hexvane.strangematter.research.ResearchType;
 import com.hexvane.strangematter.StrangeMatterMod;
 import com.hexvane.strangematter.data.WarpGateLocationData;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.util.List;
 import java.util.Random;
@@ -41,6 +40,10 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
     // Entity data for syncing between client and server
     private static final EntityDataAccessor<String> PAIRED_GATE_ID = SynchedEntityData.defineId(WarpGateAnomalyEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<Boolean> IS_ACTIVE = SynchedEntityData.defineId(WarpGateAnomalyEntity.class, EntityDataSerializers.BOOLEAN);
+    
+    // Forced chunk management
+    private net.minecraft.server.level.TicketType<net.minecraft.world.level.ChunkPos> warpGateTicket;
+    private net.minecraft.world.level.ChunkPos forcedChunkPos;
     
     // Config-driven getters for warp gate parameters
     private float getTeleportRadius() {
@@ -75,12 +78,22 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    public void onAddedToWorld() {
-        super.onAddedToWorld();
-        // Register this warp gate in the location data when added to world
-        if (!this.level().isClientSide && this.level() instanceof ServerLevel serverLevel) {
+    public void tick() {
+        super.tick();
+        
+        // Handle registration in the location data on first tick
+        if (tickCount == 1 && !this.level().isClientSide && this.level() instanceof ServerLevel serverLevel) {
             WarpGateLocationData data = WarpGateLocationData.get(serverLevel);
             data.addWarpGate(this.getUUID(), this.blockPosition());
+        }
+        
+        // Register this warp gate in the registry when it first ticks
+        if (this.tickCount == 1) {
+            WarpGateRegistry.registerWarpGate(this);
+        }
+        
+        if (teleportCooldown > 0) {
+            teleportCooldown--;
         }
     }
     
@@ -97,29 +110,15 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(PAIRED_GATE_ID, "");
-        this.entityData.define(IS_ACTIVE, true);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(PAIRED_GATE_ID, "");
+        builder.define(IS_ACTIVE, true);
     }
     
     @Override
     public Component getDisplayName() {
         return Component.literal("Warp Gate");
-    }
-    
-    @Override
-    public void tick() {
-        super.tick();
-        
-        // Register this warp gate in the registry when it first ticks
-        if (this.tickCount == 1) {
-            WarpGateRegistry.registerWarpGate(this);
-        }
-        
-        if (teleportCooldown > 0) {
-            teleportCooldown--;
-        }
     }
     
     @Override
@@ -170,13 +169,21 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
         
         // If we have a paired structure location, teleport directly there
         if (pairedGateStructureLocation != null) {
+            // First, ensure the paired gate actually exists
+            WarpGateAnomalyEntity pairedGate = findExistingWarpGateAtStructureLocation(serverLevel, pairedGateStructureLocation);
             
-            // Use the stored warp gate position but offset it to prevent immediate re-detection
-            // Offset by 4 blocks to ensure we're outside the 2-block teleportation radius
-            Vec3 teleportPos = new Vec3(pairedGateStructureLocation.getX() + 4.0, pairedGateStructureLocation.getY() + 2, pairedGateStructureLocation.getZ() + 0.5);
-            
-            performDirectTeleportation(entity, serverLevel, teleportPos);
-            return;
+            if (pairedGate != null) {
+                // Use the actual paired gate's position with offset to prevent immediate re-detection
+                Vec3 teleportPos = pairedGate.position().add(3, 0.5, 0);
+                performDirectTeleportation(entity, serverLevel, teleportPos);
+                return;
+            } else {
+                // Paired gate doesn't exist - DO NOT spawn a new one because we already have a pair
+                // The paired gate should already exist, so if it's not found, something is wrong
+                System.err.println("WarpGate: Paired gate not found at " + pairedGateStructureLocation + " - aborting teleport to prevent duplicate spawn");
+                // Don't teleport if we can't find the paired gate
+                return;
+            }
         }
         
         // No paired gate or couldn't find structure location, try to find and pair with unpaired gate
@@ -232,7 +239,7 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
             // Create a TagKey for our warp gate structure
             var warpGateTag = net.minecraft.tags.TagKey.create(
                 net.minecraft.core.registries.Registries.STRUCTURE,
-                new net.minecraft.resources.ResourceLocation("strangematter", "warp_gate_anomaly")
+                net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("strangematter", "warp_gate_anomaly")
             );
             
             
@@ -260,27 +267,59 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
                 int chunkX = candidatePos.getX() >> 4;
                 int chunkZ = candidatePos.getZ() >> 4;
                 
+                // Create a ticket type for warp gate chunk loading
+                this.warpGateTicket = net.minecraft.server.level.TicketType.create("strangematter:warp_gate", 
+                    java.util.Comparator.comparingLong(net.minecraft.world.level.ChunkPos::toLong));
                 
-                boolean chunkLoaded = ForgeChunkManager.forceChunk(
-                    serverLevel,
-                    "strangematter",
-                    candidatePos,
-                    chunkX,
-                    chunkZ,
-                    true, // add the chunk
-                    true  // ticking
-                );
+                // Force load the chunk using the new NeoForge 1.21.1 API
+                this.forcedChunkPos = new net.minecraft.world.level.ChunkPos(chunkX, chunkZ);
+                serverLevel.getChunkSource().addRegionTicket(this.warpGateTicket, this.forcedChunkPos, 2, this.forcedChunkPos, true);
                 
+                // Actually wait for the chunk to load by checking if it exists
+                net.minecraft.world.level.chunk.LevelChunk chunk = null;
+                for (int waitAttempt = 0; waitAttempt < 100; waitAttempt++) {
+                    chunk = serverLevel.getChunk(chunkX, chunkZ);
+                    if (chunk != null && !chunk.isEmpty()) {
+                        break;
+                    }
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
                 
-                // Wait a moment for the chunk to load
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                // If chunk didn't load, skip this location
+                if (chunk == null || chunk.isEmpty()) {
+                    System.out.println("WarpGate: Failed to load chunk at " + candidatePos + ", skipping");
+                    continue;
                 }
                 
                 // Check if this location already has a warp gate
+                // Find the actual surface height at this location
                 int surfaceY = serverLevel.getHeight(Heightmap.Types.WORLD_SURFACE, candidatePos.getX(), candidatePos.getZ());
+                
+                // Safety check: if height is too low (likely ungenerated chunk), use a reasonable default
+                if (surfaceY < 50) {
+                    int motionBlockingY = serverLevel.getHeight(Heightmap.Types.MOTION_BLOCKING, candidatePos.getX(), candidatePos.getZ());
+                    if (motionBlockingY > 0 && motionBlockingY < 256) {
+                        surfaceY = motionBlockingY;
+                    } else {
+                        // Fallback: search upward from y=64 to find first non-air block
+                        for (int y = 64; y < 256; y++) {
+                            if (!serverLevel.getBlockState(new BlockPos(candidatePos.getX(), y, candidatePos.getZ())).isAir()) {
+                                surfaceY = y;
+                                break;
+                            }
+                        }
+                        // If still no surface found, default to y=70
+                        if (surfaceY < 50) {
+                            surfaceY = 70;
+                        }
+                    }
+                }
+                
                 BlockPos entitySpawnPos = new BlockPos(candidatePos.getX(), surfaceY + 2, candidatePos.getZ());
                 
                 
@@ -385,18 +424,26 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
         int chunkX = structurePos.getX() >> 4;
         int chunkZ = structurePos.getZ() >> 4;
 
+        // Force load the chunk using the new NeoForge 1.21.1 API
+        this.warpGateTicket = net.minecraft.server.level.TicketType.create("strangematter:warp_gate", 
+            java.util.Comparator.comparingLong(net.minecraft.world.level.ChunkPos::toLong));
+        this.forcedChunkPos = new net.minecraft.world.level.ChunkPos(chunkX, chunkZ);
+        serverLevel.getChunkSource().addRegionTicket(this.warpGateTicket, this.forcedChunkPos, 2, this.forcedChunkPos, true);
 
-        // Force load the chunk using ForgeChunkManager
-        boolean success = ForgeChunkManager.forceChunk(
-            serverLevel,
-            "strangematter",
-            structurePos,
-            chunkX,
-            chunkZ,
-            true, // add the chunk
-            true  // ticking
-        );
-
+        // Wait for the chunk to actually load
+        net.minecraft.world.level.chunk.LevelChunk chunk = null;
+        for (int waitAttempt = 0; waitAttempt < 100; waitAttempt++) {
+            chunk = serverLevel.getChunk(chunkX, chunkZ);
+            if (chunk != null && !chunk.isEmpty()) {
+                break;
+            }
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
 
         // Search in a reasonable radius around the structure location (expand Y range significantly)
         AABB searchBox = new AABB(structurePos).inflate(50, 400, 50);
@@ -407,30 +454,14 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
         if (!entities.isEmpty()) {
 
             // Unload the chunk after we're done
-            ForgeChunkManager.forceChunk(
-                serverLevel,
-                "strangematter",
-                structurePos,
-                chunkX,
-                chunkZ,
-                false, // remove the chunk
-                false  // not ticking
-            );
+            serverLevel.getChunkSource().removeRegionTicket(this.warpGateTicket, this.forcedChunkPos, 2, this.forcedChunkPos, true);
 
             return entities.get(0); // Return the first one found
         }
 
         
         // Unload the chunk after we're done
-        ForgeChunkManager.forceChunk(
-            serverLevel,
-            "strangematter",
-            structurePos,
-            chunkX,
-            chunkZ,
-            false, // remove the chunk
-            false  // not ticking
-        );
+        serverLevel.getChunkSource().removeRegionTicket(this.warpGateTicket, this.forcedChunkPos, 2, this.forcedChunkPos, true);
 
         return null; // Don't spawn new gates, just return null
     }
@@ -441,18 +472,26 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
         int chunkX = structurePos.getX() >> 4;
         int chunkZ = structurePos.getZ() >> 4;
 
+        // Force load the chunk using the new NeoForge 1.21.1 API
+        this.warpGateTicket = net.minecraft.server.level.TicketType.create("strangematter:warp_gate", 
+            java.util.Comparator.comparingLong(net.minecraft.world.level.ChunkPos::toLong));
+        this.forcedChunkPos = new net.minecraft.world.level.ChunkPos(chunkX, chunkZ);
+        serverLevel.getChunkSource().addRegionTicket(this.warpGateTicket, this.forcedChunkPos, 2, this.forcedChunkPos, true);
 
-        // Force load the chunk using ForgeChunkManager
-        boolean success = ForgeChunkManager.forceChunk(
-            serverLevel,
-            "strangematter",
-            structurePos,
-            chunkX,
-            chunkZ,
-            true, // add the chunk
-            true  // ticking
-        );
-
+        // Wait for the chunk to actually load
+        net.minecraft.world.level.chunk.LevelChunk chunk = null;
+        for (int waitAttempt = 0; waitAttempt < 100; waitAttempt++) {
+            chunk = serverLevel.getChunk(chunkX, chunkZ);
+            if (chunk != null && !chunk.isEmpty()) {
+                break;
+            }
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
 
         // Search in a reasonable radius around the structure location (expand Y range significantly)
         AABB searchBox = new AABB(structurePos).inflate(50, 400, 50);
@@ -463,23 +502,38 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
         if (!entities.isEmpty()) {
 
             // Unload the chunk after we're done
-            ForgeChunkManager.forceChunk(
-                serverLevel,
-                "strangematter",
-                structurePos,
-                chunkX,
-                chunkZ,
-                false, // remove the chunk
-                false  // not ticking
-            );
+            serverLevel.getChunkSource().removeRegionTicket(this.warpGateTicket, this.forcedChunkPos, 2, this.forcedChunkPos, true);
 
             return entities.get(0); // Return the first one found
         }
 
         // No existing warp gate found, spawn a new one
         
-        // Find the actual surface height at this location
-        int surfaceY = serverLevel.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, structurePos.getX(), structurePos.getZ());
+        // Find the actual surface height at this location - use WORLD_SURFACE which includes terrain
+        int surfaceY = serverLevel.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE, structurePos.getX(), structurePos.getZ());
+        
+        // Safety check: if height is too low (likely ungenerated chunk or ocean), use a reasonable default
+        if (surfaceY < 50) {
+            // Check if there's actually terrain here, or if we're in deep water/void
+            int motionBlockingY = serverLevel.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING, structurePos.getX(), structurePos.getZ());
+            // If motion blocking returns something reasonable, use that
+            if (motionBlockingY > 0 && motionBlockingY < 256) {
+                surfaceY = motionBlockingY;
+            } else {
+                // Fallback: search upward from y=64 to find first non-air block
+                for (int y = 64; y < 256; y++) {
+                    if (!serverLevel.getBlockState(new BlockPos(structurePos.getX(), y, structurePos.getZ())).isAir()) {
+                        surfaceY = y;
+                        break;
+                    }
+                }
+                // If still no surface found, default to y=70
+                if (surfaceY < 50) {
+                    surfaceY = 70;
+                }
+            }
+        }
+        
         BlockPos surfacePos = new BlockPos(structurePos.getX(), surfaceY, structurePos.getZ());
         
         
@@ -496,15 +550,7 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
         spawnAnomalousGrassAndOre(serverLevel, surfacePos);
         
         // Unload the chunk after we're done
-        ForgeChunkManager.forceChunk(
-            serverLevel,
-            "strangematter",
-            structurePos,
-            chunkX,
-            chunkZ,
-            false, // remove the chunk
-            false  // not ticking
-        );
+        serverLevel.getChunkSource().removeRegionTicket(this.warpGateTicket, this.forcedChunkPos, 2, this.forcedChunkPos, true);
 
         return newWarpGate;
     }
@@ -669,7 +715,7 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    protected RegistryObject<Block> getShardOreBlock() {
+    protected DeferredHolder<Block, Block> getShardOreBlock() {
         return StrangeMatterMod.SPATIAL_SHARD_ORE_BLOCK;
     }
     

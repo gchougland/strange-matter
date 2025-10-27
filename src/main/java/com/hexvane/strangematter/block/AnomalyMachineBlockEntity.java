@@ -1,6 +1,7 @@
 package com.hexvane.strangematter.block;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -113,8 +114,8 @@ public abstract class AnomalyMachineBlockEntity extends BaseMachineBlockEntity {
     }
     
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.saveAdditional(tag, provider);
         tag.putInt("detection_radius", detectionRadius);
         tag.putBoolean("has_nearby_anomaly", hasNearbyAnomaly);
         tag.putString("detected_anomaly_type", detectedAnomalyType != null ? detectedAnomalyType.name() : "");
@@ -123,8 +124,8 @@ public abstract class AnomalyMachineBlockEntity extends BaseMachineBlockEntity {
     }
     
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.loadAdditional(tag, provider);
         detectionRadius = tag.getInt("detection_radius");
         hasNearbyAnomaly = tag.getBoolean("has_nearby_anomaly");
         String anomalyTypeName = tag.getString("detected_anomaly_type");

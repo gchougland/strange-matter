@@ -2,6 +2,7 @@ package com.hexvane.strangematter.block;
 
 import com.hexvane.strangematter.StrangeMatterMod;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
@@ -89,15 +90,15 @@ public class StasisProjectorBlockEntity extends BlockEntity {
     }
     
     @Override
-    public CompoundTag getUpdateTag() {
-        CompoundTag tag = super.getUpdateTag();
-        saveAdditional(tag);
+    public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
+        CompoundTag tag = super.getUpdateTag(provider);
+        saveAdditional(tag, provider);
         return tag;
     }
     
     @Override
-    public void handleUpdateTag(CompoundTag tag) {
-        load(tag);
+    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider provider) {
+        loadAdditional(tag, provider);
     }
     
     @Override
@@ -105,11 +106,10 @@ public class StasisProjectorBlockEntity extends BlockEntity {
         return net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket.create(this);
     }
     
-    @Override
     public void onDataPacket(net.minecraft.network.Connection net, net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket pkt) {
         CompoundTag tag = pkt.getTag();
         if (tag != null) {
-            load(tag);
+            loadAdditional(tag, getLevel().registryAccess());
         }
     }
     
@@ -278,8 +278,8 @@ public class StasisProjectorBlockEntity extends BlockEntity {
     }
     
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.saveAdditional(tag, provider);
         tag.putBoolean("Powered", powered);
         
         if (capturedEntityUUID != null) {
@@ -292,8 +292,8 @@ public class StasisProjectorBlockEntity extends BlockEntity {
     }
     
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.loadAdditional(tag, provider);
         powered = tag.getBoolean("Powered");
         
         if (tag.hasUUID("CapturedEntityUUID")) {

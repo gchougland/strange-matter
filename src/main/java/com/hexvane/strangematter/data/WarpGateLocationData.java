@@ -26,7 +26,7 @@ public class WarpGateLocationData extends SavedData {
             for (int i = 0; i < warpGatesList.size(); i++) {
                 CompoundTag gateTag = warpGatesList.getCompound(i);
                 UUID gateId = gateTag.getUUID("id");
-                BlockPos pos = NbtUtils.readBlockPos(gateTag.getCompound("pos"));
+                BlockPos pos = NbtUtils.readBlockPos(gateTag.getCompound("pos"), "pos").orElse(BlockPos.ZERO);
                 data.warpGateLocations.put(gateId, pos);
             }
         }
@@ -35,7 +35,7 @@ public class WarpGateLocationData extends SavedData {
     }
     
     @Override
-    public CompoundTag save(CompoundTag tag) {
+    public CompoundTag save(CompoundTag tag, net.minecraft.core.HolderLookup.Provider provider) {
         ListTag warpGatesList = new ListTag();
         
         for (Map.Entry<UUID, BlockPos> entry : warpGateLocations.entrySet()) {
@@ -81,6 +81,6 @@ public class WarpGateLocationData extends SavedData {
     
     public static WarpGateLocationData get(ServerLevel level) {
         DimensionDataStorage storage = level.getDataStorage();
-        return storage.computeIfAbsent(WarpGateLocationData::load, WarpGateLocationData::create, "warp_gate_locations");
+        return storage.computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<WarpGateLocationData>(WarpGateLocationData::new, (tag, provider) -> WarpGateLocationData.load(tag)), "warp_gate_locations");
     }
 }

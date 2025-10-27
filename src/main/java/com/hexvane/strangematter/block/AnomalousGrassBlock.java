@@ -6,6 +6,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.item.ItemStack;
@@ -107,9 +108,7 @@ public class AnomalousGrassBlock extends Block {
     }
     
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        ItemStack itemStack = player.getItemInHand(hand);
-        
+    protected ItemInteractionResult useItemOn(ItemStack itemStack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         // Check if the player is using a hoe
         if (itemStack.getItem() instanceof HoeItem) {
             // Convert anomalous grass to farmland
@@ -120,13 +119,13 @@ public class AnomalousGrassBlock extends Block {
             
             // Damage the hoe slightly
             if (!level.isClientSide) {
-                itemStack.hurtAndBreak(1, player, (p) -> p.broadcastBreakEvent(hand));
+                itemStack.hurtAndBreak(1, player, net.minecraft.world.entity.EquipmentSlot.MAINHAND);
             }
             
-            return InteractionResult.sidedSuccess(level.isClientSide);
+            return ItemInteractionResult.SUCCESS;
         }
         
-        return super.use(state, level, pos, player, hand, hit);
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
     
     @Override
@@ -136,7 +135,7 @@ public class AnomalousGrassBlock extends Block {
         // Check if the tool has silk touch
         if (builder.getOptionalParameter(LootContextParams.THIS_ENTITY) instanceof Player player) {
             ItemStack tool = player.getMainHandItem();
-            if (EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SILK_TOUCH, tool) > 0) {
+            if (tool.getEnchantmentLevel(builder.getLevel().registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT).getOrThrow(Enchantments.SILK_TOUCH)) > 0) {
                 // Drop the block itself with silk touch
                 drops.add(new ItemStack(this));
             } else {

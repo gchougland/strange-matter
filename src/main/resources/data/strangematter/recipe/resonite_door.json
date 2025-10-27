@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "RR",
+    "RR",
+    "RR"
+  ],
+  "key": {
+    "R": {
+      "item": "strangematter:resonite_ingot"
+    }
+  },
+  "result": {
+    "id": "strangematter:resonite_door",
+    "count": 1
+  }
+}
+

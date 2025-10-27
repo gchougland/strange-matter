@@ -6,6 +6,7 @@ import com.hexvane.strangematter.entity.EnergeticRiftEntity;
 import com.hexvane.strangematter.util.AnomalyUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -37,25 +38,22 @@ public class RiftStabilizerBlockEntity extends BaseMachineBlockEntity {
     
     public RiftStabilizerBlockEntity(BlockPos pos, BlockState state) {
         super(StrangeMatterMod.RIFT_STABILIZER_BLOCK_ENTITY.get(), pos, state, 0); // No inventory
-        
+    }
+    
+    @Override
+    protected void initializeEnergySides() {
         // Configure energy settings for Rift Stabilizer
         // Only output on SOUTH face, no input from any side
         boolean[] inputSides = {false, false, false, false, false, false}; // No input
         boolean[] outputSides = {false, false, false, false, false, false}; // Will be set to SOUTH only
         
-        // Set energy storage configuration
-        energyStorage.setCapacity(Config.riftStabilizerEnergyStorage);
-        energyStorage.setMaxReceive(Config.riftStabilizerEnergyPerTick * 2); // Allow internal generation
-        energyStorage.setMaxExtract(Config.riftStabilizerTransferRate);
-        
         // Configure output sides - only SOUTH face
-        Direction facing = state.getValue(RiftStabilizerBlock.FACING);
+        Direction facing = getBlockState().getValue(RiftStabilizerBlock.FACING);
         Direction outputFace = facing.getOpposite(); // SOUTH is opposite of where block faces
         outputSides[outputFace.get3DDataValue()] = true;
         
-        this.energyInputSides = inputSides;
-        this.energyOutputSides = outputSides;
-        
+        this.setEnergyInputSides(inputSides);
+        this.setEnergyOutputSides(outputSides);
     }
     
     public static void tick(Level level, BlockPos pos, BlockState state, RiftStabilizerBlockEntity blockEntity) {
@@ -178,7 +176,12 @@ public class RiftStabilizerBlockEntity extends BaseMachineBlockEntity {
     }
     
     @Override
-    protected MachineEnergyRole getEnergyRole() {
+    protected int getEnergyTransferRate() {
+        return com.hexvane.strangematter.Config.riftStabilizerTransferRate;
+    }
+    
+    @Override
+    public MachineEnergyRole getEnergyRole() {
         return MachineEnergyRole.GENERATOR; // Rift Stabilizer only generates energy
     }
     
@@ -217,8 +220,8 @@ public class RiftStabilizerBlockEntity extends BaseMachineBlockEntity {
     
     
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.saveAdditional(tag, provider);
         tag.putInt("energy", energyStorage.getEnergyStored());
         tag.putBoolean("isGenerating", isGenerating);
         tag.putInt("currentPowerGeneration", currentPowerGeneration);
@@ -226,8 +229,8 @@ public class RiftStabilizerBlockEntity extends BaseMachineBlockEntity {
     }
     
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.loadAdditional(tag, provider);
         energyStorage.setEnergy(tag.getInt("energy"));
         isGenerating = tag.getBoolean("isGenerating");
         currentPowerGeneration = tag.getInt("currentPowerGeneration");
@@ -235,15 +238,14 @@ public class RiftStabilizerBlockEntity extends BaseMachineBlockEntity {
     }
     
     @Override
-    public CompoundTag getUpdateTag() {
-        CompoundTag tag = super.getUpdateTag();
-        saveAdditional(tag);
+    public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
+        CompoundTag tag = super.getUpdateTag(provider);
+        saveAdditional(tag, provider);
         return tag;
     }
     
-    @Override
     public void handleUpdateTag(CompoundTag tag) {
-        load(tag);
+        loadAdditional(tag, getLevel().registryAccess());
     }
     
     @Override

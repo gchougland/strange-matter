@@ -14,23 +14,20 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import com.mojang.math.Axis;
 
 @OnlyIn(Dist.CLIENT)
+@net.neoforged.fml.common.EventBusSubscriber(modid = com.hexvane.strangematter.StrangeMatterMod.MODID, bus = net.neoforged.fml.common.EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public class EchoVacuumClientHandler {
     
-    private final EchoVacuumBeamRenderer beamRenderer;
-    
-    public EchoVacuumClientHandler() {
-        this.beamRenderer = new EchoVacuumBeamRenderer();
-    }
+    private static final EchoVacuumBeamRenderer beamRenderer = new EchoVacuumBeamRenderer();
     
     @SubscribeEvent
-    public void onRenderLevelStage(RenderLevelStageEvent event) {
+    public static void onRenderLevelStage(RenderLevelStageEvent event) {
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
             return;
         }
@@ -48,8 +45,8 @@ public class EchoVacuumClientHandler {
         }
     }
     
-    private void renderBeamForPlayer(RenderLevelStageEvent event, Minecraft minecraft, 
-                                   net.minecraft.world.entity.player.Player player, boolean isLocalPlayer) {
+    private static void renderBeamForPlayer(RenderLevelStageEvent event, Minecraft minecraft, 
+                                    net.minecraft.world.entity.player.Player player, boolean isLocalPlayer) {
         
         // For other players, always use third-person perspective
         boolean isFirstPerson = isLocalPlayer && minecraft.options.getCameraType().isFirstPerson();
@@ -120,7 +117,7 @@ public class EchoVacuumClientHandler {
         event.getPoseStack().popPose();
     }
     
-    private Vec3 calculateGunTipPosition(net.minecraft.world.entity.player.Player player, boolean isFirstPerson) {
+    private static Vec3 calculateGunTipPosition(net.minecraft.world.entity.player.Player player, boolean isFirstPerson) {
         Vec3 eyePos = player.getEyePosition();
         Vec3 lookAngle = player.getLookAngle();
         

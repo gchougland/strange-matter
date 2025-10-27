@@ -20,8 +20,8 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import com.hexvane.strangematter.StrangeMatterMod;
 
 import javax.annotation.Nullable;
@@ -85,7 +85,18 @@ public class ResonantConduitBlock extends Block implements EntityBlock {
     @Override
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, 
                                  LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
-        return updateConnections(state, level, pos);
+        // Update connections when neighbors change
+        BlockState newState = updateConnections(state, level, pos);
+        
+        // Notify the block entity about the neighbor change
+        if (level instanceof Level levelInstance) {
+            BlockEntity blockEntity = levelInstance.getBlockEntity(pos);
+            if (blockEntity instanceof ResonantConduitBlockEntity conduit) {
+                conduit.onNeighborChanged();
+            }
+        }
+        
+        return newState;
     }
     
     /**
@@ -118,8 +129,12 @@ public class ResonantConduitBlock extends Block implements EntityBlock {
         }
         
         // Connect to any block that has energy capability
-        return blockEntity.getCapability(net.minecraftforge.common.capabilities.ForgeCapabilities.ENERGY, 
-                                       direction.getOpposite()).isPresent();
+        if (level instanceof Level levelInstance) {
+            var energyStorage = levelInstance.getCapability(net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.BLOCK, 
+                                                            pos, direction.getOpposite());
+            return energyStorage != null;
+        }
+        return false;
     }
     
     /**
@@ -184,16 +199,6 @@ public class ResonantConduitBlock extends Block implements EntityBlock {
         return false; // Don't occlude light
     }
     
-    @Override
-    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
-        super.neighborChanged(state, level, pos, block, fromPos, isMoving);
-        
-        // Notify the block entity about the neighbor change
-        BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity instanceof ResonantConduitBlockEntity conduit) {
-            conduit.onNeighborChanged();
-        }
-    }
     
     @Override
     @Nullable

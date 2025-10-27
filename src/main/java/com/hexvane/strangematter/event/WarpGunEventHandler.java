@@ -4,12 +4,12 @@ import com.hexvane.strangematter.StrangeMatterMod;
 import com.hexvane.strangematter.item.WarpGunItem;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
 
-@Mod.EventBusSubscriber(modid = StrangeMatterMod.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class WarpGunEventHandler {
     
     @SubscribeEvent
@@ -21,7 +21,7 @@ public class WarpGunEventHandler {
         if (stack.getItem() instanceof WarpGunItem) {
             System.out.println("Left click empty detected with warp gun!");
             // Send packet to server to handle left-click
-            com.hexvane.strangematter.network.NetworkHandler.INSTANCE.sendToServer(
+            net.neoforged.neoforge.network.PacketDistributor.sendToServer(
                 new com.hexvane.strangematter.network.WarpGunShootPacket(false)
             );
         }
@@ -36,7 +36,7 @@ public class WarpGunEventHandler {
         if (stack.getItem() instanceof WarpGunItem) {
             System.out.println("Left click block detected with warp gun!");
             // Send packet to server to handle left-click
-            com.hexvane.strangematter.network.NetworkHandler.INSTANCE.sendToServer(
+            net.neoforged.neoforge.network.PacketDistributor.sendToServer(
                 new com.hexvane.strangematter.network.WarpGunShootPacket(false)
             );
         }

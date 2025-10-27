@@ -1,5 +1,5 @@
 {
-  "loader": "forge:obj",
+  "loader": "neoforge:obj",
   "model": "strangematter:models/entity/icosahedron.obj",
   "textures": {
     "#texture0": "strangematter:entity/gravity_anomaly_icosahedron"

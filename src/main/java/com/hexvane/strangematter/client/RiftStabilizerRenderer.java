@@ -211,32 +211,32 @@ public class RiftStabilizerRenderer implements BlockEntityRenderer<RiftStabilize
         
         // Render as a proper quad using 4 vertices
         // Front face quad
-        consumer.vertex(matrix, (float)(x1 + perpX1), (float)(y1 + perpY1), (float)(z1 + perpZ1))
-            .color(r, g, b, a).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight)
-            .normal((float)dx, (float)dy, (float)dz).endVertex();
-        consumer.vertex(matrix, (float)(x2 + perpX1), (float)(y2 + perpY1), (float)(z2 + perpZ1))
-            .color(r, g, b, a).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight)
-            .normal((float)dx, (float)dy, (float)dz).endVertex();
-        consumer.vertex(matrix, (float)(x2 + perpX2), (float)(y2 + perpY2), (float)(z2 + perpZ2))
-            .color(r, g, b, a).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight)
-            .normal((float)dx, (float)dy, (float)dz).endVertex();
-        consumer.vertex(matrix, (float)(x1 + perpX2), (float)(y1 + perpY2), (float)(z1 + perpZ2))
-            .color(r, g, b, a).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight)
-            .normal((float)dx, (float)dy, (float)dz).endVertex();
+        consumer.addVertex(matrix, (float)(x1 + perpX1), (float)(y1 + perpY1), (float)(z1 + perpZ1))
+            .setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(0, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight)
+            .setNormal((float)dx, (float)dy, (float)dz);
+        consumer.addVertex(matrix, (float)(x2 + perpX1), (float)(y2 + perpY1), (float)(z2 + perpZ1))
+            .setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(1, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight)
+            .setNormal((float)dx, (float)dy, (float)dz);
+        consumer.addVertex(matrix, (float)(x2 + perpX2), (float)(y2 + perpY2), (float)(z2 + perpZ2))
+            .setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(1, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight)
+            .setNormal((float)dx, (float)dy, (float)dz);
+        consumer.addVertex(matrix, (float)(x1 + perpX2), (float)(y1 + perpY2), (float)(z1 + perpZ2))
+            .setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(0, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight)
+            .setNormal((float)dx, (float)dy, (float)dz);
         
         // Back face quad (reversed winding)
-        consumer.vertex(matrix, (float)(x1 + perpX2), (float)(y1 + perpY2), (float)(z1 + perpZ2))
-            .color(r, g, b, a).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight)
-            .normal((float)-dx, (float)-dy, (float)-dz).endVertex();
-        consumer.vertex(matrix, (float)(x2 + perpX2), (float)(y2 + perpY2), (float)(z2 + perpZ2))
-            .color(r, g, b, a).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight)
-            .normal((float)-dx, (float)-dy, (float)-dz).endVertex();
-        consumer.vertex(matrix, (float)(x2 + perpX1), (float)(y2 + perpY1), (float)(z2 + perpZ1))
-            .color(r, g, b, a).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight)
-            .normal((float)-dx, (float)-dy, (float)-dz).endVertex();
-        consumer.vertex(matrix, (float)(x1 + perpX1), (float)(y1 + perpY1), (float)(z1 + perpZ1))
-            .color(r, g, b, a).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight)
-            .normal((float)-dx, (float)-dy, (float)-dz).endVertex();
+        consumer.addVertex(matrix, (float)(x1 + perpX2), (float)(y1 + perpY2), (float)(z1 + perpZ2))
+            .setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(0, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight)
+            .setNormal((float)-dx, (float)-dy, (float)-dz);
+        consumer.addVertex(matrix, (float)(x2 + perpX2), (float)(y2 + perpY2), (float)(z2 + perpZ2))
+            .setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(1, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight)
+            .setNormal((float)-dx, (float)-dy, (float)-dz);
+        consumer.addVertex(matrix, (float)(x2 + perpX1), (float)(y2 + perpY1), (float)(z2 + perpZ1))
+            .setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(1, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight)
+            .setNormal((float)-dx, (float)-dy, (float)-dz);
+        consumer.addVertex(matrix, (float)(x1 + perpX1), (float)(y1 + perpY1), (float)(z1 + perpZ1))
+            .setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(0, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight)
+            .setNormal((float)-dx, (float)-dy, (float)-dz);
     }
 }
 

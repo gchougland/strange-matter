@@ -7,27 +7,18 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
 
-@Mod.EventBusSubscriber(modid = StrangeMatterMod.MODID)
 public class WarpGateSpawnEventHandler {
     
     @SubscribeEvent
     public static void onEntityJoinLevel(EntityJoinLevelEvent event) {
-        // Check if this is a warp gate entity joining the level
-        if (event.getEntity() instanceof WarpGateAnomalyEntity warpGate) {
-            // Only modify terrain if terrain modification is enabled
-            if (warpGate.isTerrainModificationEnabled()) {
-                // Schedule block placement for the next tick to ensure the entity is fully spawned
-                if (event.getLevel() instanceof ServerLevel serverLevel) {
-                    serverLevel.getServer().tell(new net.minecraft.server.TickTask(1, () -> {
-                        placeAnomalousGrassAndOre(serverLevel, warpGate.blockPosition());
-                    }));
-                }
-            }
-        }
+        // NOTE: Warp gate terrain modification is now handled by the entity's spawnAnomalousGrassAndOre method
+        // This prevents duplicate grass placement when spawning warp gates
+        // This event handler is kept for potential future use with other entities
     }
     
     /**
@@ -55,7 +46,7 @@ public class WarpGateSpawnEventHandler {
                         if (currentState.is(Blocks.SNOW) || currentState.is(Blocks.SNOW_BLOCK) ||
                             currentState.is(Blocks.TALL_GRASS) || currentState.is(Blocks.FERN) ||
                             currentState.is(Blocks.LARGE_FERN) || currentState.is(Blocks.DEAD_BUSH) ||
-                            currentState.is(Blocks.SWEET_BERRY_BUSH) || currentState.is(Blocks.GRASS)) {
+                            currentState.is(Blocks.SWEET_BERRY_BUSH) || currentState.is(Blocks.SHORT_GRASS)) {
                             // Check the block underneath
                             BlockPos belowPos = surfacePos.below();
                             BlockState belowState = level.getBlockState(belowPos);

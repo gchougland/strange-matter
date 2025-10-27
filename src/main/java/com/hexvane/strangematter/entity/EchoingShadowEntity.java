@@ -19,7 +19,7 @@ import com.hexvane.strangematter.StrangeMatterMod;
 import com.hexvane.strangematter.research.ResearchType;
 import com.hexvane.strangematter.world.ShadowLightProvider;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.util.List;
 import java.util.Set;
@@ -65,18 +65,24 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(IS_ACTIVE, true);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(IS_ACTIVE, true);
     }
     
     @Override
-    public void onAddedToWorld() {
-        super.onAddedToWorld();
-        // Register with shadow light provider when added to world
-        if (!this.level().isClientSide && this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+    public void tick() {
+        super.tick();
+        
+        // Handle registration with shadow light provider on first tick
+        if (tickCount == 1 && !this.level().isClientSide && this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
             System.out.println("EchoingShadowEntity: Registering with ShadowLightProvider at " + this.blockPosition());
             ShadowLightProvider.getInstance(serverLevel).registerShadowAnomaly(this);
+        }
+        
+        // Trigger lighting updates periodically (every 100 ticks = 5 seconds)
+        if (tickCount % 100 == 0 && !this.level().isClientSide && this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+            ShadowLightProvider.getInstance(serverLevel).updateLighting();
         }
     }
     
@@ -489,7 +495,7 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    protected RegistryObject<Block> getShardOreBlock() {
+    protected DeferredHolder<Block, Block> getShardOreBlock() {
         return StrangeMatterMod.SHADE_SHARD_ORE_BLOCK;
     }
     

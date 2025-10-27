@@ -71,14 +71,9 @@ public class RealityForgeScreen extends BaseMachineScreen<RealityForgeMenu> {
         Map<String, Integer> storedShards = menu.getStoredShards();
         List<String> shardOrder = menu.getShardOrder();
         
-        // Get synchronized shard count from ContainerData (like crafting progress)
-        int synchronizedShardCount = 0;
-        if (menu.getDataAccess() != null) {
-            synchronizedShardCount = menu.getDataAccess().get(8); // Index 8 is total shard count
-        }
         
-        // Use synchronized data instead of block entity data
-        if (synchronizedShardCount == 0) return;
+        // Check if there are any shards to render
+        if (storedShards.isEmpty()) return;
         
         float time = (animationTick + partialTick) * 0.1f;
         int radius = 25;
@@ -185,8 +180,8 @@ public class RealityForgeScreen extends BaseMachineScreen<RealityForgeMenu> {
     
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
+        
         this.renderTooltip(guiGraphics, mouseX, mouseY);
     }
     

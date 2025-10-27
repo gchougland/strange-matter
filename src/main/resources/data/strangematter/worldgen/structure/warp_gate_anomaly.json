@@ -1,9 +1,9 @@
 {
   "type": "minecraft:jigsaw",
   "biomes": {
-    "type": "forge:not",
+    "type": "neoforge:not",
     "value": {
-      "type": "forge:or",
+      "type": "neoforge:or",
       "values": [
         "#minecraft:is_ocean",
         "#minecraft:is_river"

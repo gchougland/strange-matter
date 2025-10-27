@@ -1,48 +1,42 @@
 package com.hexvane.strangematter.advancement;
 
-import com.google.gson.JsonObject;
-import net.minecraft.advancements.critereon.AbstractCriterionTriggerInstance;
+import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.critereon.ContextAwarePredicate;
-import net.minecraft.advancements.critereon.DeserializationContext;
 import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-public class ScanAnomalyTrigger extends SimpleCriterionTrigger<ScanAnomalyTrigger.Instance> {
+import java.util.Optional;
+
+public class ScanAnomalyTrigger extends SimpleCriterionTrigger<ScanAnomalyTrigger.TriggerInstance> {
     private static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("strangematter", "scan_anomaly");
 
     @Override
-    public ResourceLocation getId() {
-        return ID;
-    }
-
-    @Override
-    public Instance createInstance(JsonObject json, ContextAwarePredicate predicate, DeserializationContext context) {
-        String anomalyType = json.has("anomaly_type") ? json.get("anomaly_type").getAsString() : null;
-        return new Instance(predicate, anomalyType);
+    public Codec<TriggerInstance> codec() {
+        return TriggerInstance.CODEC;
     }
 
     public void trigger(ServerPlayer player, Entity anomaly) {
         this.trigger(player, instance -> instance.matches(anomaly));
     }
 
-    public static class Instance extends AbstractCriterionTriggerInstance {
-        private final String anomalyType;
-
-        public Instance(ContextAwarePredicate predicate, String anomalyType) {
-            super(ID, predicate);
-            this.anomalyType = anomalyType;
-        }
+    public record TriggerInstance(Optional<ContextAwarePredicate> player, Optional<String> anomalyType) implements SimpleCriterionTrigger.SimpleInstance {
+        public static final Codec<TriggerInstance> CODEC = RecordCodecBuilder.create(instance ->
+            instance.group(
+                ContextAwarePredicate.CODEC.optionalFieldOf("player").forGetter(TriggerInstance::player),
+                Codec.STRING.optionalFieldOf("anomaly_type").forGetter(TriggerInstance::anomalyType)
+            ).apply(instance, TriggerInstance::new)
+        );
 
         public boolean matches(Entity anomaly) {
-            if (anomalyType == null) {
-                return true; // No specific type required
-            }
-            
-            // Check if the anomaly matches the required type
-            String entityType = anomaly.getType().toString();
-            return entityType.equals(anomalyType);
+            return this.anomalyType.map(type -> anomaly.getType().toString().equals(type)).orElse(true);
+        }
+
+        public static Criterion<TriggerInstance> scanAnomaly(String anomalyType) {
+            return new Criterion<>(new ScanAnomalyTrigger(), new TriggerInstance(Optional.empty(), Optional.of(anomalyType)));
         }
     }
 }

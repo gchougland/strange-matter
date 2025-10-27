@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "com.hexvane.strangematter.mixin",
+  "mixins": [],
+  "client": [
+    "EntityRendererMixin",
+    "PlayerRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}

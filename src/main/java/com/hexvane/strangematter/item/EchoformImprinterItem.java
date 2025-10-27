@@ -5,8 +5,8 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -196,7 +196,7 @@ public class EchoformImprinterItem extends Item {
     }
     
     @Override
-    public int getUseDuration(ItemStack stack) {
+    public int getUseDuration(ItemStack stack, LivingEntity entity) {
         return isScanning(stack) ? SCAN_DURATION : 0;
     }
     
@@ -206,61 +206,64 @@ public class EchoformImprinterItem extends Item {
     }
     
     private void startScanning(ItemStack stack, Mob target, Player player) {
-        CompoundTag tag = stack.getOrCreateTag();
-        
-        // Clear any old scan data first
-        tag.remove(MORPHED_ENTITY_TAG);
-        tag.remove("target_type");
-        
         // Get the proper resource location for the entity type
-        net.minecraft.resources.ResourceLocation entityId = net.minecraftforge.registries.ForgeRegistries.ENTITY_TYPES.getKey(target.getType());
+        net.minecraft.resources.ResourceLocation entityId = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(target.getType());
         String entityTypeString = entityId != null ? entityId.toString() : target.getType().toString();
         
-        // Set new scan data
-        tag.putBoolean(SCANNING_TAG, true);
-        tag.putUUID(SCAN_TARGET_TAG, target.getUUID());
-        tag.putString("target_type", entityTypeString);
-        tag.putInt(SCAN_PROGRESS_TAG, 0);
+        // Set new scan data using DataComponents
+        net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, stack, tag -> {
+            // Clear any old scan data first
+            tag.remove(MORPHED_ENTITY_TAG);
+            tag.remove("target_type");
+            
+            // Set new scan data
+            tag.putBoolean(SCANNING_TAG, true);
+            tag.putUUID(SCAN_TARGET_TAG, target.getUUID());
+            tag.putString("target_type", entityTypeString);
+            tag.putInt(SCAN_PROGRESS_TAG, 0);
+        });
         
         player.sendSystemMessage(Component.literal("§eScanning " + target.getDisplayName().getString() + "..."));
     }
     
     private void startScanningPlayer(ItemStack stack, Player target, Player player) {
-        CompoundTag tag = stack.getOrCreateTag();
-        
-        // Clear any old scan data first
-        tag.remove(MORPHED_ENTITY_TAG);
-        tag.remove("target_type");
-        tag.remove("target_player_uuid");
-        tag.remove("target_player_name");
-        
         // Use minecraft:player as the entity type
         String entityTypeString = "minecraft:player";
         
-        // Set new scan data including player-specific info
-        tag.putBoolean(SCANNING_TAG, true);
-        tag.putUUID(SCAN_TARGET_TAG, target.getUUID());
-        tag.putString("target_type", entityTypeString);
-        tag.putUUID("target_player_uuid", target.getUUID());
-        tag.putString("target_player_name", target.getName().getString());
-        tag.putInt(SCAN_PROGRESS_TAG, 0);
+        // Set new scan data using DataComponents
+        net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, stack, tag -> {
+            // Clear any old scan data first
+            tag.remove(MORPHED_ENTITY_TAG);
+            tag.remove("target_type");
+            tag.remove("target_player_uuid");
+            tag.remove("target_player_name");
+            
+            // Set new scan data including player-specific info
+            tag.putBoolean(SCANNING_TAG, true);
+            tag.putUUID(SCAN_TARGET_TAG, target.getUUID());
+            tag.putString("target_type", entityTypeString);
+            tag.putUUID("target_player_uuid", target.getUUID());
+            tag.putString("target_player_name", target.getName().getString());
+            tag.putInt(SCAN_PROGRESS_TAG, 0);
+        });
         
         player.sendSystemMessage(Component.literal("§eScanning " + target.getName().getString() + "..."));
     }
     
     private void stopScanning(ItemStack stack) {
-        CompoundTag tag = stack.getOrCreateTag();
-        tag.putBoolean(SCANNING_TAG, false);
-        tag.remove(SCAN_TARGET_TAG);
-        tag.remove("target_type");
-        tag.remove(SCAN_PROGRESS_TAG);
+        net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, stack, tag -> {
+            tag.putBoolean(SCANNING_TAG, false);
+            tag.remove(SCAN_TARGET_TAG);
+            tag.remove("target_type");
+            tag.remove(SCAN_PROGRESS_TAG);
+        });
     }
     
     private void completeScan(Level level, Player player, ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag == null) return;
+        net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+        if (customData.isEmpty()) return;
         
-        String targetType = tag.getString("target_type");
+        String targetType = customData.copyTag().getString("target_type");
         
         if (targetType != null && !targetType.isEmpty()) {
             // First clear any existing morph and cached entity
@@ -269,18 +272,21 @@ public class EchoformImprinterItem extends Item {
                 PlayerMorphData.clearMorph(player.getUUID());
                 // Force cleanup of cached morph entity on client side only
                 UUID finalPlayerUUID = player.getUUID();
-                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> 
-                    com.hexvane.strangematter.client.PlayerMorphRenderer.cleanupMorphEntity(finalPlayerUUID));
+                if (FMLEnvironment.dist == Dist.CLIENT) {
+                    com.hexvane.strangematter.client.PlayerMorphRenderer.cleanupMorphEntity(finalPlayerUUID);
+                }
             }
             
-            // Store the NEW morphed entity type in item NBT
-            tag.putString(MORPHED_ENTITY_TAG, targetType);
-            tag.putBoolean(MORPHED_TAG, true);
+            // Store the NEW morphed entity type using DataComponents
+            net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, stack, tag -> {
+                tag.putString(MORPHED_ENTITY_TAG, targetType);
+                tag.putBoolean(MORPHED_TAG, true);
+            });
             
             // If morphing into a player, store their UUID for skin rendering
             UUID targetPlayerUUID = null;
-            if (targetType.equals("minecraft:player") && tag.hasUUID("target_player_uuid")) {
-                targetPlayerUUID = tag.getUUID("target_player_uuid");
+            if (targetType.equals("minecraft:player") && customData.copyTag().hasUUID("target_player_uuid")) {
+                targetPlayerUUID = customData.copyTag().getUUID("target_player_uuid");
             }
             
             // Apply the NEW morph using the PlayerMorphData system
@@ -292,10 +298,7 @@ public class EchoformImprinterItem extends Item {
                     new com.hexvane.strangematter.network.PlayerMorphSyncPacket(player.getUUID(), targetType, targetPlayerUUID, false);
                 
                 // Send to ALL players on the server for guaranteed visibility
-                com.hexvane.strangematter.network.NetworkHandler.INSTANCE.send(
-                    net.minecraftforge.network.PacketDistributor.ALL.noArg(),
-                    packet
-                );
+                net.neoforged.neoforge.network.PacketDistributor.sendToAllPlayers(packet);
                 
                 System.out.println("DEBUG: Sent morph sync to ALL players");
             }
@@ -305,7 +308,8 @@ public class EchoformImprinterItem extends Item {
                 System.out.println("DEBUG: Completed scan - Setting morph to: " + targetType);
                 System.out.println("DEBUG: Old morph was: " + oldMorph);
                 System.out.println("DEBUG: Target player UUID: " + targetPlayerUUID);
-                System.out.println("DEBUG: Stored in item NBT: " + tag.getString(MORPHED_ENTITY_TAG));
+                // Reuse the existing customData variable
+                System.out.println("DEBUG: Stored in item NBT: " + customData.copyTag().getString(MORPHED_ENTITY_TAG));
                 System.out.println("DEBUG: Actual morph data: " + PlayerMorphData.getMorphEntityType(player.getUUID()));
             }
             
@@ -329,8 +333,8 @@ public class EchoformImprinterItem extends Item {
             
             // Get the entity's display name (use player name if morphing into a player)
             String displayName;
-            if (targetType.equals("minecraft:player") && tag.contains("target_player_name")) {
-                displayName = tag.getString("target_player_name");
+            if (targetType.equals("minecraft:player") && customData.copyTag().contains("target_player_name")) {
+                displayName = customData.copyTag().getString("target_player_name");
             } else {
                 displayName = getEntityDisplayName(targetType);
             }
@@ -341,11 +345,10 @@ public class EchoformImprinterItem extends Item {
     }
     
     private void morphBack(Level level, Player player, ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag == null) return;
-        
-        tag.putBoolean(MORPHED_TAG, false);
-        tag.remove(MORPHED_ENTITY_TAG);
+        net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, stack, tag -> {
+            tag.putBoolean(MORPHED_TAG, false);
+            tag.remove(MORPHED_ENTITY_TAG);
+        });
         
         // Clear the morph
         PlayerMorphData.clearMorph(player.getUUID());
@@ -356,17 +359,15 @@ public class EchoformImprinterItem extends Item {
                 new com.hexvane.strangematter.network.PlayerMorphSyncPacket(player.getUUID(), null, null, true);
             
             // Send to ALL players for guaranteed visibility
-            com.hexvane.strangematter.network.NetworkHandler.INSTANCE.send(
-                net.minecraftforge.network.PacketDistributor.ALL.noArg(),
-                packet
-            );
+            net.neoforged.neoforge.network.PacketDistributor.sendToAllPlayers(packet);
         }
         
         // Clean up the cached morph entity on client
         if (level.isClientSide) {
             UUID finalPlayerUUID = player.getUUID();
-            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> 
-                com.hexvane.strangematter.client.PlayerMorphRenderer.cleanupMorphEntity(finalPlayerUUID));
+            if (FMLEnvironment.dist == Dist.CLIENT) {
+                com.hexvane.strangematter.client.PlayerMorphRenderer.cleanupMorphEntity(finalPlayerUUID);
+            }
         }
         
         if (!level.isClientSide) {
@@ -442,7 +443,7 @@ public class EchoformImprinterItem extends Item {
     private String getEntityDisplayName(String entityTypeId) {
         try {
             net.minecraft.resources.ResourceLocation resourceLocation = net.minecraft.resources.ResourceLocation.parse(entityTypeId);
-            EntityType<?> entityType = net.minecraftforge.registries.ForgeRegistries.ENTITY_TYPES.getValue(resourceLocation);
+            EntityType<?> entityType = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.get(resourceLocation);
             if (entityType != null) {
                 return entityType.getDescription().getString();
             }
@@ -456,31 +457,32 @@ public class EchoformImprinterItem extends Item {
     }
     
     public boolean isScanning(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag != null && tag.getBoolean(SCANNING_TAG);
+        net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+        return !customData.isEmpty() && customData.copyTag().getBoolean(SCANNING_TAG);
     }
     
     public boolean isMorphed(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag != null && tag.getBoolean(MORPHED_TAG);
+        net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+        return !customData.isEmpty() && customData.copyTag().getBoolean(MORPHED_TAG);
     }
     
     private UUID getTargetUUID(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag != null && tag.hasUUID(SCAN_TARGET_TAG)) {
-            return tag.getUUID(SCAN_TARGET_TAG);
+        net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+        if (!customData.isEmpty() && customData.copyTag().hasUUID(SCAN_TARGET_TAG)) {
+            return customData.copyTag().getUUID(SCAN_TARGET_TAG);
         }
         return null;
     }
     
     private int getScanProgress(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag != null ? tag.getInt(SCAN_PROGRESS_TAG) : 0;
+        net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+        return !customData.isEmpty() ? customData.copyTag().getInt(SCAN_PROGRESS_TAG) : 0;
     }
     
     private void setScanProgress(ItemStack stack, int progress) {
-        CompoundTag tag = stack.getOrCreateTag();
-        tag.putInt(SCAN_PROGRESS_TAG, progress);
+        net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, stack, tag -> {
+            tag.putInt(SCAN_PROGRESS_TAG, progress);
+        });
     }
 }
 

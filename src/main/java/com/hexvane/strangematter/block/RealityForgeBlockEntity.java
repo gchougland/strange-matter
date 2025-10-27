@@ -1,10 +1,12 @@
 package com.hexvane.strangematter.block;
 
+
 import com.hexvane.strangematter.StrangeMatterMod;
 import com.hexvane.strangematter.recipe.RealityForgeRecipe;
 import com.hexvane.strangematter.recipe.RealityForgeRecipeRegistry;
 import com.hexvane.strangematter.energy.ResonanceEnergyStorage;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -100,21 +102,20 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
     
     public RealityForgeBlockEntity(BlockPos pos, BlockState state) {
         super(StrangeMatterMod.REALITY_FORGE_BLOCK_ENTITY.get(), pos, state, 11); // 11 slots: 9 crafting + 1 shard + 1 output
-        
+    }
+    
+    @Override
+    protected void initializeEnergySides() {
         // Reality Forge doesn't use energy - disable all energy input/output
         boolean[] inputSides = {false, false, false, false, false, false};
         this.setEnergyInputSides(inputSides);
         
         boolean[] outputSides = {false, false, false, false, false, false};
         this.setEnergyOutputSides(outputSides);
-        
-        // Set energy storage capacity to 0 since Reality Forge doesn't use energy
-        this.energyStorage.setCapacity(0);
-        this.energyStorage.setEnergy(0);
     }
     
     @Override
-    protected MachineEnergyRole getEnergyRole() {
+    public MachineEnergyRole getEnergyRole() {
         return MachineEnergyRole.ENERGY_INDEPENDENT; // Explicitly define as energy-independent
     }
     
@@ -139,11 +140,8 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
         return 0; // Always 0% since no energy is stored
     }
     
-    @Override
-    public ResonanceEnergyStorage getEnergyStorage() {
-        // Return a dummy energy storage that always has 0 capacity and energy
-        return new ResonanceEnergyStorage(0, 0, 0);
-    }
+    // Note: getEnergyStorage() is inherited from BaseMachineBlockEntity
+    // Reality Forge uses the standard energy storage but with 0 capacity
     
     @Override
     protected void processMachine() {
@@ -195,14 +193,14 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
     
     @Override
     protected AbstractContainerMenu createMenu(int id, net.minecraft.world.entity.player.Inventory playerInventory) {
-        return new com.hexvane.strangematter.menu.RealityForgeMenu(id, playerInventory, this.getBlockPos());
+        return new com.hexvane.strangematter.menu.RealityForgeMenu(id, playerInventory, this);
     }
     
     // Note: BaseMachineBlockEntity handles capability management
     
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag); // BaseMachineBlockEntity handles inventory serialization
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.saveAdditional(tag, provider); // BaseMachineBlockEntity handles inventory serialization
         tag.putInt("craftTicks", craftTicks);
         tag.putBoolean("isCrafting", isCrafting);
         
@@ -222,8 +220,8 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
     }
     
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag); // BaseMachineBlockEntity handles inventory deserialization
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.loadAdditional(tag, provider); // BaseMachineBlockEntity handles inventory deserialization
         craftTicks = tag.getInt("craftTicks");
         isCrafting = tag.getBoolean("isCrafting");
         
@@ -259,7 +257,11 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
     // Shard management
     public int insertShard(ItemStack shardStack) {
         String shardType = getShardType(shardStack);
-        if (shardType == null) return 0;
+        if (shardType == null) {
+            System.out.println("DEBUG: insertShard - shardType is null for stack: " + shardStack);
+            return 0;
+        }
+        System.out.println("DEBUG: insertShard - inserting " + shardStack.getCount() + " " + shardType + " shards");
         
         // Check how many shards we can still accept
         int totalShards = storedShards.values().stream().mapToInt(Integer::intValue).sum();
@@ -279,6 +281,10 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
         // Update synchronized shard count
         totalShardCount = storedShards.values().stream().mapToInt(Integer::intValue).sum();
         
+        System.out.println("DEBUG: insertShard - inserted " + shardsToInsert + " shards, total now: " + totalShardCount);
+        System.out.println("DEBUG: insertShard - storedShards: " + storedShards);
+        System.out.println("DEBUG: insertShard - shardOrder: " + shardOrder);
+        
         // Play insertion sound
         if (level != null && !level.isClientSide && shardsToInsert > 0) {
             level.playSound(null, worldPosition, 
@@ -293,11 +299,7 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
         
         setChanged();
         
-        // Force packet update to ensure client gets the updated shard data
-        if (level != null && !level.isClientSide) {
-            // Additional setChanged to ensure packet is sent
-            setChanged();
-        }
+        // Data will be synchronized via ContainerData
         
         return shardsToInsert;
     }
@@ -325,6 +327,8 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
         totalShardCount = 0;
         
         setChanged();
+        
+        // Data will be synchronized via ContainerData
     }
     
     // Client-side method to immediately clear shards for visual feedback
@@ -485,11 +489,7 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
         
         setChanged();
         
-        // Force packet update to ensure client gets the cleared shard data
-        if (level != null && !level.isClientSide) {
-            // Additional setChanged to ensure packet is sent
-            setChanged();
-        }
+        // Data will be synchronized via ContainerData
     }
     
     // Data synchronization
@@ -513,7 +513,6 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
         buffer.writeBoolean(isCrafting);
         buffer.writeInt(craftTicks);
         buffer.writeBoolean(isCoalescing);
-        
     }
     
     @Override
@@ -549,22 +548,22 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
     }
     
     @Override
-    public net.minecraft.nbt.CompoundTag getUpdateTag() {
-        CompoundTag tag = super.getUpdateTag();
-        saveAdditional(tag);
+    public net.minecraft.nbt.CompoundTag getUpdateTag(HolderLookup.Provider provider) {
+        CompoundTag tag = super.getUpdateTag(provider);
+        saveAdditional(tag, provider);
         return tag;
     }
     
-    @Override
     public void onDataPacket(net.minecraft.network.Connection net, net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket pkt) {
         if (pkt.getTag() != null) {
-            load(pkt.getTag());
+            loadAdditional(pkt.getTag(), getLevel().registryAccess());
         }
     }
     
+    
     @Override
-    public void handleUpdateTag(net.minecraft.nbt.CompoundTag tag) {
-        load(tag);
+    public void handleUpdateTag(net.minecraft.nbt.CompoundTag tag, HolderLookup.Provider provider) {
+        loadAdditional(tag, provider);
     }
     
     // Getters for GUI

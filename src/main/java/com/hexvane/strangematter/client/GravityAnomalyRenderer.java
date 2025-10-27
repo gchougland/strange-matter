@@ -18,8 +18,8 @@ import org.joml.Matrix4f;
 
 public class GravityAnomalyRenderer extends EntityRenderer<GravityAnomalyEntity> {
     
-    private static final ResourceLocation ICOSAHEDRON_OBJ = new ResourceLocation(StrangeMatterMod.MODID, "models/entity/icosahedron.obj");
-    private static final ResourceLocation AURA_TEXTURE = new ResourceLocation(StrangeMatterMod.MODID, "textures/entity/gravity_anomaly_aura.png");
+    private static final ResourceLocation ICOSAHEDRON_OBJ = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "models/entity/icosahedron.obj");
+    private static final ResourceLocation AURA_TEXTURE = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/entity/gravity_anomaly_aura.png");
     
     private OBJModel icosahedronModel;
     
@@ -39,18 +39,26 @@ public class GravityAnomalyRenderer extends EntityRenderer<GravityAnomalyEntity>
     
     @Override
     public ResourceLocation getTextureLocation(GravityAnomalyEntity entity) {
-        return new ResourceLocation(StrangeMatterMod.MODID, "textures/entity/gravity_anomaly_icosahedron.png");
+        return ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/entity/gravity_anomaly_icosahedron.png");
     }
     
     @Override
     public void render(GravityAnomalyEntity entity, float entityYaw, float partialTicks, 
                       PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
         
+        // Only render on client side
+        if (!entity.level().isClientSide) {
+            return;
+        }
+        
         poseStack.pushPose();
         
         // Get animation data
         float rotation = entity.getRotation() + (partialTicks * 0.5f);
         float pulseIntensity = entity.getPulseIntensity();
+        
+        // Render emissive green glow effect first (translucent, emissive - renders behind everything)
+        renderGlowEffect(poseStack, buffer, packedLight, rotation, pulseIntensity);
         
         // Render in proper order to avoid transparency issues:
         // 1. First render opaque/solid elements
@@ -60,14 +68,16 @@ public class GravityAnomalyRenderer extends EntityRenderer<GravityAnomalyEntity>
         // Render the outer aura icosahedron (translucent)
         renderAuraIcosahedron(poseStack, buffer, packedLight, partialTicks);
         
+        poseStack.popPose();
+        
+        // Render particles and effects in a separate pose context to avoid glitches
+        poseStack.pushPose();
+        
         // Render floating dirt particles (translucent)
         renderFloatingParticles(poseStack, buffer, packedLight, pulseIntensity, partialTicks);
         
         // Render ground particle field (translucent)
         renderGroundParticleField(poseStack, buffer, packedLight, partialTicks);
-        
-        // Render emissive green glow effect (translucent)
-        renderGlowEffect(poseStack, buffer, packedLight, rotation, pulseIntensity);
         
         poseStack.popPose();
         
@@ -123,6 +133,8 @@ public class GravityAnomalyRenderer extends EntityRenderer<GravityAnomalyEntity>
     private void renderGlowEffect(PoseStack poseStack, MultiBufferSource buffer, 
                                 int packedLight, float rotation, float pulseIntensity) {
         
+        poseStack.pushPose();
+        
         // Face the camera by applying the camera rotation
         poseStack.mulPose(Minecraft.getInstance().gameRenderer.getMainCamera().rotation());
         
@@ -132,7 +144,7 @@ public class GravityAnomalyRenderer extends EntityRenderer<GravityAnomalyEntity>
         
         Matrix4f matrix4f = poseStack.last().pose();
         VertexConsumer vertexConsumer = buffer.getBuffer(RenderType.entityTranslucentEmissive(
-            new ResourceLocation("minecraft", "textures/block/white_wool.png")));
+            ResourceLocation.fromNamespaceAndPath("minecraft", "textures/block/white_wool.png")));
         
         // Calculate glow intensity based on pulse
         float glowIntensity = 0.2f + (pulseIntensity * 0.3f);
@@ -147,18 +159,20 @@ public class GravityAnomalyRenderer extends EntityRenderer<GravityAnomalyEntity>
             float angle1 = (i / (float) segments) * 2.0f * (float) Math.PI;
             float angle2 = ((i + 1) / (float) segments) * 2.0f * (float) Math.PI;
             
-            // Center vertex (bright)
-            vertexConsumer.vertex(matrix4f, 0, 0, 0).color(0.2f, 1.0f, 0.3f, centerAlpha).uv(0.5f, 0.5f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
+            // Center vertex (bright) - use Matrix4f to apply transformations
+            vertexConsumer.addVertex(matrix4f, 0, 0, 0).setColor((int)(0.2f * 255), 255, (int)(0.3f * 255), (int)(centerAlpha * 255)).setUv(0.5f, 0.5f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
             
-            // Edge vertices (fade to transparent)
+            // Edge vertices (fade to transparent) - use Matrix4f to apply transformations
             float x1 = (float) (Math.cos(angle1) * glowSize);
             float y1 = (float) (Math.sin(angle1) * glowSize);
             float x2 = (float) (Math.cos(angle2) * glowSize);
             float y2 = (float) (Math.sin(angle2) * glowSize);
             
-            vertexConsumer.vertex(matrix4f, x1, y1, 0).color(0.2f, 1.0f, 0.3f, edgeAlpha).uv(0.5f + x1 * 0.1f, 0.5f + y1 * 0.1f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-            vertexConsumer.vertex(matrix4f, x2, y2, 0).color(0.2f, 1.0f, 0.3f, edgeAlpha).uv(0.5f + x2 * 0.1f, 0.5f + y2 * 0.1f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
+            vertexConsumer.addVertex(matrix4f, x1, y1, 0).setColor((int)(0.2f * 255), 255, (int)(0.3f * 255), (int)(edgeAlpha * 255)).setUv(0.5f + x1 * 0.1f, 0.5f + y1 * 0.1f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
+            vertexConsumer.addVertex(matrix4f, x2, y2, 0).setColor((int)(0.2f * 255), 255, (int)(0.3f * 255), (int)(edgeAlpha * 255)).setUv(0.5f + x2 * 0.1f, 0.5f + y2 * 0.1f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
         }
+        
+        poseStack.popPose();
     }
     
     private void renderFloatingParticles(PoseStack poseStack, MultiBufferSource buffer, 
@@ -266,85 +280,85 @@ public class GravityAnomalyRenderer extends EntityRenderer<GravityAnomalyEntity>
         float halfSize = 0.5f;
         
         // Front face
-        vertexConsumer.vertex(matrix4f, -halfSize, -halfSize, halfSize).color(r, g, b, 0.8f).uv(0.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-        vertexConsumer.vertex(matrix4f, halfSize, -halfSize, halfSize).color(r, g, b, 0.8f).uv(1.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-        vertexConsumer.vertex(matrix4f, halfSize, halfSize, halfSize).color(r, g, b, 0.8f).uv(1.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-        vertexConsumer.vertex(matrix4f, -halfSize, halfSize, halfSize).color(r, g, b, 0.8f).uv(0.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
+        vertexConsumer.addVertex(matrix4f, -halfSize, -halfSize, halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(0.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
+        vertexConsumer.addVertex(matrix4f, halfSize, -halfSize, halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(1.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
+        vertexConsumer.addVertex(matrix4f, halfSize, halfSize, halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(1.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
+        vertexConsumer.addVertex(matrix4f, -halfSize, halfSize, halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(0.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
         
         // Back face
-        vertexConsumer.vertex(matrix4f, -halfSize, -halfSize, -halfSize).color(r, g, b, 0.8f).uv(0.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, -1).endVertex();
-        vertexConsumer.vertex(matrix4f, -halfSize, halfSize, -halfSize).color(r, g, b, 0.8f).uv(0.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, -1).endVertex();
-        vertexConsumer.vertex(matrix4f, halfSize, halfSize, -halfSize).color(r, g, b, 0.8f).uv(1.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, -1).endVertex();
-        vertexConsumer.vertex(matrix4f, halfSize, -halfSize, -halfSize).color(r, g, b, 0.8f).uv(1.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, -1).endVertex();
+        vertexConsumer.addVertex(matrix4f, -halfSize, -halfSize, -halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(0.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, -1.0f);
+        vertexConsumer.addVertex(matrix4f, -halfSize, halfSize, -halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(0.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, -1.0f);
+        vertexConsumer.addVertex(matrix4f, halfSize, halfSize, -halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(1.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, -1.0f);
+        vertexConsumer.addVertex(matrix4f, halfSize, -halfSize, -halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(1.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, -1.0f);
         
         // Top face
-        vertexConsumer.vertex(matrix4f, -halfSize, halfSize, -halfSize).color(r, g, b, 0.8f).uv(0.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 1, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, -halfSize, halfSize, halfSize).color(r, g, b, 0.8f).uv(0.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 1, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, halfSize, halfSize, halfSize).color(r, g, b, 0.8f).uv(1.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 1, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, halfSize, halfSize, -halfSize).color(r, g, b, 0.8f).uv(1.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 1, 0).endVertex();
+        vertexConsumer.addVertex(matrix4f, -halfSize, halfSize, -halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(0.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 1.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, -halfSize, halfSize, halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(0.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 1.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, halfSize, halfSize, halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(1.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 1.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, halfSize, halfSize, -halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(1.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 1.0f, 0.0f);
         
         // Bottom face
-        vertexConsumer.vertex(matrix4f, -halfSize, -halfSize, -halfSize).color(r, g, b, 0.8f).uv(0.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, -1, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, halfSize, -halfSize, -halfSize).color(r, g, b, 0.8f).uv(1.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, -1, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, halfSize, -halfSize, halfSize).color(r, g, b, 0.8f).uv(1.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, -1, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, -halfSize, -halfSize, halfSize).color(r, g, b, 0.8f).uv(0.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, -1, 0).endVertex();
+        vertexConsumer.addVertex(matrix4f, -halfSize, -halfSize, -halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(0.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, -1.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, halfSize, -halfSize, -halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(1.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, -1.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, halfSize, -halfSize, halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(1.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, -1.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, -halfSize, -halfSize, halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(0.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, -1.0f, 0.0f);
         
         // Right face
-        vertexConsumer.vertex(matrix4f, halfSize, -halfSize, -halfSize).color(r, g, b, 0.8f).uv(0.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(1, 0, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, halfSize, halfSize, -halfSize).color(r, g, b, 0.8f).uv(0.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(1, 0, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, halfSize, halfSize, halfSize).color(r, g, b, 0.8f).uv(1.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(1, 0, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, halfSize, -halfSize, halfSize).color(r, g, b, 0.8f).uv(1.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(1, 0, 0).endVertex();
+        vertexConsumer.addVertex(matrix4f, halfSize, -halfSize, -halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(0.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(1.0f, 0.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, halfSize, halfSize, -halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(0.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(1.0f, 0.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, halfSize, halfSize, halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(1.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(1.0f, 0.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, halfSize, -halfSize, halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(1.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(1.0f, 0.0f, 0.0f);
         
         // Left face
-        vertexConsumer.vertex(matrix4f, -halfSize, -halfSize, -halfSize).color(r, g, b, 0.8f).uv(0.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(-1, 0, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, -halfSize, -halfSize, halfSize).color(r, g, b, 0.8f).uv(1.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(-1, 0, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, -halfSize, halfSize, halfSize).color(r, g, b, 0.8f).uv(1.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(-1, 0, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, -halfSize, halfSize, -halfSize).color(r, g, b, 0.8f).uv(0.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(-1, 0, 0).endVertex();
+        vertexConsumer.addVertex(matrix4f, -halfSize, -halfSize, -halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(0.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(-1.0f, 0.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, -halfSize, -halfSize, halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(1.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(-1.0f, 0.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, -halfSize, halfSize, halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(1.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(-1.0f, 0.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, -halfSize, halfSize, -halfSize).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(0.8f * 255)).setUv(0.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(-1.0f, 0.0f, 0.0f);
     }
     
     private void renderDirtBlock(PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
         // Create a simple colored cube for the dirt block (no texture for now)
         Matrix4f matrix4f = poseStack.last().pose();
         VertexConsumer vertexConsumer = buffer.getBuffer(RenderType.entityTranslucentCull(
-            new ResourceLocation("minecraft", "textures/block/dirt.png")));
+            ResourceLocation.fromNamespaceAndPath("minecraft", "textures/block/dirt.png")));
         
         // Render a simple cube (6 faces) with no color tinting
         float halfSize = 0.5f;
         
         // Front face
-        vertexConsumer.vertex(matrix4f, -halfSize, -halfSize, halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(0.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-        vertexConsumer.vertex(matrix4f, halfSize, -halfSize, halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(1.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-        vertexConsumer.vertex(matrix4f, halfSize, halfSize, halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(1.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-        vertexConsumer.vertex(matrix4f, -halfSize, halfSize, halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(0.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
+        vertexConsumer.addVertex(matrix4f, -halfSize, -halfSize, halfSize).setColor(255, 255, 255, 255).setUv(0.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
+        vertexConsumer.addVertex(matrix4f, halfSize, -halfSize, halfSize).setColor(255, 255, 255, 255).setUv(1.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
+        vertexConsumer.addVertex(matrix4f, halfSize, halfSize, halfSize).setColor(255, 255, 255, 255).setUv(1.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
+        vertexConsumer.addVertex(matrix4f, -halfSize, halfSize, halfSize).setColor(255, 255, 255, 255).setUv(0.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
         
         // Back face
-        vertexConsumer.vertex(matrix4f, -halfSize, -halfSize, -halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(0.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, -1).endVertex();
-        vertexConsumer.vertex(matrix4f, -halfSize, halfSize, -halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(1.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, -1).endVertex();
-        vertexConsumer.vertex(matrix4f, halfSize, halfSize, -halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(1.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, -1).endVertex();
-        vertexConsumer.vertex(matrix4f, halfSize, -halfSize, -halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(0.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, -1).endVertex();
+        vertexConsumer.addVertex(matrix4f, -halfSize, -halfSize, -halfSize).setColor(255, 255, 255, 255).setUv(0.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, -1.0f);
+        vertexConsumer.addVertex(matrix4f, -halfSize, halfSize, -halfSize).setColor(255, 255, 255, 255).setUv(1.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, -1.0f);
+        vertexConsumer.addVertex(matrix4f, halfSize, halfSize, -halfSize).setColor(255, 255, 255, 255).setUv(1.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, -1.0f);
+        vertexConsumer.addVertex(matrix4f, halfSize, -halfSize, -halfSize).setColor(255, 255, 255, 255).setUv(0.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, -1.0f);
         
         // Top face
-        vertexConsumer.vertex(matrix4f, -halfSize, halfSize, -halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(0.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 1, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, -halfSize, halfSize, halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(1.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 1, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, halfSize, halfSize, halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(1.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 1, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, halfSize, halfSize, -halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(0.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 1, 0).endVertex();
+        vertexConsumer.addVertex(matrix4f, -halfSize, halfSize, -halfSize).setColor(255, 255, 255, 255).setUv(0.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 1.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, -halfSize, halfSize, halfSize).setColor(255, 255, 255, 255).setUv(1.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 1.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, halfSize, halfSize, halfSize).setColor(255, 255, 255, 255).setUv(1.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 1.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, halfSize, halfSize, -halfSize).setColor(255, 255, 255, 255).setUv(0.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 1.0f, 0.0f);
         
         // Bottom face
-        vertexConsumer.vertex(matrix4f, -halfSize, -halfSize, -halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(0.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, -1, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, halfSize, -halfSize, -halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(1.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, -1, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, halfSize, -halfSize, halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(1.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, -1, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, -halfSize, -halfSize, halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(0.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, -1, 0).endVertex();
+        vertexConsumer.addVertex(matrix4f, -halfSize, -halfSize, -halfSize).setColor(255, 255, 255, 255).setUv(0.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, -1.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, halfSize, -halfSize, -halfSize).setColor(255, 255, 255, 255).setUv(1.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, -1.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, halfSize, -halfSize, halfSize).setColor(255, 255, 255, 255).setUv(1.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, -1.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, -halfSize, -halfSize, halfSize).setColor(255, 255, 255, 255).setUv(0.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, -1.0f, 0.0f);
         
         // Right face
-        vertexConsumer.vertex(matrix4f, halfSize, -halfSize, -halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(0.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(1, 0, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, halfSize, halfSize, -halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(1.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(1, 0, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, halfSize, halfSize, halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(1.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(1, 0, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, halfSize, -halfSize, halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(0.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(1, 0, 0).endVertex();
+        vertexConsumer.addVertex(matrix4f, halfSize, -halfSize, -halfSize).setColor(255, 255, 255, 255).setUv(0.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(1.0f, 0.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, halfSize, halfSize, -halfSize).setColor(255, 255, 255, 255).setUv(1.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(1.0f, 0.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, halfSize, halfSize, halfSize).setColor(255, 255, 255, 255).setUv(1.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(1.0f, 0.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, halfSize, -halfSize, halfSize).setColor(255, 255, 255, 255).setUv(0.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(1.0f, 0.0f, 0.0f);
         
         // Left face
-        vertexConsumer.vertex(matrix4f, -halfSize, -halfSize, -halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(0.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(-1, 0, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, -halfSize, -halfSize, halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(1.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(-1, 0, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, -halfSize, halfSize, halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(1.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(-1, 0, 0).endVertex();
-        vertexConsumer.vertex(matrix4f, -halfSize, halfSize, -halfSize).color(1.0f, 1.0f, 1.0f, 1.0f).uv(0.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(-1, 0, 0).endVertex();
+        vertexConsumer.addVertex(matrix4f, -halfSize, -halfSize, -halfSize).setColor(255, 255, 255, 255).setUv(0.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(-1.0f, 0.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, -halfSize, -halfSize, halfSize).setColor(255, 255, 255, 255).setUv(1.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(-1.0f, 0.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, -halfSize, halfSize, halfSize).setColor(255, 255, 255, 255).setUv(1.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(-1.0f, 0.0f, 0.0f);
+        vertexConsumer.addVertex(matrix4f, -halfSize, halfSize, -halfSize).setColor(255, 255, 255, 255).setUv(0.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(-1.0f, 0.0f, 0.0f);
     }
 }

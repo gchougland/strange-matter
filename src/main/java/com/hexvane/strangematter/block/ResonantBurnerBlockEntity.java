@@ -1,6 +1,7 @@
 package com.hexvane.strangematter.block;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -13,7 +14,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 import com.hexvane.strangematter.StrangeMatterMod;
 import com.hexvane.strangematter.menu.ResonantBurnerMenu;
-import net.minecraftforge.common.ForgeHooks;
+import net.neoforged.neoforge.common.CommonHooks;
 
 public class ResonantBurnerBlockEntity extends BaseMachineBlockEntity {
 
@@ -49,7 +50,7 @@ public class ResonantBurnerBlockEntity extends BaseMachineBlockEntity {
         public void set(int index, int value) {
             switch (index) {
                 case 0 -> energyStorage.setEnergy(value);
-                case 1 -> energyStorage.setCapacity(value);
+                case 1 -> { /* Energy storage capacity is set in constructor, no need to change it */ }
                 case 2 -> isActive = value != 0;
                 case 3 -> energyPerTick = value;
                 case 4 -> maxEnergyStorage = value;
@@ -70,8 +71,11 @@ public class ResonantBurnerBlockEntity extends BaseMachineBlockEntity {
         // Configure energy system for Resonant Burner from config
         this.energyPerTick = com.hexvane.strangematter.Config.resonantBurnerEnergyPerTick;
         this.maxEnergyStorage = com.hexvane.strangematter.Config.resonantBurnerEnergyStorage;
-        this.energyStorage.setCapacity(maxEnergyStorage);
-        
+    }
+    
+    @Override
+    protected void initializeEnergySides() {
+        // Burners only output energy - no input
         // Configure energy input sides (NO INPUT - this is a generator)
         boolean[] inputSides = {false, false, false, false, false, false};
         this.setEnergyInputSides(inputSides);
@@ -87,7 +91,7 @@ public class ResonantBurnerBlockEntity extends BaseMachineBlockEntity {
     }
     
     @Override
-    protected MachineEnergyRole getEnergyRole() {
+    public MachineEnergyRole getEnergyRole() {
         return MachineEnergyRole.GENERATOR; // Explicitly define as generator
     }
     
@@ -130,7 +134,7 @@ public class ResonantBurnerBlockEntity extends BaseMachineBlockEntity {
             // If we're not burning and have fuel, start burning
             if (burnTime <= 0 && !items.get(fuelSlot).isEmpty()) {
                 ItemStack fuelStack = items.get(fuelSlot);
-                int burnTimeForFuel = ForgeHooks.getBurnTime(fuelStack, null);
+                int burnTimeForFuel = fuelStack.getItem().getBurnTime(fuelStack, null);
                 
                 if (burnTimeForFuel > 0) {
                     burnDuration = burnTimeForFuel;
@@ -238,7 +242,7 @@ public class ResonantBurnerBlockEntity extends BaseMachineBlockEntity {
     public boolean canPlaceItem(int index, ItemStack stack) {
         // Only allow fuel items in the fuel slot
         if (index == fuelSlot) {
-            return ForgeHooks.getBurnTime(stack, null) > 0;
+            return stack.getItem().getBurnTime(stack, null) > 0;
         }
         return false;
     }
@@ -287,24 +291,24 @@ public class ResonantBurnerBlockEntity extends BaseMachineBlockEntity {
     }
     
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.saveAdditional(tag, provider);
         tag.putInt("burn_time", burnTime);
         tag.putInt("burn_duration", burnDuration);
         tag.putInt("fuel_slot", fuelSlot);
         tag.putInt("energy_per_tick", energyPerTick);
         tag.putInt("max_energy_storage", maxEnergyStorage);
-        ContainerHelper.saveAllItems(tag, this.items);
+        ContainerHelper.saveAllItems(tag, this.items, provider);
     }
     
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.loadAdditional(tag, provider);
         burnTime = tag.getInt("burn_time");
         burnDuration = tag.getInt("burn_duration");
         fuelSlot = tag.getInt("fuel_slot");
         energyPerTick = tag.getInt("energy_per_tick");
         maxEnergyStorage = tag.getInt("max_energy_storage");
-        ContainerHelper.loadAllItems(tag, this.items);
+        ContainerHelper.loadAllItems(tag, this.items, provider);
     }
 }

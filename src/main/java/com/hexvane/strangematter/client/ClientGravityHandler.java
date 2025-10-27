@@ -4,16 +4,18 @@ import com.hexvane.strangematter.GravityData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT)
+@EventBusSubscriber(modid = "strangematter", bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public class ClientGravityHandler {
     
     @SubscribeEvent
-    public static void onLivingTick(LivingEvent.LivingTickEvent event) {
+    public static void onLivingTick(EntityTickEvent.Pre event) {
         if (event.getEntity() instanceof Player player && player == Minecraft.getInstance().player) {
             // Check if player has gravity modification data using static data
             if (GravityData.hasPlayerGravityForce(player.getUUID())) {

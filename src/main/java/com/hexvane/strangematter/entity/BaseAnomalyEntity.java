@@ -6,7 +6,7 @@ import com.hexvane.strangematter.research.ScannableObject;
 import com.hexvane.strangematter.research.ScannableObjectRegistry;
 import com.hexvane.strangematter.research.ResearchType;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -70,11 +70,11 @@ public abstract class BaseAnomalyEntity extends Entity {
     }
     
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(ROTATION, 0.0f);
-        this.entityData.define(PULSE_INTENSITY, 0.0f);
-        this.entityData.define(IS_CONTAINED, false);
-        this.entityData.define(SCALE, 1.0f);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(ROTATION, 0.0f);
+        builder.define(PULSE_INTENSITY, 0.0f);
+        builder.define(IS_CONTAINED, false);
+        builder.define(SCALE, 1.0f);
     }
     
     @Override
@@ -161,7 +161,7 @@ public abstract class BaseAnomalyEntity extends Entity {
                 double distance = this.distanceTo(entity);
                 if (distance <= effectRadius) {
                     // Player is within effect range, trigger the advancement
-                    StrangeMatterMod.ANOMALY_EFFECT_TRIGGER.trigger(serverPlayer);
+                    com.hexvane.strangematter.advancement.ModCriteriaTriggers.ANOMALY_EFFECT_TRIGGER.get().trigger(serverPlayer);
                 }
             }
         }
@@ -203,7 +203,7 @@ public abstract class BaseAnomalyEntity extends Entity {
     /**
      * Get the corresponding shard ore block for this anomaly type
      */
-    protected abstract RegistryObject<Block> getShardOreBlock();
+    protected abstract DeferredHolder<Block, Block> getShardOreBlock();
     
     /**
      * Check if a block can be replaced with ore
@@ -284,7 +284,7 @@ public abstract class BaseAnomalyEntity extends Entity {
                         if (currentState.is(Blocks.SNOW) || currentState.is(Blocks.SNOW_BLOCK) ||
                             currentState.is(Blocks.TALL_GRASS) || currentState.is(Blocks.FERN) ||
                             currentState.is(Blocks.LARGE_FERN) || currentState.is(Blocks.DEAD_BUSH) ||
-                            currentState.is(Blocks.SWEET_BERRY_BUSH) || currentState.is(Blocks.GRASS)) {
+                            currentState.is(Blocks.SWEET_BERRY_BUSH) || currentState.is(Blocks.SHORT_GRASS)) {
                             // Check the block underneath
                             BlockPos belowPos = surfacePos.below();
                             BlockState belowState = this.level().getBlockState(belowPos);

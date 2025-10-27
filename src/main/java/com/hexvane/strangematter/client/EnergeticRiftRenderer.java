@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 import java.util.List;
@@ -41,7 +42,6 @@ public class EnergeticRiftRenderer extends EntityRenderer<EnergeticRiftEntity> {
         
         // Billboard to face the camera - try different rotation to ensure visibility
         poseStack.mulPose(Minecraft.getInstance().gameRenderer.getMainCamera().rotation());
-        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180)); // Rotate 180 degrees to face player
         
         // Get entity data
         float rotation = entity.getRotation() + partialTicks * 0.5f;
@@ -258,21 +258,21 @@ public class EnergeticRiftRenderer extends EntityRenderer<EnergeticRiftEntity> {
         
         // Render as a proper quad using 4 vertices (like other anomaly renderers)
         // Front face quad
-        consumer.vertex(matrix, (float)(x1 + perpX1), (float)(y1 + perpY1), (float)(z1 + perpZ1)).color(r, g, b, a).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal((float)dx, (float)dy, (float)dz).endVertex();
-        consumer.vertex(matrix, (float)(x2 + perpX1), (float)(y2 + perpY1), (float)(z2 + perpZ1)).color(r, g, b, a).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal((float)dx, (float)dy, (float)dz).endVertex();
-        consumer.vertex(matrix, (float)(x2 + perpX2), (float)(y2 + perpY2), (float)(z2 + perpZ2)).color(r, g, b, a).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal((float)dx, (float)dy, (float)dz).endVertex();
-        consumer.vertex(matrix, (float)(x1 + perpX2), (float)(y1 + perpY2), (float)(z1 + perpZ2)).color(r, g, b, a).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal((float)dx, (float)dy, (float)dz).endVertex();
+        consumer.addVertex(matrix, (float)(x1 + perpX1), (float)(y1 + perpY1), (float)(z1 + perpZ1)).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(0, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal((float)dx, (float)dy, (float)dz);
+        consumer.addVertex(matrix, (float)(x2 + perpX1), (float)(y2 + perpY1), (float)(z2 + perpZ1)).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(1, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal((float)dx, (float)dy, (float)dz);
+        consumer.addVertex(matrix, (float)(x2 + perpX2), (float)(y2 + perpY2), (float)(z2 + perpZ2)).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(1, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal((float)dx, (float)dy, (float)dz);
+        consumer.addVertex(matrix, (float)(x1 + perpX2), (float)(y1 + perpY2), (float)(z1 + perpZ2)).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(0, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal((float)dx, (float)dy, (float)dz);
         
         // Back face quad (reversed winding)
-        consumer.vertex(matrix, (float)(x1 + perpX2), (float)(y1 + perpY2), (float)(z1 + perpZ2)).color(r, g, b, a).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal((float)-dx, (float)-dy, (float)-dz).endVertex();
-        consumer.vertex(matrix, (float)(x2 + perpX2), (float)(y2 + perpY2), (float)(z2 + perpZ2)).color(r, g, b, a).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal((float)-dx, (float)-dy, (float)-dz).endVertex();
-        consumer.vertex(matrix, (float)(x2 + perpX1), (float)(y2 + perpY1), (float)(z2 + perpZ1)).color(r, g, b, a).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal((float)-dx, (float)-dy, (float)-dz).endVertex();
-        consumer.vertex(matrix, (float)(x1 + perpX1), (float)(y1 + perpY1), (float)(z1 + perpZ1)).color(r, g, b, a).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal((float)-dx, (float)-dy, (float)-dz).endVertex();
+        consumer.addVertex(matrix, (float)(x1 + perpX2), (float)(y1 + perpY2), (float)(z1 + perpZ2)).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(0, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal((float)-dx, (float)-dy, (float)-dz);
+        consumer.addVertex(matrix, (float)(x2 + perpX2), (float)(y2 + perpY2), (float)(z2 + perpZ2)).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(1, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal((float)-dx, (float)-dy, (float)-dz);
+        consumer.addVertex(matrix, (float)(x2 + perpX1), (float)(y2 + perpY1), (float)(z2 + perpZ1)).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(1, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal((float)-dx, (float)-dy, (float)-dz);
+        consumer.addVertex(matrix, (float)(x1 + perpX1), (float)(y1 + perpY1), (float)(z1 + perpZ1)).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(0, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal((float)-dx, (float)-dy, (float)-dz);
     }
     
     private void renderBillboard(PoseStack poseStack, VertexConsumer consumer, int packedLight, 
                                float width, float height, int color, float alpha) {
-        
+
         Matrix4f matrix = poseStack.last().pose();
         
         // Extract color components
@@ -285,10 +285,10 @@ public class EnergeticRiftRenderer extends EntityRenderer<EnergeticRiftEntity> {
         float halfHeight = height / 2.0f;
         
         // Render billboard quad
-        consumer.vertex(matrix, -halfWidth, -halfHeight, 0).color(r, g, b, a).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-        consumer.vertex(matrix, halfWidth, -halfHeight, 0).color(r, g, b, a).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-        consumer.vertex(matrix, halfWidth, halfHeight, 0).color(r, g, b, a).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-        consumer.vertex(matrix, -halfWidth, halfHeight, 0).color(r, g, b, a).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
+        consumer.addVertex(matrix, -halfWidth, -halfHeight, 0).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(0, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
+        consumer.addVertex(matrix, halfWidth, -halfHeight, 0).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(1, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
+        consumer.addVertex(matrix, halfWidth, halfHeight, 0).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(1, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
+        consumer.addVertex(matrix, -halfWidth, halfHeight, 0).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(0, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
     }
     
     private void renderTargetingSparks(PoseStack poseStack, MultiBufferSource buffer, int packedLight, EnergeticRiftEntity entity) {

@@ -12,10 +12,10 @@ public class EnergyMinigame extends ResearchMinigame {
     private final Minecraft minecraft;
     
     // Textures
-    private static final ResourceLocation DIAL_OFF_TEXTURE = new ResourceLocation(StrangeMatterMod.MODID, "textures/ui/dial_off.png");
-    private static final ResourceLocation DIAL_ON_TEXTURE = new ResourceLocation(StrangeMatterMod.MODID, "textures/ui/dial_on.png");
-    private static final ResourceLocation RIGHT_BUTTON_TEXTURE = new ResourceLocation(StrangeMatterMod.MODID, "textures/ui/right_button.png");
-    private static final ResourceLocation LEFT_BUTTON_TEXTURE = new ResourceLocation(StrangeMatterMod.MODID, "textures/ui/left_button.png");
+    private static final ResourceLocation DIAL_OFF_TEXTURE = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/ui/dial_off.png");
+    private static final ResourceLocation DIAL_ON_TEXTURE = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/ui/dial_on.png");
+    private static final ResourceLocation RIGHT_BUTTON_TEXTURE = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/ui/right_button.png");
+    private static final ResourceLocation LEFT_BUTTON_TEXTURE = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/ui/left_button.png");
     
     // UI Constants
     private static final int DIAL_SIZE = 10;

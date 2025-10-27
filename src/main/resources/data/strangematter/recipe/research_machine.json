@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "RCR",
+    "CSC",
+    "RIR"
+  ],
+  "key": {
+    "R": {
+      "item": "strangematter:resonant_coil"
+    },
+    "C": {
+      "item": "strangematter:resonite_ingot"
+    },
+    "S": {
+      "item": "strangematter:stabilized_core"
+    },
+    "I": {
+      "item": "strangematter:resonant_circuit"
+    }
+  },
+  "result": {
+    "id": "strangematter:research_machine",
+    "count": 1
+  }
+}

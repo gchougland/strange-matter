@@ -46,6 +46,26 @@ public class ShadowLightProvider {
     }
     
     /**
+     * Check if a position is within the shadow radius of any anomaly
+     */
+    public boolean isPositionInShadow(BlockPos pos) {
+        for (EchoingShadowEntity anomaly : shadowAnomalies) {
+            if (anomaly == null || anomaly.isRemoved()) {
+                continue;
+            }
+            
+            float radius = anomaly.getLightAbsorptionRadius();
+            BlockPos anomalyPos = anomaly.blockPosition();
+            double distanceSq = pos.distSqr(anomalyPos);
+            
+            if (distanceSq <= radius * radius) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
      * Update shadow light levels for all affected positions
      */
     public void updateShadowLightLevels() {

@@ -7,12 +7,14 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 public class LevitationPadRenderer implements BlockEntityRenderer<LevitationPadBlockEntity> {
@@ -43,6 +45,17 @@ public class LevitationPadRenderer implements BlockEntityRenderer<LevitationPadB
     }
     
     @Override
+    public AABB getRenderBoundingBox(LevitationPadBlockEntity blockEntity) {
+        // Extend the render bounding box to include the full beam height
+        // This prevents frustum culling from hiding the beam when the block is out of view
+        int maxHeight = blockEntity.getMaxHeight();
+        return new AABB(
+            blockEntity.getBlockPos().getX() - 0.5, blockEntity.getBlockPos().getY(), blockEntity.getBlockPos().getZ() - 0.5,
+            blockEntity.getBlockPos().getX() + 1.5, blockEntity.getBlockPos().getY() + maxHeight, blockEntity.getBlockPos().getZ() + 1.5
+        );
+    }
+    
+    @Override
     public void render(LevitationPadBlockEntity blockEntity, float partialTicks, PoseStack poseStack, 
                       MultiBufferSource buffer, int packedLight, int packedOverlay) {
         
@@ -62,21 +75,6 @@ public class LevitationPadRenderer implements BlockEntityRenderer<LevitationPadB
         if (maxHeight > 0) {
             renderLevitationBeam(poseStack, buffer, maxHeight, levitateUp, partialTicks, packedLight);
         }
-    }
-    
-    /**
-     * Normalizes UV coordinates to the 0-1 range, handling wrapping correctly
-     */
-    private float normalizeUV(float uv) {
-        // Handle negative values by adding 1 until positive
-        while (uv < 0.0f) {
-            uv += 1.0f;
-        }
-        // Handle values > 1 by subtracting 1 until in range
-        while (uv > 1.0f) {
-            uv -= 1.0f;
-        }
-        return uv;
     }
     
     private int calculateMaxHeight(Level level, BlockPos pos) {
@@ -208,12 +206,11 @@ public class LevitationPadRenderer implements BlockEntityRenderer<LevitationPadB
      */
     private void addVertex(VertexConsumer buffer, PoseStack poseStack, float x, float y, float z,
                           float u, float v, int combinedLight, int combinedOverlay) {
-        buffer.vertex(poseStack.last().pose(), x, y, z)
-                .color(1.0f, 1.0f, 1.0f, 0.5f)
-                .uv(u, v)
-                .overlayCoords(combinedOverlay)
-                .uv2(combinedLight)
-                .normal(poseStack.last().normal(), 0, 1, 0)
-                .endVertex();
+        buffer.addVertex(poseStack.last().pose(), x, y, z)
+                .setColor(255, 255, 255, 128)
+                .setUv(u, v)
+                .setOverlay(combinedOverlay)
+                .setLight(combinedLight)
+                .setNormal(0.0f, 1.0f, 0.0f);
     }
 }

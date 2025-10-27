@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(LightTexture.class)
 public class LightTextureMixin {
     
-    @Inject(method = "getBrightness", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "getBrightness(Lnet/minecraft/world/level/dimension/DimensionType;I)F", at = @At("RETURN"), cancellable = true, remap = false)
     private static void onGetBrightness(DimensionType dimensionType, int lightLevel, CallbackInfoReturnable<Float> cir) {
         // This method is called during rendering for light calculations
         float originalResult = cir.getReturnValue();

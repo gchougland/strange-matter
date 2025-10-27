@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IEI",
+    "IRI",
+    "III"
+  ],
+  "key": {
+    "E": {
+      "tag": "strangematter:anomaly_shards"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "id": "strangematter:field_scanner",
+    "count": 1
+  }
+}

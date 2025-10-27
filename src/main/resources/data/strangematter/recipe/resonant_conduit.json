@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "RRR",
+    "NSN",
+    "RRR"
+  ],
+  "key": {
+    "R": {
+      "item": "strangematter:resonite_ingot"
+    },
+    "N": {
+      "item": "strangematter:resonite_nugget"
+    },
+    "S": {
+      "item": "strangematter:energetic_shard"
+    }
+  },
+  "result": {
+    "id": "strangematter:resonant_conduit",
+    "count": 1
+  }
+}
+

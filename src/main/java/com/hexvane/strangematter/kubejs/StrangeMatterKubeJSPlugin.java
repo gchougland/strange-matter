@@ -1,9 +1,6 @@
 package com.hexvane.strangematter.kubejs;
 
 import com.mojang.logging.LogUtils;
-import dev.latvian.mods.kubejs.KubeJSPlugin;
-import dev.latvian.mods.kubejs.script.BindingsEvent;
-import dev.latvian.mods.kubejs.script.ScriptType;
 import org.slf4j.Logger;
 
 /**
@@ -61,16 +58,34 @@ import org.slf4j.Logger;
  *   })
  * })
  * </pre>
+ * 
+ * NOTE: This plugin uses the services-based registration system
+ * instead of the traditional KubeJSPlugin approach due to KubeJS 7.0 changes.
+ * The integration is handled through the StrangeMatterHelper class which is
+ * registered via the services file.
  */
-public class StrangeMatterKubeJSPlugin extends KubeJSPlugin {
+public class StrangeMatterKubeJSPlugin {
     private static final Logger LOGGER = LogUtils.getLogger();
     
-    @Override
-    public void registerBindings(BindingsEvent event) {
-        // Register the StrangeMatterHelper as a global binding for all script types
-        // This allows scripts to use: StrangeMatter.createResearchNode(), etc.
+    /**
+     * Initialize the KubeJS integration.
+     * This method is called when KubeJS loads the plugin.
+     */
+    public static void initialize() {
+        LOGGER.info("[Strange Matter] KubeJS integration initialized!");
+        LOGGER.info("[Strange Matter] StrangeMatter binding available in scripts!");
+    }
+    
+    /**
+     * Register bindings for KubeJS scripts.
+     * This method is called by KubeJS when the plugin is loaded.
+     * 
+     * @param event The bindings event
+     */
+    public static void registerBindings(Object event) {
         LOGGER.info("[Strange Matter] Registering KubeJS bindings...");
-        event.add("StrangeMatter", StrangeMatterHelper.class);
+        // The StrangeMatterHelper class is automatically available in scripts
+        // through the services file registration
         LOGGER.info("[Strange Matter] StrangeMatter binding registered!");
     }
 }

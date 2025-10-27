@@ -13,9 +13,10 @@ import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.levelgen.placement.PlacementModifier;
 import net.minecraft.world.level.levelgen.placement.RarityFilter;
-import net.minecraftforge.event.server.ServerAboutToStartEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -24,7 +25,6 @@ import java.util.ArrayList;
  * Handles dynamic modification of world generation features based on config values.
  * This modifies placed features at server start to respect config settings.
  */
-@Mod.EventBusSubscriber(modid = StrangeMatterMod.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class ConfigurableFeaturePlacement {
     private static final Logger LOGGER = LogUtils.getLogger();
     

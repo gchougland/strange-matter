@@ -2,13 +2,18 @@ package com.hexvane.strangematter.network;
 
 import com.hexvane.strangematter.research.ResearchType;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.network.handling.ClientPayloadContext;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.function.Supplier;
 
-public class ResearchGainPacket {
+public class ResearchGainPacket implements CustomPacketPayload {
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("strangematter", "research_gain");
+    public static final Type<ResearchGainPacket> TYPE = new Type<>(ID);
     private final ResearchType researchType;
     private final int amount;
     
@@ -22,22 +27,20 @@ public class ResearchGainPacket {
         this.amount = buf.readInt();
     }
     
-    public void encode(FriendlyByteBuf buf) {
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+    
+    public void write(FriendlyByteBuf buf) {
         buf.writeUtf(researchType.getName());
         buf.writeInt(amount);
     }
     
-    public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
+    
+    public static void handle(ResearchGainPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
-            // This packet is handled on the client side
-            if (context.getDirection().getReceptionSide().isClient()) {
-                ResearchType finalType = researchType;
-                int finalAmount = amount;
-                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> 
-                    com.hexvane.strangematter.network.ResearchDataClientHandler.handleResearchGain(finalType, finalAmount));
-            }
+            com.hexvane.strangematter.network.ResearchDataClientHandler.handleResearchGain(packet.researchType, packet.amount);
         });
-        context.setPacketHandled(true);
     }
 }

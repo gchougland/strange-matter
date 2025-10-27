@@ -2,6 +2,7 @@ package com.hexvane.strangematter.block;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
@@ -19,11 +20,12 @@ import net.minecraft.world.inventory.ContainerData;
 import com.hexvane.strangematter.api.block.entity.IPacketHandlerTile;
 import com.hexvane.strangematter.StrangeMatterMod;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.IEnergyStorage;
+import com.hexvane.strangematter.energy.EnergyAttachment;
+import com.hexvane.strangematter.energy.MachineEnergyStorage;
+import com.hexvane.strangematter.energy.EnergySideManager;
+import com.hexvane.strangematter.energy.EnergyTransferManager;
 import com.hexvane.strangematter.energy.ResonanceEnergyStorage;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 
 /**
  * Base class for machine block entities that provides common functionality.
@@ -32,17 +34,17 @@ import com.hexvane.strangematter.energy.ResonanceEnergyStorage;
 public abstract class BaseMachineBlockEntity extends BlockEntity implements Container, MenuProvider, IPacketHandlerTile {
     
     // Common machine properties
-    protected int energyLevel = 0;
-    protected int maxEnergyLevel = 100;
     protected boolean isActive = false;
     
-    // Energy system
-    protected final ResonanceEnergyStorage energyStorage;
-    protected final LazyOptional<IEnergyStorage> energyOptional;
+    // Energy system - properly integrated with NeoForge
+    protected final MachineEnergyStorage energyStorage;
+    protected final EnergySideManager sideManager;
+    protected EnergyTransferManager transferManager;
     protected int energyPerTick = 1;
     protected int maxEnergyStorage = 1000;
-    protected boolean[] energyInputSides = {true, true, true, true, true, true}; // All sides by default
-    protected boolean[] energyOutputSides = {false, false, false, false, false, false}; // No output by default
+    
+    // Compatibility energy storage for external access
+    private ResonanceEnergyStorage compatibilityEnergyStorage;
     
     // Progress system for machines that produce items
     protected int progressLevel = 0;
@@ -64,6 +66,8 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
                 case 4 -> maxEnergyStorage;
                 case 5 -> progressLevel;
                 case 6 -> maxProgressLevel;
+                case 7 -> sideManager.getInputSideCount();
+                case 8 -> sideManager.getOutputSideCount();
                 default -> 0;
             };
         }
@@ -72,18 +76,18 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
         public void set(int index, int value) {
             switch (index) {
                 case 0 -> energyStorage.setEnergy(value);
-                case 1 -> energyStorage.setCapacity(value);
                 case 2 -> isActive = value != 0;
                 case 3 -> energyPerTick = value;
                 case 4 -> maxEnergyStorage = value;
                 case 5 -> progressLevel = value;
                 case 6 -> maxProgressLevel = value;
+                // Note: Energy storage capacity and side counts are read-only
             }
         }
         
         @Override
         public int getCount() {
-            return 7;
+            return 9;
         }
     };
     
@@ -91,8 +95,46 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
         super(blockEntityType, pos, state);
         this.inventorySize = inventorySize;
         this.items = NonNullList.withSize(inventorySize, ItemStack.EMPTY);
-        this.energyStorage = new ResonanceEnergyStorage(maxEnergyStorage, 1000, 1000);
-        this.energyOptional = LazyOptional.of(() -> this.energyStorage);
+        
+        // Initialize energy system
+        this.energyStorage = new MachineEnergyStorage(maxEnergyStorage, 1000, 1000, this::onEnergyChanged);
+        this.sideManager = new EnergySideManager();
+        this.transferManager = new EnergyTransferManager(energyStorage, sideManager, pos, level);
+        
+        // Attach the energy storage to this block entity for NeoForge capabilities
+        // Note: We need to use the old ResonanceEnergyStorage for compatibility
+        this.compatibilityEnergyStorage = new ResonanceEnergyStorage(maxEnergyStorage, 1000, 1000);
+        this.setData(EnergyAttachment.ENERGY_STORAGE, compatibilityEnergyStorage);
+        
+        // Initialize energy sides based on machine type
+        initializeEnergySides();
+    }
+    
+    /**
+     * Initialize energy input/output sides based on machine type.
+     * Override in subclasses to set appropriate sides.
+     */
+    protected abstract void initializeEnergySides();
+    
+    /**
+     * Called when energy storage changes
+     */
+    protected void onEnergyChanged() {
+        // Sync the compatibility energy storage with the internal storage
+        if (compatibilityEnergyStorage != null) {
+            compatibilityEnergyStorage.setEnergy(energyStorage.getEnergyStored());
+        }
+        setChanged();
+    }
+    
+    /**
+     * Sync the internal energy storage from the compatibility storage
+     * This is called when external systems modify the compatibility storage
+     */
+    protected void syncFromCompatibilityStorage() {
+        if (compatibilityEnergyStorage != null) {
+            energyStorage.setEnergy(compatibilityEnergyStorage.getEnergyStored());
+        }
     }
     
     /**
@@ -111,6 +153,24 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
         // Handle client-side effects
         if (level.isClientSide) {
             blockEntity.clientTick();
+        }
+    }
+    
+    /**
+     * Called when a neighboring block changes - notify adjacent conduits
+     */
+    public void onNeighborChanged() {
+        if (level == null) return;
+        
+        // Notify adjacent conduits that this machine has changed
+        for (Direction direction : Direction.values()) {
+            BlockPos adjacentPos = worldPosition.relative(direction);
+            BlockEntity adjacentEntity = level.getBlockEntity(adjacentPos);
+            
+            if (adjacentEntity instanceof ResonantConduitBlockEntity adjacentConduit) {
+                // Tell the adjacent conduit to update its connections
+                adjacentConduit.notifyNeighborChanged();
+            }
         }
     }
     
@@ -153,24 +213,9 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
      * Determine the energy role of this machine.
      * Override this method in specific machine classes to define their role.
      */
-    protected MachineEnergyRole getEnergyRole() {
-        // Default implementation: check input/output sides to determine role
-        boolean hasInputSides = false;
-        boolean hasOutputSides = false;
-        
-        for (boolean input : energyInputSides) {
-            if (input) {
-                hasInputSides = true;
-                break;
-            }
-        }
-        
-        for (boolean output : energyOutputSides) {
-            if (output) {
-                hasOutputSides = true;
-                break;
-            }
-        }
+    public MachineEnergyRole getEnergyRole() {
+        boolean hasInputSides = sideManager.hasInputSides();
+        boolean hasOutputSides = sideManager.hasOutputSides();
         
         if (hasInputSides && hasOutputSides) {
             return MachineEnergyRole.BOTH;
@@ -222,9 +267,23 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
     }
     
     /**
+     * Check if this machine can accept energy from a specific direction
+     */
+    public boolean canAcceptEnergyFrom(Direction direction) {
+        return sideManager.canAcceptEnergyFrom(direction);
+    }
+    
+    /**
+     * Check if this machine can output energy to a specific direction
+     */
+    public boolean canOutputEnergyTo(Direction direction) {
+        return sideManager.canOutputEnergyTo(direction);
+    }
+    
+    /**
      * Enum defining the energy roles a machine can have
      */
-    protected enum MachineEnergyRole {
+    public enum MachineEnergyRole {
         GENERATOR,           // Only sends energy (ResonantBurner, RiftStabilizer)
         CONSUMER,           // Only receives energy (ResonanceCondenser)
         BOTH,               // Can both send and receive (rare)
@@ -241,7 +300,7 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
     /**
      * Check if the machine has enough energy to operate
      */
-    protected boolean hasEnergy() {
+    public boolean hasEnergy() {
         return energyStorage.getEnergyStored() > 0;
     }
     
@@ -250,9 +309,7 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
      */
     protected boolean consumeEnergy(int amount) {
         if (energyStorage.getEnergyStored() >= amount) {
-            energyStorage.extractEnergy(amount, false);
-            setChanged();
-            syncToClient();
+            energyStorage.consumeEnergy(amount);
             return true;
         }
         return false;
@@ -262,9 +319,7 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
      * Add energy to the machine
      */
     protected void addEnergy(int amount) {
-        energyStorage.receiveEnergy(amount, false);
-        setChanged();
-        syncToClient();
+        energyStorage.addEnergy(amount);
     }
     
     /**
@@ -276,116 +331,62 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
     
     /**
      * Try to receive energy from adjacent blocks
+     * Returns true if energy was received
      */
-    protected void tryReceiveEnergy() {
-        if (level == null || level.isClientSide) return;
+    protected boolean tryReceiveEnergy() {
+        if (level == null || level.isClientSide) return false;
         
-        final boolean[] energyChanged = {false};
-        int initialEnergy = energyStorage.getEnergyStored();
+        // Update transfer manager with current level
+        transferManager = new EnergyTransferManager(energyStorage, sideManager, worldPosition, level);
         
-        for (Direction direction : Direction.values()) {
-            if (energyInputSides[direction.ordinal()]) {
-                BlockPos adjacentPos = worldPosition.relative(direction);
-                BlockEntity adjacentEntity = level.getBlockEntity(adjacentPos);
-                
-                if (adjacentEntity != null) {
-                    adjacentEntity.getCapability(ForgeCapabilities.ENERGY, direction.getOpposite()).ifPresent(adjacentStorage -> {
-                        if (adjacentStorage.canExtract() && energyStorage.canReceive()) {
-                            // Check if the adjacent entity should be able to send energy to us
-                            if (canReceiveEnergyFrom(adjacentEntity)) {
-                                int transferRate = getEnergyTransferRate();
-                                int energyToReceive = Math.min(energyStorage.getMaxEnergyStored() - energyStorage.getEnergyStored(), transferRate);
-                                if (energyToReceive > 0) {
-                                    int energyReceived = adjacentStorage.extractEnergy(energyToReceive, false);
-                                    if (energyReceived > 0) {
-                                        energyStorage.receiveEnergy(energyReceived, false);
-                                        setChanged();
-                                        energyChanged[0] = true;
-                                        
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
-            }
-        }
-        
-        // Only sync once at the end if energy changed
-        if (energyChanged[0]) {
-            syncToClient();
-        }
+        int received = transferManager.tryReceiveEnergy(getEnergyTransferRate());
+        return received > 0;
     }
     
     /**
      * Try to send energy to adjacent blocks
+     * Returns true if energy was sent
      */
-    protected void trySendEnergy() {
-        if (level == null || level.isClientSide) return;
+    protected boolean trySendEnergy() {
+        if (level == null || level.isClientSide) return false;
         
-        final boolean[] energyChanged = {false};
-        int initialEnergy = energyStorage.getEnergyStored();
+        // Update transfer manager with current level
+        transferManager = new EnergyTransferManager(energyStorage, sideManager, worldPosition, level);
         
-        for (Direction direction : Direction.values()) {
-            if (energyOutputSides[direction.ordinal()]) {
-                BlockPos adjacentPos = worldPosition.relative(direction);
-                BlockEntity adjacentEntity = level.getBlockEntity(adjacentPos);
-                
-                if (adjacentEntity != null) {
-                    adjacentEntity.getCapability(ForgeCapabilities.ENERGY, direction.getOpposite()).ifPresent(adjacentStorage -> {
-                        if (adjacentStorage.canReceive() && energyStorage.canExtract()) {
-                            // Check if the adjacent entity should be able to receive energy from us
-                            if (canSendEnergyTo(adjacentEntity)) {
-                                int transferRate = getEnergyTransferRate();
-                                int energyToSend = Math.min(energyStorage.getEnergyStored(), transferRate);
-                                if (energyToSend > 0) {
-                                    int energySent = adjacentStorage.receiveEnergy(energyToSend, false);
-                                    if (energySent > 0) {
-                                        energyStorage.extractEnergy(energySent, false);
-                                        setChanged();
-                                        energyChanged[0] = true;
-                                        
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
-            }
-        }
-        
-        // Only sync once at the end if energy changed
-        if (energyChanged[0]) {
-            syncToClient();
-        }
+        int sent = transferManager.trySendEnergy(getEnergyTransferRate());
+        return sent > 0;
     }
     
     /**
      * Configure which sides can accept energy input
      */
     protected void setEnergyInputSides(boolean[] sides) {
-        this.energyInputSides = sides.clone();
+        for (int i = 0; i < 6; i++) {
+            sideManager.setInputSide(Direction.values()[i], sides[i]);
+        }
     }
     
     /**
      * Configure which sides can output energy
      */
     protected void setEnergyOutputSides(boolean[] sides) {
-        this.energyOutputSides = sides.clone();
+        for (int i = 0; i < 6; i++) {
+            sideManager.setOutputSide(Direction.values()[i], sides[i]);
+        }
     }
     
     /**
      * Set energy input for a specific side
      */
     protected void setEnergyInputSide(Direction side, boolean canInput) {
-        this.energyInputSides[side.ordinal()] = canInput;
+        sideManager.setInputSide(side, canInput);
     }
     
     /**
      * Set energy output for a specific side
      */
     protected void setEnergyOutputSide(Direction side, boolean canOutput) {
-        this.energyOutputSides[side.ordinal()] = canOutput;
+        sideManager.setOutputSide(side, canOutput);
     }
     
     /**
@@ -487,8 +488,8 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
     
     // NBT serialization
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.saveAdditional(tag, provider);
         tag.putInt("energy_stored", energyStorage.getEnergyStored());
         tag.putInt("max_energy_stored", energyStorage.getMaxEnergyStored());
         tag.putInt("energy_per_tick", energyPerTick);
@@ -500,19 +501,19 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
         // Save energy input/output sides
         CompoundTag energySidesTag = new CompoundTag();
         for (int i = 0; i < 6; i++) {
-            energySidesTag.putBoolean("input_" + i, energyInputSides[i]);
-            energySidesTag.putBoolean("output_" + i, energyOutputSides[i]);
+            energySidesTag.putBoolean("input_" + i, sideManager.canAcceptEnergyFrom(Direction.values()[i]));
+            energySidesTag.putBoolean("output_" + i, sideManager.canOutputEnergyTo(Direction.values()[i]));
         }
         tag.put("energy_sides", energySidesTag);
         
-        ContainerHelper.saveAllItems(tag, this.items);
+        ContainerHelper.saveAllItems(tag, this.items, provider);
     }
     
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.loadAdditional(tag, provider);
         energyStorage.setEnergy(tag.getInt("energy_stored"));
-        energyStorage.setCapacity(tag.getInt("max_energy_stored"));
+        // Energy storage capacity is set in constructor, no need to change it
         energyPerTick = tag.getInt("energy_per_tick");
         maxEnergyStorage = tag.getInt("max_energy_storage");
         isActive = tag.getBoolean("is_active");
@@ -523,12 +524,12 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
         if (tag.contains("energy_sides")) {
             CompoundTag energySidesTag = tag.getCompound("energy_sides");
             for (int i = 0; i < 6; i++) {
-                energyInputSides[i] = energySidesTag.getBoolean("input_" + i);
-                energyOutputSides[i] = energySidesTag.getBoolean("output_" + i);
+                // Load energy sides - this is handled by initializeEnergySides() now
+                // Load energy sides - this is handled by initializeEnergySides() now
             }
         }
         
-        ContainerHelper.loadAllItems(tag, this.items);
+        ContainerHelper.loadAllItems(tag, this.items, provider);
     }
     
     // Getters for GUI access
@@ -566,7 +567,7 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
         
         // Update the actual energy storage
         energyStorage.setEnergy(storedEnergy);
-        energyStorage.setCapacity(maxEnergy);
+        // Energy storage capacity is set in constructor, no need to change it
         
         readAdditionalStateData(buffer);
     }
@@ -600,7 +601,7 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
      */
     public void sendStatePacket() {
         if (level != null && !level.isClientSide) {
-            // TODO: Implement packet sending through network system
+            com.hexvane.strangematter.network.MachineStatePacket.sendToClient(this);
         }
     }
     
@@ -616,37 +617,17 @@ public abstract class BaseMachineBlockEntity extends BlockEntity implements Cont
     }
     
     
-    // Capability support
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-        if (cap == ForgeCapabilities.ENERGY) {
-            // Only expose energy capability if the side allows it
-            if (side != null) {
-                // Check if this side allows input or output
-                boolean canInput = energyInputSides[side.ordinal()];
-                boolean canOutput = energyOutputSides[side.ordinal()];
-                
-                if (canInput || canOutput) {
-                    return energyOptional.cast();
-                } else {
-                    return LazyOptional.empty();
-                }
-            } else {
-                // If side is null (internal access), always allow
-                return energyOptional.cast();
-            }
-        }
-        return super.getCapability(cap, side);
+    // Energy system access methods
+    public boolean canReceiveEnergy(Direction side) {
+        return side == null || sideManager.canAcceptEnergyFrom(side);
     }
     
-    @Override
-    public void invalidateCaps() {
-        super.invalidateCaps();
-        energyOptional.invalidate();
+    public boolean canExtractEnergy(Direction side) {
+        return side == null || sideManager.canOutputEnergyTo(side);
     }
     
     // Energy system getters
-    public ResonanceEnergyStorage getEnergyStorage() {
+    public MachineEnergyStorage getEnergyStorage() {
         return energyStorage;
     }
     

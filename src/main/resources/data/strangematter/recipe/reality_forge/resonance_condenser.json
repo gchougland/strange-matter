@@ -1,0 +1,31 @@
+{
+  "type": "strangematter:reality_forge",
+  "pattern": [
+    "CSC",
+    "IAI",
+    "CSC"
+  ],
+  "key": {
+    "C": {
+      "item": "strangematter:resonant_coil"
+    },
+    "S": {
+      "item": "strangematter:resonant_circuit"
+    },
+    "I": {
+      "item": "strangematter:resonite_ingot"
+    },
+    "A": {
+      "item": "strangematter:stabilized_core"
+    }
+  },
+  "shards": {
+    "gravitic": 1,
+    "energetic": 1
+  },
+  "required_research": "resonance_condenser",
+  "result": {
+    "id": "strangematter:resonance_condenser",
+    "count": 1
+  }
+}

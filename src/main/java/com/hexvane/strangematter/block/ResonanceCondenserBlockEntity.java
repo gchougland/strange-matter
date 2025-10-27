@@ -1,6 +1,7 @@
 package com.hexvane.strangematter.block;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -38,7 +39,7 @@ public class ResonanceCondenserBlockEntity extends BaseMachineBlockEntity {
     private int anomalyCheckCounter = 0;
     
     // Machine inventory - this is what the GUI actually uses
-    private final net.minecraftforge.items.IItemHandler machineInventory = new net.minecraftforge.items.wrapper.InvWrapper(this);
+    private final net.neoforged.neoforge.items.IItemHandler machineInventory = new net.neoforged.neoforge.items.wrapper.InvWrapper(this);
     
     public ResonanceCondenserBlockEntity(BlockPos pos, BlockState state) {
         super(StrangeMatterMod.RESONANCE_CONDENSER_BLOCK_ENTITY.get(), pos, state, 1);
@@ -46,9 +47,11 @@ public class ResonanceCondenserBlockEntity extends BaseMachineBlockEntity {
         // Configure energy system for Resonance Condenser from config
         this.energyPerTick = com.hexvane.strangematter.Config.resonanceCondenserEnergyPerTick;
         this.maxEnergyStorage = com.hexvane.strangematter.Config.resonanceCondenserEnergyStorage;
-        this.energyStorage.setCapacity(maxEnergyStorage);
-        
-        // Configure energy input sides (all sides except front)
+    }
+    
+    @Override
+    protected void initializeEnergySides() {
+        // Configure energy input sides (all sides for receiving power)
         boolean[] inputSides = {true, true, true, true, true, true}; // All sides by default
         this.setEnergyInputSides(inputSides);
         
@@ -58,22 +61,27 @@ public class ResonanceCondenserBlockEntity extends BaseMachineBlockEntity {
     }
     
     @Override
-    protected MachineEnergyRole getEnergyRole() {
+    protected int getEnergyTransferRate() {
+        return 1000; // Use default transfer rate for condenser
+    }
+    
+    @Override
+    public MachineEnergyRole getEnergyRole() {
         return MachineEnergyRole.CONSUMER; // Explicitly define as consumer
     }
     
     public static void tick(Level level, BlockPos pos, BlockState state, ResonanceCondenserBlockEntity blockEntity) {
         blockEntity.tickCounter++;
         
+        // Call parent tick method to handle energy processing
+        BaseMachineBlockEntity.tick(level, pos, state, blockEntity);
+        
         // Only process machine logic on server side
         if (!level.isClientSide) {
             blockEntity.processResonance();
         }
         
-        // Spawn particles every 5 ticks (4 times per second) - client side only
-        if (level.isClientSide && blockEntity.tickCounter % 5 == 0) {
-            blockEntity.spawnParticles(level, pos);
-        }
+        // Particles are now handled by client-side event handler
     }
     
     private void processResonance() {
@@ -136,44 +144,6 @@ public class ResonanceCondenserBlockEntity extends BaseMachineBlockEntity {
         }
     }
     
-    private void spawnParticles(Level level, BlockPos pos) {
-        if (level.isClientSide) {
-            // Find nearby anomalies and spawn particles
-        for (Entity entity : level.getEntitiesOfClass(Entity.class,
-            net.minecraft.world.phys.AABB.ofSize(pos.getCenter(), 16, 16, 16))) {
-
-            if (entity instanceof BaseAnomalyEntity) {
-                spawnEnergyParticles(level, entity.position(), pos);
-            }
-        }
-        }
-    }
-    
-    private void spawnEnergyParticles(Level level, net.minecraft.world.phys.Vec3 anomalyPos, BlockPos condenserPos) {
-        RandomSource random = level.getRandom();
-        
-        // Spawn particles in a sphere around the anomaly
-        for (int i = 0; i < 3; i++) {
-            // Random position in sphere around anomaly
-            double angle = random.nextDouble() * Math.PI * 2;
-            double height = random.nextDouble() * 2 - 1;
-            double radius = 2 + random.nextDouble() * 3; // 2-5 block radius
-            
-            double x = anomalyPos.x + Math.cos(angle) * radius;
-            double y = anomalyPos.y + height;
-            double z = anomalyPos.z + Math.sin(angle) * radius;
-            
-            // Target position (top of condenser)
-            double targetX = condenserPos.getX() + 0.5;
-            double targetY = condenserPos.getY() + 2.0; // Top of the condenser
-            double targetZ = condenserPos.getZ() + 0.5;
-            
-            // Spawn the particle
-            level.addParticle(StrangeMatterMod.ENERGY_ABSORPTION_PARTICLE.get(), 
-                x, y, z, targetX, targetY, targetZ);
-        }
-    }
-    
     private void generateShardFromNearbyAnomaly() {
         if (level == null) {
             System.out.println("generateShardFromNearbyAnomaly: level is null!");
@@ -214,14 +184,22 @@ public class ResonanceCondenserBlockEntity extends BaseMachineBlockEntity {
     }
     
     private Item getShardItemForResearchType(ResearchType researchType) {
-        return switch (researchType) {
-            case GRAVITY -> StrangeMatterMod.GRAVITIC_SHARD.get();
-            case TIME -> StrangeMatterMod.CHRONO_SHARD.get();
-            case SPACE -> StrangeMatterMod.SPATIAL_SHARD.get();
-            case SHADOW -> StrangeMatterMod.SHADE_SHARD.get();
-            case COGNITION -> StrangeMatterMod.INSIGHT_SHARD.get();
-            case ENERGY -> StrangeMatterMod.ENERGETIC_SHARD.get();
-        };
+        switch (researchType) {
+            case GRAVITY:
+                return StrangeMatterMod.GRAVITIC_SHARD.get();
+            case TIME:
+                return StrangeMatterMod.CHRONO_SHARD.get();
+            case SPACE:
+                return StrangeMatterMod.SPATIAL_SHARD.get();
+            case SHADOW:
+                return StrangeMatterMod.SHADE_SHARD.get();
+            case COGNITION:
+                return StrangeMatterMod.INSIGHT_SHARD.get();
+            case ENERGY:
+                return StrangeMatterMod.ENERGETIC_SHARD.get();
+            default:
+                return StrangeMatterMod.GRAVITIC_SHARD.get(); // Fallback
+        }
     }
     
     // Container interface methods
@@ -371,23 +349,23 @@ public class ResonanceCondenserBlockEntity extends BaseMachineBlockEntity {
     }
     
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.saveAdditional(tag, provider);
         tag.putInt("progress_level", progressLevel);
         tag.putBoolean("is_active", isActive);
         tag.putInt("tick_counter", tickCounter);
         tag.putInt("anomaly_check_counter", anomalyCheckCounter);
-        ContainerHelper.saveAllItems(tag, this.items);
+        ContainerHelper.saveAllItems(tag, this.items, provider);
     }
     
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.loadAdditional(tag, provider);
         progressLevel = tag.getInt("progress_level");
         isActive = tag.getBoolean("is_active");
         tickCounter = tag.getInt("tick_counter");
         anomalyCheckCounter = tag.getInt("anomaly_check_counter");
-        ContainerHelper.loadAllItems(tag, this.items);
+        ContainerHelper.loadAllItems(tag, this.items, provider);
         
         // Clear cached anomaly on load since entity references don't persist
         cachedAnomaly = null;

@@ -2,18 +2,18 @@ package com.hexvane.strangematter.block;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.IEnergyStorage;
+import com.hexvane.strangematter.energy.EnergyAttachment;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 import com.hexvane.strangematter.energy.ResonanceEnergyStorage;
 import com.hexvane.strangematter.StrangeMatterMod;
 import com.hexvane.strangematter.Config;
+import net.neoforged.neoforge.capabilities.Capabilities;
 
 import java.util.*;
 
@@ -34,10 +34,20 @@ public class ResonantConduitBlockEntity extends BlockEntity {
     // Performance optimization - only update network cache when needed
     private int networkUpdateCounter = 0;
     
+    // Prevent infinite recursion when notifying adjacent conduits
+    private boolean isUpdatingConnections = false;
+    
     
     public ResonantConduitBlockEntity(BlockPos pos, BlockState state) {
         super(StrangeMatterMod.RESONANT_CONDUIT_BLOCK_ENTITY.get(), pos, state);
         // No energy storage - pure conduit
+    }
+    
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        // Initialize connections when the block entity is loaded
+        updateConnections();
     }
     
     public static void tick(Level level, BlockPos pos, BlockState state, ResonantConduitBlockEntity blockEntity) {
@@ -51,6 +61,11 @@ public class ResonantConduitBlockEntity extends BlockEntity {
             blockEntity.networkUpdateCounter = 0;
         }
         
+        // Update connections periodically to ensure they stay current
+        if (blockEntity.networkUpdateCounter % 20 == 0) { // Every second
+            blockEntity.updateConnections();
+        }
+        
         // Perform direct energy routing every tick
         blockEntity.performDirectEnergyRouting();
     }
@@ -60,14 +75,16 @@ public class ResonantConduitBlockEntity extends BlockEntity {
      */
     public void onNeighborChanged() {
         networkCacheValid = false;
-        updateConnections();
+        notifyNeighborChanged();
     }
     
     /**
      * Update connection state for adjacent blocks
      */
     private void updateConnections() {
-        if (level == null) return;
+        if (level == null || isUpdatingConnections) return;
+        
+        isUpdatingConnections = true;
         
         Arrays.fill(connectedSides, false);
         
@@ -77,15 +94,62 @@ public class ResonantConduitBlockEntity extends BlockEntity {
             BlockEntity adjacentEntity = level.getBlockEntity(adjacentPos);
             
             if (adjacentEntity != null) {
-                // Check if it's another conduit or an energy-capable block
-                if (adjacentEntity instanceof ResonantConduitBlockEntity || 
-                    adjacentEntity.getCapability(ForgeCapabilities.ENERGY, direction.getOpposite()).isPresent()) {
+                if (adjacentEntity instanceof ResonantConduitBlockEntity) {
+                    // Always connect to other conduits
+                    connectedSides[direction.ordinal()] = true;
+                } else if (adjacentEntity instanceof BaseMachineBlockEntity machine) {
+                    // Check if this side of the machine can accept or output energy
+                    Direction oppositeDirection = direction.getOpposite();
+                    boolean canConnect = machine.canAcceptEnergyFrom(oppositeDirection) || 
+                                       machine.canOutputEnergyTo(oppositeDirection);
+                    connectedSides[direction.ordinal()] = canConnect;
+                } else if (getEnergyStorageFromEntity(adjacentEntity) != null) {
+                    // For other energy-capable blocks, allow connection
                     connectedSides[direction.ordinal()] = true;
                 }
             }
         }
         
         setChanged();
+        
+        // Notify adjacent conduits to update their connections
+        // This is necessary because neighbor change events only fire for the placed block
+        notifyAdjacentConduits();
+        
+        isUpdatingConnections = false;
+    }
+    
+    /**
+     * Notify adjacent conduits to update their connections
+     * Only notifies conduits, not machines, to prevent unnecessary updates
+     */
+    private void notifyAdjacentConduits() {
+        if (level == null) return;
+        
+        for (Direction direction : Direction.values()) {
+            BlockPos adjacentPos = worldPosition.relative(direction);
+            BlockEntity adjacentEntity = level.getBlockEntity(adjacentPos);
+            
+            if (adjacentEntity instanceof ResonantConduitBlockEntity adjacentConduit) {
+                // Only update if the adjacent conduit isn't already updating
+                // This prevents infinite loops while still allowing necessary updates
+                adjacentConduit.updateConnections();
+            }
+        }
+    }
+    
+    /**
+     * Notify this conduit that a neighbor has changed
+     * This should be called when any block is placed/removed next to this conduit
+     */
+    public void notifyNeighborChanged() {
+        if (level == null) return;
+        
+        // Update this conduit's connections
+        updateConnections();
+        
+        // Also notify adjacent conduits so they update their connections to this one
+        notifyAdjacentConduits();
     }
     
     /**
@@ -123,16 +187,19 @@ public class ResonantConduitBlockEntity extends BlockEntity {
                 findNetworkSourcesAndSinks(adjacentPos, distance + 1, visited);
             } else {
                 // Check if it's an energy source or sink
-                adjacentEntity.getCapability(ForgeCapabilities.ENERGY, direction.getOpposite()).ifPresent(storage -> {
-                    if (storage.canExtract() && storage.getEnergyStored() > 0) {
-                        // It's a source
+                IEnergyStorage storage = getEnergyStorageFromEntity(adjacentEntity);
+                if (storage != null) {
+                    // Check if it should be a source (only generators)
+                    if (storage.canExtract() && storage.getEnergyStored() > 0 && 
+                        shouldBeEnergySource(adjacentEntity)) {
                         cachedSources.put(adjacentPos, distance + 1);
                     }
-                    if (storage.canReceive() && storage.getEnergyStored() < storage.getMaxEnergyStored()) {
-                        // It's a sink
+                    // Check if it should be a sink (only consumers)
+                    if (storage.canReceive() && storage.getEnergyStored() < storage.getMaxEnergyStored() && 
+                        shouldBeEnergySink(adjacentEntity)) {
                         cachedSinks.put(adjacentPos, distance + 1);
                     }
-                });
+                }
             }
         }
     }
@@ -151,8 +218,9 @@ public class ResonantConduitBlockEntity extends BlockEntity {
             BlockEntity sourceEntity = level.getBlockEntity(sourcePos);
             if (sourceEntity == null) continue;
             
-            sourceEntity.getCapability(ForgeCapabilities.ENERGY).ifPresent(sourceStorage -> {
-                if (!sourceStorage.canExtract() || sourceStorage.getEnergyStored() <= 0) return;
+            IEnergyStorage sourceStorage = getEnergyStorageFromEntity(sourceEntity);
+            if (sourceStorage != null) {
+                if (!sourceStorage.canExtract() || sourceStorage.getEnergyStored() <= 0) continue;
                 
                 // Try to route energy to sinks
                 for (Map.Entry<BlockPos, Integer> sinkEntry : cachedSinks.entrySet()) {
@@ -162,12 +230,13 @@ public class ResonantConduitBlockEntity extends BlockEntity {
                     BlockEntity sinkEntity = level.getBlockEntity(sinkPos);
                     if (sinkEntity == null) continue;
                     
-                    sinkEntity.getCapability(ForgeCapabilities.ENERGY).ifPresent(sinkStorage -> {
-                        if (!sinkStorage.canReceive() || sinkStorage.getEnergyStored() >= sinkStorage.getMaxEnergyStored()) return;
+                    IEnergyStorage sinkStorage = getEnergyStorageFromEntity(sinkEntity);
+                    if (sinkStorage != null) {
+                        if (!sinkStorage.canReceive() || sinkStorage.getEnergyStored() >= sinkStorage.getMaxEnergyStored()) continue;
                         
                         // Check if this transfer is role-compatible
                         if (!isRoleCompatibleTransfer(sourceEntity, sinkEntity)) {
-                            return;
+                            continue;
                         }
                         
                         // Calculate transfer amount based on distance with configurable penalty
@@ -190,9 +259,9 @@ public class ResonantConduitBlockEntity extends BlockEntity {
                                 sourceStorage.extractEnergy(energyReceived, false);
                             }
                         }
-                    });
+                    }
                 }
-            });
+            }
         }
     }
     
@@ -252,15 +321,11 @@ public class ResonantConduitBlockEntity extends BlockEntity {
         return getConnectionCount() >= 3;
     }
     
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-        // Conduits don't expose energy capabilities - they just route energy
-        return super.getCapability(cap, side);
-    }
+    // Conduits don't expose energy capabilities - they just route energy
     
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.saveAdditional(tag, provider);
         
         // Save connection states
         byte[] connectionBytes = new byte[6];
@@ -271,8 +336,8 @@ public class ResonantConduitBlockEntity extends BlockEntity {
     }
     
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.loadAdditional(tag, provider);
         
         // Load connection states
         if (tag.contains("connections")) {
@@ -292,6 +357,59 @@ public class ResonantConduitBlockEntity extends BlockEntity {
     public void forceUpdateConnections() {
         networkCacheValid = false;
         updateConnections();
+    }
+    
+    /**
+     * Check if a machine should be treated as an energy source
+     */
+    private boolean shouldBeEnergySource(BlockEntity entity) {
+        if (entity instanceof BaseMachineBlockEntity machine) {
+            BaseMachineBlockEntity.MachineEnergyRole role = machine.getEnergyRole();
+            return role == BaseMachineBlockEntity.MachineEnergyRole.GENERATOR || 
+                   role == BaseMachineBlockEntity.MachineEnergyRole.BOTH;
+        }
+        // For non-machine entities, allow them to be sources if they can extract
+        return true;
+    }
+    
+    /**
+     * Check if a machine should be treated as an energy sink
+     */
+    private boolean shouldBeEnergySink(BlockEntity entity) {
+        if (entity instanceof BaseMachineBlockEntity machine) {
+            BaseMachineBlockEntity.MachineEnergyRole role = machine.getEnergyRole();
+            return role == BaseMachineBlockEntity.MachineEnergyRole.CONSUMER || 
+                   role == BaseMachineBlockEntity.MachineEnergyRole.BOTH;
+        }
+        // For non-machine entities, allow them to be sinks if they can receive
+        return true;
+    }
+    
+    /**
+     * Get energy storage from a block entity using the proper energy system
+     */
+    private IEnergyStorage getEnergyStorageFromEntity(BlockEntity entity) {
+        if (entity == null) return null;
+        
+        // For Strange Matter machines, get the internal energy storage directly
+        if (entity instanceof BaseMachineBlockEntity machineEntity) {
+            return machineEntity.getEnergyStorage();
+        }
+        
+        // For other blocks, try the standard NeoForge capability
+        if (level != null) {
+            IEnergyStorage standardStorage = level.getCapability(Capabilities.EnergyStorage.BLOCK, entity.getBlockPos(), null);
+            if (standardStorage != null) {
+                return standardStorage;
+            }
+        }
+        
+        // Fall back to our custom EnergyAttachment system for non-machine blocks
+        if (EnergyAttachment.hasEnergyStorage(entity)) {
+            return EnergyAttachment.getEnergyStorage(entity);
+        }
+        
+        return null;
     }
     
     /**

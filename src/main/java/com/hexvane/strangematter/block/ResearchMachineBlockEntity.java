@@ -3,6 +3,7 @@ package com.hexvane.strangematter.block;
 import com.hexvane.strangematter.research.ResearchType;
 import com.hexvane.strangematter.sound.StrangeMatterSounds;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -120,7 +121,7 @@ public class ResearchMachineBlockEntity extends BlockEntity {
                     com.hexvane.strangematter.research.ResearchNode researchNode = com.hexvane.strangematter.research.ResearchNodeRegistry.getNode(currentResearchId);
                     if (researchNode != null && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
                         for (com.hexvane.strangematter.research.ResearchType researchType : researchNode.getResearchCosts().keySet()) {
-                            StrangeMatterMod.COMPLETE_RESEARCH_CATEGORY_TRIGGER.trigger(serverPlayer, researchType.getName());
+                            com.hexvane.strangematter.advancement.ModCriteriaTriggers.COMPLETE_RESEARCH_CATEGORY_TRIGGER.get().trigger(serverPlayer, researchType.getName());
                         }
                     }
                     
@@ -309,10 +310,9 @@ public class ResearchMachineBlockEntity extends BlockEntity {
                     instabilityLevel, researchTicks);
             
             // Send to all players tracking this chunk
-            com.hexvane.strangematter.network.NetworkHandler.INSTANCE.send(
-                net.minecraftforge.network.PacketDistributor.TRACKING_CHUNK.with(
-                    () -> level.getChunkAt(worldPosition)
-                ),
+            net.neoforged.neoforge.network.PacketDistributor.sendToPlayersTrackingChunk(
+                (net.minecraft.server.level.ServerLevel) level, 
+                level.getChunkAt(worldPosition).getPos(), 
                 packet
             );
         }
@@ -321,8 +321,8 @@ public class ResearchMachineBlockEntity extends BlockEntity {
     // NBT serialization
     
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.saveAdditional(tag, provider);
         tag.putString("state", currentState.name());
         tag.putString("research_id", currentResearchId);
         tag.putFloat("instability", instabilityLevel);
@@ -375,8 +375,8 @@ public class ResearchMachineBlockEntity extends BlockEntity {
     }
     
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.loadAdditional(tag, provider);
         
         // Note: We DON'T restore facing from NBT here because the structure system
         // handles rotation automatically when placing structures. The blockstate will

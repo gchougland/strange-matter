@@ -5,7 +5,7 @@ import com.mojang.math.Axis;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
 public class GravitonHammerRenderer implements IClientItemExtensions {
     
@@ -31,34 +31,35 @@ public class GravitonHammerRenderer implements IClientItemExtensions {
         return false; // Use default rendering when not charging
     }
     
+    private static final String CHARGING_TAG = "charging";
+    private static final String CHARGE_LEVEL_TAG = "charge_level";
+    private static final String CHARGE_TIME_TAG = "charge_time";
+    
     private boolean isCharging(ItemStack stack) {
-        if (stack.hasTag()) {
-            return stack.getTag().getBoolean("charging");
-        }
-        return false;
+        net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+        return !customData.isEmpty() && customData.copyTag().getBoolean(CHARGING_TAG);
     }
     
     private int getChargeLevel(ItemStack stack) {
-        if (stack.hasTag()) {
-            return stack.getTag().getInt("charge_level");
-        }
-        return 0;
+        net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+        return !customData.isEmpty() ? customData.copyTag().getInt(CHARGE_LEVEL_TAG) : 0;
     }
     
     private float getChargeProgress(ItemStack stack) {
-        if (stack.hasTag()) {
-            int chargeTime = stack.getTag().getInt("charge_time");
-            int currentLevel = getChargeLevel(stack);
-            
-            // Calculate progress within the current charge level
-            int levelStartTime = getLevelStartTime(currentLevel);
-            int levelEndTime = getLevelEndTime(currentLevel);
-            
-            if (levelEndTime > levelStartTime) {
-                return Math.min(1.0f, (float) (chargeTime - levelStartTime) / (levelEndTime - levelStartTime));
-            }
-        }
-        return 0.0f;
+        net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+        if (customData.isEmpty()) return 0.0f;
+        
+        int chargeTime = customData.copyTag().getInt(CHARGE_TIME_TAG);
+        int chargeLevel = customData.copyTag().getInt(CHARGE_LEVEL_TAG);
+        
+        // Calculate progress within the current charge level
+        int levelStartTime = getLevelStartTime(chargeLevel);
+        int levelEndTime = getLevelEndTime(chargeLevel);
+        
+        if (levelEndTime <= levelStartTime) return 0.0f;
+        
+        float progress = (float)(chargeTime - levelStartTime) / (float)(levelEndTime - levelStartTime);
+        return Math.max(0.0f, Math.min(1.0f, progress));
     }
     
     private int getLevelStartTime(int level) {

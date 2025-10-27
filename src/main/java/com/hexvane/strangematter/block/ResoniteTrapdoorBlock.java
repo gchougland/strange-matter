@@ -8,13 +8,12 @@ import net.minecraft.world.level.material.MapColor;
 
 public class ResoniteTrapdoorBlock extends TrapDoorBlock {
     public ResoniteTrapdoorBlock() {
-        super(BlockBehaviour.Properties.of()
+        super(BlockSetType.OAK, BlockBehaviour.Properties.of()
             .mapColor(MapColor.COLOR_PURPLE)
             .strength(3.0f, 6.0f)
             .sound(SoundType.METAL)
             .requiresCorrectToolForDrops()
-            .noOcclusion(),
-            BlockSetType.OAK
+            .noOcclusion()
         );
     }
 }

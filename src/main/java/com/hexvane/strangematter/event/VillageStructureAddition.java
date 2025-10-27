@@ -9,9 +9,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
-import net.minecraftforge.event.TagsUpdatedEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.TagsUpdatedEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +25,6 @@ import java.util.Objects;
  * Adds the Anomaly Scientist Lab to vanilla village generation
  * Uses reflection to inject into village template pools
  */
-@Mod.EventBusSubscriber(modid = StrangeMatterMod.MODID)
 public class VillageStructureAddition {
     
     private static final Logger LOGGER = LoggerFactory.getLogger("StrangeMatter:VillageStructures");

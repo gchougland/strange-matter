@@ -14,7 +14,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.util.LazyOptional;
+import java.util.Optional;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -26,12 +26,12 @@ public class ResearchNoteItem extends Item {
     }
     
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
-        CompoundTag tag = stack.getOrCreateTag();
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
         
         // Show which research this note is for
-        if (tag.contains("research_id")) {
-            String researchId = tag.getString("research_id");
+        if (!customData.isEmpty() && customData.contains("research_id")) {
+            String researchId = customData.copyTag().getString("research_id");
             // Try to get the research node to show its name
             com.hexvane.strangematter.research.ResearchNode node = com.hexvane.strangematter.research.ResearchNodeRegistry.getNode(researchId);
             if (node != null) {
@@ -42,7 +42,7 @@ public class ResearchNoteItem extends Item {
             }
         }
         
-        super.appendHoverText(stack, level, tooltip, flag);
+        super.appendHoverText(stack, context, tooltip, flag);
     }
     
     /**
@@ -50,25 +50,26 @@ public class ResearchNoteItem extends Item {
      */
     public static ItemStack createResearchNote(Map<ResearchType, Integer> researchCosts, String researchId) {
         ItemStack stack = new ItemStack(StrangeMatterMod.RESEARCH_NOTES.get());
-        CompoundTag tag = stack.getOrCreateTag();
         
-        // Store research types
-        ListTag typesList = new ListTag();
-        for (ResearchType type : researchCosts.keySet()) {
-            typesList.add(StringTag.valueOf(type.name()));
-        }
-        tag.put("research_types", typesList);
-        
-        // Store research costs
-        CompoundTag costsTag = new CompoundTag();
-        for (Map.Entry<ResearchType, Integer> entry : researchCosts.entrySet()) {
-            costsTag.putInt(entry.getKey().name(), entry.getValue());
-        }
-        tag.put("research_costs", costsTag);
-        
-        // Store the research ID this note is for
-        tag.putString("research_id", researchId);
-        
+        // Store research data using DataComponents
+        net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, stack, tag -> {
+            // Store research types
+            ListTag typesList = new ListTag();
+            for (ResearchType type : researchCosts.keySet()) {
+                typesList.add(StringTag.valueOf(type.name()));
+            }
+            tag.put("research_types", typesList);
+            
+            // Store research costs
+            CompoundTag costsTag = new CompoundTag();
+            for (Map.Entry<ResearchType, Integer> entry : researchCosts.entrySet()) {
+                costsTag.putInt(entry.getKey().name(), entry.getValue());
+            }
+            tag.put("research_costs", costsTag);
+            
+            // Store the research ID this note is for
+            tag.putString("research_id", researchId);
+        });
         
         return stack;
     }
@@ -78,9 +79,9 @@ public class ResearchNoteItem extends Item {
      */
     public static Set<ResearchType> getResearchTypes(ItemStack stack) {
         Set<ResearchType> types = new HashSet<>();
-        CompoundTag tag = stack.getTag();
-        if (tag != null && tag.contains("research_types")) {
-            ListTag typesList = tag.getList("research_types", Tag.TAG_STRING);
+        net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+        if (!customData.isEmpty() && customData.contains("research_types")) {
+            ListTag typesList = customData.copyTag().getList("research_types", Tag.TAG_STRING);
             for (Tag typeTag : typesList) {
                 types.add(ResearchType.valueOf(typeTag.getAsString()));
             }
@@ -92,9 +93,9 @@ public class ResearchNoteItem extends Item {
      * Gets the research ID this note is for
      */
     public static String getResearchId(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag != null && tag.contains("research_id")) {
-            return tag.getString("research_id");
+        net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+        if (!customData.isEmpty() && customData.contains("research_id")) {
+            return customData.copyTag().getString("research_id");
         }
         return "";
     }
@@ -107,10 +108,10 @@ public class ResearchNoteItem extends Item {
             return false;
         }
         
-        CompoundTag tag = stack.getTag();
-        return tag != null && 
-               tag.contains("research_types") && 
-               tag.contains("research_costs") && 
-               tag.contains("research_id");
+        net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+        return !customData.isEmpty() && 
+               customData.contains("research_types") && 
+               customData.contains("research_costs") && 
+               customData.contains("research_id");
     }
 }

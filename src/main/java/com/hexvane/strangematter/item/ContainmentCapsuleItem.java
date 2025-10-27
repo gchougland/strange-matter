@@ -66,7 +66,7 @@ public class ContainmentCapsuleItem extends Item {
     }
     
     @Override
-    public void appendHoverText(ItemStack stack, Level level, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         if (hasAnomaly()) {
             tooltip.add(Component.translatable("item.strangematter.containment_capsule.filled.tooltip")
                 .withStyle(ChatFormatting.GREEN));
@@ -108,11 +108,11 @@ public class ContainmentCapsuleItem extends Item {
     }
     
     // Registry objects for all capsule types - these will be set by StrangeMatterMod
-    public static net.minecraftforge.registries.RegistryObject<Item> EMPTY_CAPSULE;
-    public static net.minecraftforge.registries.RegistryObject<Item> GRAVITY_CAPSULE;
-    public static net.minecraftforge.registries.RegistryObject<Item> ENERGETIC_CAPSULE;
-    public static net.minecraftforge.registries.RegistryObject<Item> ECHOING_SHADOW_CAPSULE;
-    public static net.minecraftforge.registries.RegistryObject<Item> TEMPORAL_BLOOM_CAPSULE;
-    public static net.minecraftforge.registries.RegistryObject<Item> THOUGHTWELL_CAPSULE;
-    public static net.minecraftforge.registries.RegistryObject<Item> WARP_GATE_CAPSULE;
+    public static net.neoforged.neoforge.registries.DeferredHolder<Item, Item> EMPTY_CAPSULE;
+    public static net.neoforged.neoforge.registries.DeferredHolder<Item, Item> GRAVITY_CAPSULE;
+    public static net.neoforged.neoforge.registries.DeferredHolder<Item, Item> ENERGETIC_CAPSULE;
+    public static net.neoforged.neoforge.registries.DeferredHolder<Item, Item> ECHOING_SHADOW_CAPSULE;
+    public static net.neoforged.neoforge.registries.DeferredHolder<Item, Item> TEMPORAL_BLOOM_CAPSULE;
+    public static net.neoforged.neoforge.registries.DeferredHolder<Item, Item> THOUGHTWELL_CAPSULE;
+    public static net.neoforged.neoforge.registries.DeferredHolder<Item, Item> WARP_GATE_CAPSULE;
 }

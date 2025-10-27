@@ -2,21 +2,22 @@ package com.hexvane.strangematter.event;
 
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.entity.living.LivingFallEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Mod.EventBusSubscriber(modid = "strangematter", bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class GravityEventHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(GravityEventHandler.class);
     
     @SubscribeEvent
-    public static void onLivingTick(LivingEvent.LivingTickEvent event) {
+    public static void onLivingTick(EntityTickEvent.Pre event) {
         if (event.getEntity() instanceof Player player) {
             // Check if player has gravity modification data
             if (player.getPersistentData().contains("strangematter.gravity_force")) {
@@ -134,10 +135,8 @@ public class GravityEventHandler {
                         
                         // Send packet to clear gravity force on client
                         if (!event.getLevel().isClientSide && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
-                            com.hexvane.strangematter.network.NetworkHandler.INSTANCE.send(
-                                net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> serverPlayer), 
-                                new com.hexvane.strangematter.network.GravitySyncPacket(0.0)
-                            );
+                            net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(serverPlayer, 
+                                new com.hexvane.strangematter.network.GravitySyncPacket(0.0));
                         }
                         
                         LOGGER.info("[GRAVITY HANDLER] Cleared gravity effects for player {} due to Gravity Anomaly removal", player.getName().getString());

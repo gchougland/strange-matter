@@ -4,7 +4,7 @@ import com.hexvane.strangematter.research.ResearchType;
 import com.hexvane.strangematter.sound.StrangeMatterSounds;
 import com.hexvane.strangematter.StrangeMatterMod;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -69,9 +69,9 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(IS_ACTIVE, true);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(IS_ACTIVE, true);
     }
     
     
@@ -327,7 +327,7 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    protected RegistryObject<Block> getShardOreBlock() {
+    protected DeferredHolder<Block, Block> getShardOreBlock() {
         return StrangeMatterMod.INSIGHT_SHARD_ORE_BLOCK;
     }
     
@@ -375,8 +375,7 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
                 if (this.level() instanceof net.minecraft.server.level.ServerLevel) {
                     com.hexvane.strangematter.network.MobDisguiseSyncPacket packet = 
                         new com.hexvane.strangematter.network.MobDisguiseSyncPacket(uuid);
-                    com.hexvane.strangematter.network.NetworkHandler.INSTANCE.send(
-                        net.minecraftforge.network.PacketDistributor.ALL.noArg(), packet);
+                    net.neoforged.neoforge.network.PacketDistributor.sendToAllPlayers(packet);
                 }
             } else {
                 entry.setValue(duration);
@@ -403,8 +402,7 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
         if (this.level() instanceof net.minecraft.server.level.ServerLevel) {
             com.hexvane.strangematter.network.MobDisguiseSyncPacket packet = 
                 new com.hexvane.strangematter.network.MobDisguiseSyncPacket(mob.getUUID(), disguiseType, duration);
-            com.hexvane.strangematter.network.NetworkHandler.INSTANCE.send(
-                net.minecraftforge.network.PacketDistributor.ALL.noArg(), packet);
+            net.neoforged.neoforge.network.PacketDistributor.sendToAllPlayers(packet);
         }
         
         // Add some visual particles to indicate the cognitive effect

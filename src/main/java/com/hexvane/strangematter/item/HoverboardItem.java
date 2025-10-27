@@ -38,7 +38,7 @@ public class HoverboardItem extends Item {
         }
         
         // Use the player's actual reach distance (accounts for creative/survival mode)
-        double reachDistance = player.getBlockReach();
+        double reachDistance = player.blockInteractionRange();
         
         // Ray trace to find what block the player is looking at
         HitResult hitResult = player.pick(reachDistance, PARTIAL_TICK, false);

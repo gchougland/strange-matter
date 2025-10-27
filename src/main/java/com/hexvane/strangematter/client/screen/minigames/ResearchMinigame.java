@@ -8,9 +8,9 @@ import net.minecraft.resources.ResourceLocation;
 public abstract class ResearchMinigame {
     
     // Texture locations for stability indicators
-    private static final ResourceLocation INDICATOR_GREEN = new ResourceLocation(StrangeMatterMod.MODID, "textures/ui/indicator_light_green.png");
-    private static final ResourceLocation INDICATOR_RED = new ResourceLocation(StrangeMatterMod.MODID, "textures/ui/indicator_light_red.png");
-    private static final ResourceLocation SHUTTER_TEXTURE = new ResourceLocation(StrangeMatterMod.MODID, "textures/ui/minigame_shutter.png");
+    private static final ResourceLocation INDICATOR_GREEN = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/ui/indicator_light_green.png");
+    private static final ResourceLocation INDICATOR_RED = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/ui/indicator_light_red.png");
+    private static final ResourceLocation SHUTTER_TEXTURE = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/ui/minigame_shutter.png");
     
     public enum MinigameState {
         INACTIVE,    // Panel is closed/inactive

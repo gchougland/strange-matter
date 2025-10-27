@@ -3,13 +3,19 @@ package com.hexvane.strangematter.network;
 import com.hexvane.strangematter.research.ResearchData;
 import com.hexvane.strangematter.research.ResearchType;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.network.handling.ClientPayloadContext;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.function.Supplier;
 
-public class ResearchSyncPacket {
+public class ResearchSyncPacket implements CustomPacketPayload {
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("strangematter", "research_sync");
+    public static final Type<ResearchSyncPacket> TYPE = new Type<>(ID);
+    
     private final ResearchData researchData;
     
     public ResearchSyncPacket(ResearchData researchData) {
@@ -21,20 +27,20 @@ public class ResearchSyncPacket {
         this.researchData.deserializeNBT(buf.readNbt());
     }
     
-    public void encode(FriendlyByteBuf buf) {
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+    
+    public void write(FriendlyByteBuf buf) {
         buf.writeNbt(researchData.serializeNBT());
     }
     
-    public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
+    
+    public static void handle(ResearchSyncPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
-            // This packet is handled on the client side
-            if (context.getDirection().getReceptionSide().isClient()) {
-                ResearchData finalData = researchData;
-                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> 
-                    com.hexvane.strangematter.network.ResearchDataClientHandler.handleResearchSync(finalData));
-            }
+            // Update client-side research data
+            com.hexvane.strangematter.network.ResearchDataClientHandler.handleResearchSync(packet.researchData);
         });
-        context.setPacketHandled(true);
     }
 }

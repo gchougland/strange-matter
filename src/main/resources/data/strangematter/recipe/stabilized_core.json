@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "RAR",
+    "IBI",
+    "RAR"
+  ],
+  "key": {
+    "R": {
+      "item": "strangematter:resonant_coil"
+    },
+    "A": {
+      "tag": "strangematter:anomaly_shards"
+    },
+    "I": {
+      "item": "strangematter:resonite_ingot"
+    },
+    "B": {
+      "item": "minecraft:redstone_block"
+    }
+  },
+  "result": {
+    "id": "strangematter:stabilized_core",
+    "count": 1
+  }
+}

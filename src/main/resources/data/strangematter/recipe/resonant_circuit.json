@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "RER",
+    "IRI",
+    "RER"
+  ],
+  "key": {
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "E": {
+      "item": "strangematter:energetic_shard"
+    },
+    "I": {
+      "item": "strangematter:resonite_ingot"
+    }
+  },
+  "result": {
+    "id": "strangematter:resonant_circuit",
+    "count": 1
+  }
+}

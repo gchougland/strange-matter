@@ -1,0 +1,23 @@
+{
+  "parent": "strangematter:root",
+  "display": {
+    "icon": {
+      "item": "strangematter:field_scanner"
+    },
+    "title": {
+      "translate": "advancements.strangematter.first_contact.title"
+    },
+    "description": {
+      "translate": "advancements.strangematter.first_contact.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "anomaly_effect_applied": {
+      "trigger": "strangematter:anomaly_effect"
+    }
+  }
+}

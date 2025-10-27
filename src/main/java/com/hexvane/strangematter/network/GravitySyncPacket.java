@@ -1,11 +1,16 @@
 package com.hexvane.strangematter.network;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.ClientPayloadContext;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.function.Supplier;
 
-public class GravitySyncPacket {
+public class GravitySyncPacket implements CustomPacketPayload {
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("strangematter", "gravity_sync");
+    public static final Type<GravitySyncPacket> TYPE = new Type<>(ID);
     private final double gravityForce;
     
     public GravitySyncPacket(double gravityForce) {
@@ -16,27 +21,19 @@ public class GravitySyncPacket {
         this.gravityForce = buffer.readDouble();
     }
     
-    public void encode(FriendlyByteBuf buffer) {
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+    
+    public void write(FriendlyByteBuf buffer) {
         buffer.writeDouble(this.gravityForce);
     }
     
-    public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
-        
+    public static void handle(GravitySyncPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
-            // For client-side packets, getSender() returns null, so we need to get the local player
-            if (context.getSender() != null) {
-                // Server-side handling (shouldn't happen with our current setup)
-                context.getSender().getPersistentData().putDouble("strangematter.gravity_force", this.gravityForce);
-            } else {
-                // Client-side handling - get the local player
-                net.minecraft.client.Minecraft minecraft = net.minecraft.client.Minecraft.getInstance();
-                if (minecraft.player != null) {
-                    minecraft.player.getPersistentData().putDouble("strangematter.gravity_force", this.gravityForce);
-                }
-            }
+            context.player().getPersistentData().putDouble("strangematter.gravity_force", packet.gravityForce);
         });
-        context.setPacketHandled(true);
     }
     
     public double getGravityForce() {

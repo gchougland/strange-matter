@@ -2,15 +2,16 @@ package com.hexvane.strangematter.event;
 
 import com.hexvane.strangematter.client.PlayerMorphRenderer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 /**
  * Handles client-side player morph rendering cleanup
  */
-@Mod.EventBusSubscriber(modid = "strangematter", value = Dist.CLIENT)
+@EventBusSubscriber(modid = "strangematter", bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public class PlayerMorphClientEventHandler {
     
     /**

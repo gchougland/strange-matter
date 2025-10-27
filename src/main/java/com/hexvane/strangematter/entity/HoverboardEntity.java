@@ -5,6 +5,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.InteractionHand;
@@ -45,14 +46,14 @@ public class HoverboardEntity extends Entity {
     public HoverboardEntity(EntityType<?> entityType, Level level) {
         super(entityType, level);
         this.setNoGravity(true); // Hoverboards don't fall
-        this.setMaxUpStep(1.0f); // Allow stepping up 1 block like a horse
+        // this.setMaxUpStep(1.0f); // Allow stepping up 1 block like a horse - removed in NeoForge 1.21.1
     }
     
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(BOARD_ROTATION, 0.0f);
-        this.entityData.define(FORWARD_MOMENTUM, 0.0f);
-        this.entityData.define(IS_BOOSTING, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(BOARD_ROTATION, 0.0f);
+        builder.define(FORWARD_MOMENTUM, 0.0f);
+        builder.define(IS_BOOSTING, false);
     }
     
     @Override
@@ -420,8 +421,8 @@ public class HoverboardEntity extends Entity {
     }
 
     @Override
-    public double getPassengersRidingOffset() {
-        return 0.2; // Height offset for rider - lower so player stands on the board
+    protected Vec3 getPassengerAttachmentPoint(Entity passenger, EntityDimensions dimensions, float scale) {
+        return new Vec3(0.0, 0.5, 0.0); // Height offset for rider - lower so player stands on the board
     }
 
     @Override

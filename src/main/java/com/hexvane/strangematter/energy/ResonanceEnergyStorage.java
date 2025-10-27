@@ -1,6 +1,6 @@
 package com.hexvane.strangematter.energy;
 
-import net.minecraftforge.energy.EnergyStorage;
+import net.neoforged.neoforge.energy.EnergyStorage;
 
 /**
  * Custom energy storage implementation for Resonance Energy.
@@ -95,5 +95,32 @@ public class ResonanceEnergyStorage extends EnergyStorage {
      */
     public boolean isEmpty() {
         return energy <= 0;
+    }
+    
+    /**
+     * Serializer for ResonanceEnergyStorage attachments
+     */
+    public static class Serializer implements net.neoforged.neoforge.attachment.IAttachmentSerializer<net.minecraft.nbt.Tag, ResonanceEnergyStorage> {
+        @Override
+        public ResonanceEnergyStorage read(net.neoforged.neoforge.attachment.IAttachmentHolder holder, net.minecraft.nbt.Tag tag, net.minecraft.core.HolderLookup.Provider provider) {
+            if (tag instanceof net.minecraft.nbt.CompoundTag compoundTag) {
+                int capacity = compoundTag.getInt("capacity");
+                int maxReceive = compoundTag.getInt("maxReceive");
+                int maxExtract = compoundTag.getInt("maxExtract");
+                int energy = compoundTag.getInt("energy");
+                return new ResonanceEnergyStorage(capacity, maxReceive, maxExtract, energy);
+            }
+            return new ResonanceEnergyStorage(10000);
+        }
+        
+        @Override
+        public net.minecraft.nbt.Tag write(ResonanceEnergyStorage attachment, net.minecraft.core.HolderLookup.Provider provider) {
+            net.minecraft.nbt.CompoundTag tag = new net.minecraft.nbt.CompoundTag();
+            tag.putInt("capacity", attachment.getMaxEnergyStored());
+            tag.putInt("maxReceive", attachment.maxReceive);
+            tag.putInt("maxExtract", attachment.maxExtract);
+            tag.putInt("energy", attachment.getEnergyStored());
+            return tag;
+        }
     }
 }

@@ -22,9 +22,10 @@ public class PlayerRendererMixin {
     private static final Logger LOGGER = LogUtils.getLogger();
     
     @Inject(
-        method = "render",
+        method = "render(Lnet/minecraft/client/player/AbstractClientPlayer;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
         at = @At("HEAD"),
-        cancellable = true
+        cancellable = true,
+        remap = false
     )
     private void onRenderPlayer(AbstractClientPlayer player, float entityYaw, float partialTicks,
                                PoseStack poseStack, MultiBufferSource buffer, int packedLight,

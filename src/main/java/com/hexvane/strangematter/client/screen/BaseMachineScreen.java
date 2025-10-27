@@ -53,7 +53,7 @@ public abstract class BaseMachineScreen<T extends BaseMachineMenu> extends Abstr
     
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, this.leftPos, this.topPos, 0.0f);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         this.renderTooltip(guiGraphics, mouseX, mouseY);
     }

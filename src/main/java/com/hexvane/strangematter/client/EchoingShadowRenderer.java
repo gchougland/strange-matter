@@ -96,37 +96,33 @@ public class EchoingShadowRenderer extends EntityRenderer<EchoingShadowEntity> {
         float alpha = 1.0f; // Low alpha to allow entities to show through
         
         // Front face of the billboard
-        vertexConsumer.vertex(matrix4f, -halfSize, -halfSize, 0.0f)
-            .color(0.0f, 0.0f, 0.0f, alpha)
-            .uv(0.0f, 1.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(0, 0, 1)
-            .endVertex();
+        vertexConsumer.addVertex(matrix4f, -halfSize, -halfSize, 0.0f)
+            .setColor(0, 0, 0, (int)(alpha * 255))
+            .setUv(0.0f, 1.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
             
-        vertexConsumer.vertex(matrix4f, halfSize, -halfSize, 0.0f)
-            .color(0.0f, 0.0f, 0.0f, alpha)
-            .uv(1.0f, 1.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(0, 0, 1)
-            .endVertex();
+        vertexConsumer.addVertex(matrix4f, halfSize, -halfSize, 0.0f)
+            .setColor(0, 0, 0, (int)(alpha * 255))
+            .setUv(1.0f, 1.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
             
-        vertexConsumer.vertex(matrix4f, halfSize, halfSize, 0.0f)
-            .color(0.0f, 0.0f, 0.0f, alpha)
-            .uv(1.0f, 0.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(0, 0, 1)
-            .endVertex();
+        vertexConsumer.addVertex(matrix4f, halfSize, halfSize, 0.0f)
+            .setColor(0, 0, 0, (int)(alpha * 255))
+            .setUv(1.0f, 0.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
             
-        vertexConsumer.vertex(matrix4f, -halfSize, halfSize, 0.0f)
-            .color(0.0f, 0.0f, 0.0f, alpha)
-            .uv(0.0f, 0.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(0, 0, 1)
-            .endVertex();
+        vertexConsumer.addVertex(matrix4f, -halfSize, halfSize, 0.0f)
+            .setColor(0, 0, 0, (int)(alpha * 255))
+            .setUv(0.0f, 0.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
         
         poseStack.popPose();
     }
@@ -201,37 +197,33 @@ public class EchoingShadowRenderer extends EntityRenderer<EchoingShadowEntity> {
         float finalAlpha = alpha * (0.8f + (pulseIntensity * 0.2f)); // Increased base alpha
         
         // Front face of the ring billboard
-        vertexConsumer.vertex(matrix4f, -halfSize, -halfSize, 0.0f)
-            .color(0.8f, 0.2f, 1.0f, finalAlpha) // Purple color
-            .uv(0.0f, 1.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(0, 0, 1)
-            .endVertex();
+        vertexConsumer.addVertex(matrix4f, -halfSize, -halfSize, 0.0f)
+            .setColor((int)(0.8f * 255), (int)(0.2f * 255), 255, (int)(finalAlpha * 255)) // Purple color
+            .setUv(0.0f, 1.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
             
-        vertexConsumer.vertex(matrix4f, halfSize, -halfSize, 0.0f)
-            .color(0.8f, 0.2f, 1.0f, finalAlpha)
-            .uv(1.0f, 1.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(0, 0, 1)
-            .endVertex();
+        vertexConsumer.addVertex(matrix4f, halfSize, -halfSize, 0.0f)
+            .setColor((int)(0.8f * 255), (int)(0.2f * 255), 255, (int)(finalAlpha * 255))
+            .setUv(1.0f, 1.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
             
-        vertexConsumer.vertex(matrix4f, halfSize, halfSize, 0.0f)
-            .color(0.8f, 0.2f, 1.0f, finalAlpha)
-            .uv(1.0f, 0.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(0, 0, 1)
-            .endVertex();
+        vertexConsumer.addVertex(matrix4f, halfSize, halfSize, 0.0f)
+            .setColor((int)(0.8f * 255), (int)(0.2f * 255), 255, (int)(finalAlpha * 255))
+            .setUv(1.0f, 0.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
             
-        vertexConsumer.vertex(matrix4f, -halfSize, halfSize, 0.0f)
-            .color(0.8f, 0.2f, 1.0f, finalAlpha)
-            .uv(0.0f, 0.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(0, 0, 1)
-            .endVertex();
+        vertexConsumer.addVertex(matrix4f, -halfSize, halfSize, 0.0f)
+            .setColor((int)(0.8f * 255), (int)(0.2f * 255), 255, (int)(finalAlpha * 255))
+            .setUv(0.0f, 0.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
         
         poseStack.popPose();
     }

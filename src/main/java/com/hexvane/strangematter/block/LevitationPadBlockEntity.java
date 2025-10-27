@@ -8,6 +8,7 @@ import com.hexvane.strangematter.network.GravitySyncPacket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -115,11 +116,8 @@ public class LevitationPadBlockEntity extends BlockEntity {
                 player.getPersistentData().remove("strangematter.gravity_force");
                 
                 // Send packet to clear gravity force on client
-                if (!level.isClientSide) {
-                    NetworkHandler.INSTANCE.send(
-                        net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> (net.minecraft.server.level.ServerPlayer) player), 
-                        new GravitySyncPacket(0.0) // Send 0 to clear the effect
-                    );
+                if (!level.isClientSide && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+                    net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(serverPlayer, new GravitySyncPacket(0.0));
                 }
             }
         }
@@ -172,11 +170,8 @@ public class LevitationPadBlockEntity extends BlockEntity {
                 player.getPersistentData().remove("strangematter.gravity_force");
                 
                 // Send packet to clear gravity force on client
-                if (!level.isClientSide) {
-                    NetworkHandler.INSTANCE.send(
-                        net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> (net.minecraft.server.level.ServerPlayer) player), 
-                        new GravitySyncPacket(0.0) // Send 0 to clear the effect
-                    );
+                if (!level.isClientSide && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+                    net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(serverPlayer, new GravitySyncPacket(0.0));
                 }
             }
         }
@@ -262,11 +257,8 @@ public class LevitationPadBlockEntity extends BlockEntity {
             player.getPersistentData().putDouble("strangematter.gravity_force", forceMultiplier);
             
             // Send packet to client for synchronization
-            if (!level.isClientSide) {
-                NetworkHandler.INSTANCE.send(
-                    net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> (net.minecraft.server.level.ServerPlayer) player), 
-                    new GravitySyncPacket(forceMultiplier)
-                );
+            if (!level.isClientSide && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+                net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(serverPlayer, new GravitySyncPacket(forceMultiplier));
             }
             
         } else if (entity instanceof ItemEntity itemEntity) {
@@ -326,11 +318,8 @@ public class LevitationPadBlockEntity extends BlockEntity {
             player.getPersistentData().putDouble("strangematter.gravity_force", -forceMultiplier);
             
             // Send packet to client for synchronization
-            if (!level.isClientSide) {
-                NetworkHandler.INSTANCE.send(
-                    net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> (net.minecraft.server.level.ServerPlayer) player), 
-                    new GravitySyncPacket(-forceMultiplier)
-                );
+            if (!level.isClientSide && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+                net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(serverPlayer, new GravitySyncPacket(-forceMultiplier));
             }
         } else if (entity instanceof ItemEntity itemEntity) {
             // For items, remove all momentum and center them in the beam while lowering
@@ -381,39 +370,32 @@ public class LevitationPadBlockEntity extends BlockEntity {
         return findMaxHeight();
     }
     
-    @Override
-    public AABB getRenderBoundingBox() {
-        // Extend the render bounding box to include the full beam height
-        // This prevents frustum culling from hiding the beam when the block is out of view
-        int maxHeight = findMaxHeight();
-        return new AABB(
-            worldPosition.getX() - 0.5, worldPosition.getY(), worldPosition.getZ() - 0.5,
-            worldPosition.getX() + 1.5, worldPosition.getY() + maxHeight, worldPosition.getZ() + 1.5
-        );
-    }
+    // Note: getRenderBoundingBox() was removed in NeoForge 1.21.1
+    // Render bounding box functionality is now handled in the renderer itself
+    // See LevitationPadRenderer.getViewDistance(), shouldRender(), and shouldRenderOffScreen()
     
     @Override
-    public void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    public void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.saveAdditional(tag, provider);
         tag.putBoolean("levitate_up", levitateUp);
     }
     
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.loadAdditional(tag, provider);
         levitateUp = tag.getBoolean("levitate_up");
     }
     
     @Override
-    public CompoundTag getUpdateTag() {
-        CompoundTag tag = super.getUpdateTag();
+    public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
+        CompoundTag tag = super.getUpdateTag(provider);
         tag.putBoolean("levitate_up", levitateUp);
         return tag;
     }
     
     @Override
-    public void handleUpdateTag(CompoundTag tag) {
-        super.handleUpdateTag(tag);
+    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider provider) {
+        super.handleUpdateTag(tag, provider);
         levitateUp = tag.getBoolean("levitate_up");
     }
     

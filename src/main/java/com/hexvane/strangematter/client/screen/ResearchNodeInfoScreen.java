@@ -21,7 +21,7 @@ import java.util.List;
 
 public class ResearchNodeInfoScreen extends Screen {
     private static final Logger LOGGER = LogUtils.getLogger();
-    private static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation("strangematter:textures/ui/research_tablet_background.png");
+    private static final ResourceLocation BACKGROUND_TEXTURE = ResourceLocation.fromNamespaceAndPath("strangematter", "textures/ui/research_tablet_background.png");
     
     private final ResearchNode node;
     private final Screen parentScreen;
@@ -108,85 +108,11 @@ public class ResearchNodeInfoScreen extends Screen {
         } else if (node.getId().equals("cognitive_anomalies")) {
             initializeCognitiveAnomaliesPages();
         } else {
-            // Check if this node has custom pages from KubeJS
-            // If so, skip the default "Overview" page
-            if (!hasCustomPagesFromKubeJS()) {
-                // Default pages for other research nodes
-                initializeDefaultPages();
-            }
-        }
-        
-        // After loading built-in pages, append any custom pages from KubeJS
-        loadCustomPages();
-    }
-    
-    /**
-     * Check if custom pages will be loaded from KubeJS for this node.
-     */
-    private boolean hasCustomPagesFromKubeJS() {
-        try {
-            Class<?> customRegistry = Class.forName("com.hexvane.strangematter.kubejs.CustomResearchRegistry");
-            Boolean hasPages = (Boolean) customRegistry.getMethod("hasCustomPages", String.class)
-                .invoke(null, node.getId());
-            return hasPages != null && hasPages;
-        } catch (Exception e) {
-            return false;
+            // Default pages for other research nodes
+            initializeDefaultPages();
         }
     }
     
-    /**
-     * Load and append custom info pages from KubeJS if available.
-     * Custom pages are added AFTER the built-in pages.
-     */
-    private void loadCustomPages() {
-        try {
-            // Try to load custom pages from KubeJS
-            Class<?> customRegistry = Class.forName("com.hexvane.strangematter.kubejs.CustomResearchRegistry");
-            Class<?> researchInfoPage = Class.forName("com.hexvane.strangematter.kubejs.ResearchInfoPage");
-            
-            LOGGER.info("[Strange Matter] Checking for custom pages for node: {}", node.getId());
-            
-            // Check if custom pages exist for this node
-            Boolean hasPages = (Boolean) customRegistry.getMethod("hasCustomPages", String.class)
-                .invoke(null, node.getId());
-            
-            LOGGER.info("[Strange Matter] Has custom pages: {}", hasPages);
-            
-            if (hasPages != null && hasPages) {
-                // Get the custom pages
-                @SuppressWarnings("unchecked")
-                java.util.List<Object> customPages = (java.util.List<Object>) customRegistry
-                    .getMethod("getInfoPages", String.class)
-                    .invoke(null, node.getId());
-                
-                LOGGER.info("[Strange Matter] Retrieved {} custom pages", (customPages != null ? customPages.size() : 0));
-                
-                if (customPages != null && !customPages.isEmpty()) {
-                    // Convert custom pages to InfoPage objects
-                    for (Object customPage : customPages) {
-                        InfoPage page = new InfoPage();
-                        
-                        // Use reflection to get fields from ResearchInfoPage
-                        page.title = (String) researchInfoPage.getField("title").get(customPage);
-                        page.content = (String) researchInfoPage.getField("content").get(customPage);
-                        page.hasRecipes = (Boolean) researchInfoPage.getField("hasRecipes").get(customPage);
-                        page.hasScreenshots = (Boolean) researchInfoPage.getField("hasScreenshots").get(customPage);
-                        page.recipeName = (String) researchInfoPage.getField("recipeName").get(customPage);
-                        page.isRealityForgeRecipe = (Boolean) researchInfoPage.getField("isRealityForgeRecipe").get(customPage);
-                        page.screenshotPath = (String) researchInfoPage.getField("screenshotPath").get(customPage);
-                        
-                        LOGGER.info("[Strange Matter] Adding custom page: {}", page.title);
-                        pages.add(page);
-                    }
-                    
-                    LOGGER.info("[Strange Matter] Appended {} custom pages to research node: {}", customPages.size(), node.getId());
-                }
-            }
-        } catch (Exception e) {
-            // Log the error for debugging
-            LOGGER.error("[Strange Matter] Error loading custom pages for {}: {}", node.getId(), e.getMessage(), e);
-        }
-    }
     
     private void initializeResearchPages() {
         // Page 1: Introduction to Research
@@ -740,38 +666,11 @@ public class ResearchNodeInfoScreen extends Screen {
         InfoPage basicInfo = new InfoPage();
         basicInfo.title = "Overview";
         basicInfo.content = node.getDisplayDescription().getString();
-        basicInfo.hasRecipes = hasRecipes();
-        basicInfo.hasScreenshots = hasScreenshots();
+        basicInfo.hasRecipes = false;
+        basicInfo.hasScreenshots = false;
         pages.add(basicInfo);
-        
-        if (hasRecipes()) {
-            InfoPage recipes = new InfoPage();
-            recipes.title = "Recipes";
-            recipes.content = "Crafting recipes and construction details.";
-            recipes.hasRecipes = true;
-            recipes.hasScreenshots = false;
-            pages.add(recipes);
-        }
-        
-        if (hasScreenshots()) {
-            InfoPage screenshots = new InfoPage();
-            screenshots.title = "Examples";
-            screenshots.content = "Visual examples and usage demonstrations.";
-            screenshots.hasRecipes = false;
-            screenshots.hasScreenshots = false;
-            pages.add(screenshots);
-        }
     }
     
-    private boolean hasRecipes() {
-        // TODO: Check if this node has associated recipes
-        return node.getId().equals("foundation") || node.getId().equals("basic_scanner");
-    }
-    
-    private boolean hasScreenshots() {
-        // TODO: Check if this node has associated screenshots
-        return node.getId().equals("gravity_control") || node.getId().equals("temporal_stability");
-    }
     
     @Override
     protected void init() {
@@ -840,8 +739,6 @@ public class ResearchNodeInfoScreen extends Screen {
     
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(guiGraphics);
-        
         // Clear tooltip slots from previous frame
         tooltipSlots.clear();
         
@@ -880,7 +777,10 @@ public class ResearchNodeInfoScreen extends Screen {
             }
         }
         
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        // Render widgets explicitly instead of calling super.render()
+        for (net.minecraft.client.gui.components.Renderable renderable : this.renderables) {
+            renderable.render(guiGraphics, mouseX, mouseY, partialTick);
+        }
     }
     
     private void renderPage(GuiGraphics guiGraphics, InfoPage page) {
@@ -1170,7 +1070,7 @@ public class ResearchNodeInfoScreen extends Screen {
         // Otherwise, prepend "strangematter:"
         String fullRecipeName = recipeName.contains(":") ? recipeName : "strangematter:" + recipeName;
         ResourceLocation recipeId = ResourceLocation.parse(fullRecipeName);
-        Recipe<?> recipe = this.minecraft.level.getRecipeManager().byKey(recipeId).orElse(null);
+        Recipe<?> recipe = this.minecraft.level.getRecipeManager().byKey(recipeId).map(net.minecraft.world.item.crafting.RecipeHolder::value).orElse(null);
 
         if (recipe == null) {
             // Recipe not found, draw empty grid
@@ -1269,7 +1169,7 @@ public class ResearchNodeInfoScreen extends Screen {
         // Otherwise, prepend "strangematter:"
         String fullRecipeName = recipeName.contains(":") ? recipeName : "strangematter:" + recipeName;
         ResourceLocation recipeId = ResourceLocation.parse(fullRecipeName);
-        Recipe<?> recipe = this.minecraft.level.getRecipeManager().byKey(recipeId).orElse(null);
+        Recipe<?> recipe = this.minecraft.level.getRecipeManager().byKey(recipeId).map(net.minecraft.world.item.crafting.RecipeHolder::value).orElse(null);
         
         if (recipe instanceof CraftingRecipe craftingRecipe) {
             List<Ingredient> ingredients = craftingRecipe.getIngredients();
@@ -1282,7 +1182,7 @@ public class ResearchNodeInfoScreen extends Screen {
                             // Check if this looks like the anomaly_shards tag
                             boolean isAnomalyShards = false;
                             for (ItemStack stack : stacks) {
-                                String itemId = net.minecraftforge.registries.ForgeRegistries.ITEMS.getKey(stack.getItem()).toString();
+                                String itemId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
                                 if (itemId.contains("shard")) {
                                     isAnomalyShards = true;
                                     break;

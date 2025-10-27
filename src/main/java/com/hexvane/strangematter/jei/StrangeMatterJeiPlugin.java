@@ -7,8 +7,8 @@ import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 
 @JeiPlugin
 public class StrangeMatterJeiPlugin implements IModPlugin {
@@ -68,8 +68,10 @@ public class StrangeMatterJeiPlugin implements IModPlugin {
                 return recipes;
             }
             
-            java.util.List<com.hexvane.strangematter.recipe.RealityForgeRecipe> realityForgeRecipes = 
+            java.util.List<net.minecraft.world.item.crafting.RecipeHolder<com.hexvane.strangematter.recipe.RealityForgeRecipe>> recipeHolders = 
                 recipeManager.getAllRecipesFor(recipeType);
+            java.util.List<com.hexvane.strangematter.recipe.RealityForgeRecipe> realityForgeRecipes = 
+                recipeHolders.stream().map(net.minecraft.world.item.crafting.RecipeHolder::value).toList();
             
             // Convert each recipe to JEI format
             for (com.hexvane.strangematter.recipe.RealityForgeRecipe recipe : realityForgeRecipes) {

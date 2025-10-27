@@ -20,8 +20,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.network.NetworkHooks;
-
 public class ThrowableContainmentCapsuleEntity extends ThrowableItemProjectile {
     
     private static final EntityDataAccessor<ItemStack> CAPSULE_ITEM = SynchedEntityData.defineId(ThrowableContainmentCapsuleEntity.class, EntityDataSerializers.ITEM_STACK);
@@ -36,9 +34,9 @@ public class ThrowableContainmentCapsuleEntity extends ThrowableItemProjectile {
     }
     
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(CAPSULE_ITEM, ItemStack.EMPTY);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(CAPSULE_ITEM, ItemStack.EMPTY);
     }
     
     @Override
@@ -152,7 +150,7 @@ public class ThrowableContainmentCapsuleEntity extends ThrowableItemProjectile {
         super.addAdditionalSaveData(tag);
         ItemStack capsuleItem = getCapsuleItem();
         if (!capsuleItem.isEmpty()) {
-            tag.put("CapsuleItem", capsuleItem.save(new CompoundTag()));
+            tag.put("CapsuleItem", capsuleItem.save(level().registryAccess(), new CompoundTag()));
         }
     }
     
@@ -160,13 +158,8 @@ public class ThrowableContainmentCapsuleEntity extends ThrowableItemProjectile {
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         if (tag.contains("CapsuleItem")) {
-            ItemStack capsuleItem = ItemStack.of(tag.getCompound("CapsuleItem"));
+            ItemStack capsuleItem = ItemStack.parseOptional(level().registryAccess(), tag.getCompound("CapsuleItem"));
             this.entityData.set(CAPSULE_ITEM, capsuleItem);
         }
-    }
-    
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
     }
 }

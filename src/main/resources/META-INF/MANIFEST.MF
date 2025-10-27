@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Specification-Title: strangematter
+Specification-Vendor: Hexvane
+Specification-Version: 1
+Implementation-Title: StrangeMatter
+Implementation-Version: 0.2.5
+Implementation-Vendor: Hexvane
+Implementation-Timestamp: 2025-10-25T00:38:19-0700
+MixinConfigs: META-INF/mixins.strangematter.json
+NeoForge-Version: 21.1.213
+Minecraft-Version: 1.21.1
+

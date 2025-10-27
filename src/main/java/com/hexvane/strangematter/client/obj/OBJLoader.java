@@ -79,13 +79,28 @@ public class OBJLoader {
                             float[] texCoord = texCoords.get(texIndex);
                             float[] normal = normals.get(normalIndex);
                             
-                            vertexConsumer.vertex(matrix4f, vertex[0], vertex[1], vertex[2])
-                                    .color(r, g, b, a)
-                                    .uv(texCoord[0], texCoord[1])
-                                    .overlayCoords(OverlayTexture.NO_OVERLAY)
-                                    .uv2(packedLight)
-                                    .normal(matrix3f, normal[0], normal[1], normal[2])
-                                    .endVertex();
+                            // Transform normal using the normal matrix
+                            float nx = normal[0];
+                            float ny = normal[1];
+                            float nz = normal[2];
+                            float transformedNx = matrix3f.m00 * nx + matrix3f.m10 * ny + matrix3f.m20 * nz;
+                            float transformedNy = matrix3f.m01 * nx + matrix3f.m11 * ny + matrix3f.m21 * nz;
+                            float transformedNz = matrix3f.m02 * nx + matrix3f.m12 * ny + matrix3f.m22 * nz;
+                            
+                            // Normalize the transformed normal
+                            float normalLength = (float) Math.sqrt(transformedNx * transformedNx + transformedNy * transformedNy + transformedNz * transformedNz);
+                            if (normalLength > 0.001f) {
+                                transformedNx /= normalLength;
+                                transformedNy /= normalLength;
+                                transformedNz /= normalLength;
+                            }
+                            
+                            vertexConsumer.addVertex(matrix4f, vertex[0], vertex[1], vertex[2])
+                                    .setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255))
+                                    .setUv(texCoord[0], texCoord[1])
+                                    .setOverlay(OverlayTexture.NO_OVERLAY)
+                                    .setLight(packedLight)
+                                    .setNormal(transformedNx, transformedNy, transformedNz);
                         }
                     }
                 }
@@ -125,13 +140,28 @@ public class OBJLoader {
                         float[] texCoord = texCoords.get(texIndex);
                         float[] normal = normals.get(normalIndex);
                         
-                        vertexConsumer.vertex(matrix4f, distortedVertex[0], distortedVertex[1], distortedVertex[2])
-                                .color(r, g, b, a)
-                                .uv(texCoord[0], texCoord[1])
-                                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                                .uv2(packedLight)
-                                .normal(matrix3f, normal[0], normal[1], normal[2])
-                                .endVertex();
+                        // Transform normal using the normal matrix
+                        float nx = normal[0];
+                        float ny = normal[1];
+                        float nz = normal[2];
+                        float transformedNx = matrix3f.m00 * nx + matrix3f.m10 * ny + matrix3f.m20 * nz;
+                        float transformedNy = matrix3f.m01 * nx + matrix3f.m11 * ny + matrix3f.m21 * nz;
+                        float transformedNz = matrix3f.m02 * nx + matrix3f.m12 * ny + matrix3f.m22 * nz;
+                        
+                        // Normalize the transformed normal
+                        float normalLength = (float) Math.sqrt(transformedNx * transformedNx + transformedNy * transformedNy + transformedNz * transformedNz);
+                        if (normalLength > 0.001f) {
+                            transformedNx /= normalLength;
+                            transformedNy /= normalLength;
+                            transformedNz /= normalLength;
+                        }
+                        
+                        vertexConsumer.addVertex(matrix4f, distortedVertex[0], distortedVertex[1], distortedVertex[2])
+                                .setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255))
+                                .setUv(texCoord[0], texCoord[1])
+                                .setOverlay(OverlayTexture.NO_OVERLAY)
+                                .setLight(packedLight)
+                                .setNormal(transformedNx, transformedNy, transformedNz);
                     }
                 }
             }
@@ -194,7 +224,7 @@ public class OBJLoader {
                 } else if (line.startsWith("map_Kd ") && currentMaterial != null) {
                     String texturePath = line.substring(7);
                     // Convert texture path to ResourceLocation
-                    ResourceLocation texture = new ResourceLocation(mtlLocation.getNamespace(), 
+                    ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(mtlLocation.getNamespace(), 
                         "textures/block/" + texturePath);
                     materials.put(currentMaterial, texture);
                 }
@@ -217,7 +247,7 @@ public class OBJLoader {
         // Load MTL file if it exists
         String objPath = location.getPath();
         String mtlPath = objPath.replace(".obj", ".mtl");
-        ResourceLocation mtlLocation = new ResourceLocation(location.getNamespace(), mtlPath);
+        ResourceLocation mtlLocation = ResourceLocation.fromNamespaceAndPath(location.getNamespace(), mtlPath);
         model.materials = loadMTL(mtlLocation);
         
         try (InputStream stream = Minecraft.getInstance().getResourceManager()

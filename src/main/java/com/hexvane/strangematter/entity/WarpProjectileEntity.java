@@ -9,6 +9,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.network.syncher.SynchedEntityData;
 import com.hexvane.strangematter.entity.MiniWarpGateEntity;
 import com.hexvane.strangematter.StrangeMatterMod;
 
@@ -115,7 +116,7 @@ public class WarpProjectileEntity extends ThrowableProjectile {
     }
     
     @Override
-    protected void defineSynchedData() {
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
         // No additional data needed for the projectile
     }
 }

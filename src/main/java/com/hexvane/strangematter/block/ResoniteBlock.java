@@ -30,7 +30,7 @@ public class ResoniteBlock extends Block {
         // Check if the tool has silk touch
         if (builder.getOptionalParameter(LootContextParams.THIS_ENTITY) instanceof Player player) {
             ItemStack tool = player.getMainHandItem();
-            if (EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SILK_TOUCH, tool) > 0) {
+            if (tool.getEnchantmentLevel(builder.getLevel().registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT).getOrThrow(Enchantments.SILK_TOUCH)) > 0) {
                 // Drop the block itself with silk touch
                 drops.add(new ItemStack(this));
             } else {

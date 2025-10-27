@@ -2,14 +2,15 @@ package com.hexvane.strangematter.worldgen;
 
 import com.hexvane.strangematter.Config;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
-import net.minecraftforge.common.world.BiomeModifier;
-import net.minecraftforge.common.world.ModifiableBiomeInfo;
+import net.neoforged.neoforge.common.world.BiomeModifier;
+import net.neoforged.neoforge.common.world.ModifiableBiomeInfo;
 
 /**
  * A configurable biome modifier that respects config settings for feature placement.
@@ -42,8 +43,8 @@ public record ConfiguredBiomeModifier(
     }
 
     @Override
-    public Codec<? extends BiomeModifier> codec() {
-        return CODEC;
+    public MapCodec<? extends BiomeModifier> codec() {
+        return MapCodec.assumeMapUnsafe(CODEC);
     }
     
     /**

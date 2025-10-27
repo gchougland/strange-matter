@@ -1,15 +1,17 @@
 package com.hexvane.strangematter.network;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import com.hexvane.strangematter.StrangeMatterMod;
 
-import java.util.function.Supplier;
-
-public class EchoVacuumBeamPacket {
+public class EchoVacuumBeamPacket implements CustomPacketPayload {
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("strangematter", "echo_vacuum_beam");
+    public static final Type<EchoVacuumBeamPacket> TYPE = new Type<>(ID);
+    
     private final int playerId;
     private final boolean isActive;
     
@@ -23,40 +25,49 @@ public class EchoVacuumBeamPacket {
         this.isActive = buffer.readBoolean();
     }
     
-    public void encode(FriendlyByteBuf buffer) {
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+    
+    public void write(FriendlyByteBuf buffer) {
         buffer.writeInt(this.playerId);
         buffer.writeBoolean(this.isActive);
     }
     
-    public boolean handle(Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> {
+    public static void handle(EchoVacuumBeamPacket packet, IPayloadContext context) {
+        context.enqueueWork(() -> {
             // For server-to-client packets, we need to get the client's level
             net.minecraft.client.Minecraft minecraft = net.minecraft.client.Minecraft.getInstance();
             if (minecraft.level != null) {
-                net.minecraft.world.entity.Entity entity = minecraft.level.getEntity(this.playerId);
+                net.minecraft.world.entity.Entity entity = minecraft.level.getEntity(packet.playerId);
                 if (entity instanceof Player player) {
                     // Store the beam state for this player
-                    StrangeMatterMod.setPlayerBeamState(player, this.isActive);
+                    StrangeMatterMod.setPlayerBeamState(player, packet.isActive);
                 }
             }
         });
-        return true;
     }
     
     public static void sendToNearbyPlayers(Player sourcePlayer, boolean isActive) {
         Level level = sourcePlayer.level();
         if (!level.isClientSide) {
             EchoVacuumBeamPacket packet = new EchoVacuumBeamPacket(sourcePlayer.getId(), isActive);
-            NetworkHandler.INSTANCE.send(
-                PacketDistributor.NEAR.with(
-                    PacketDistributor.TargetPoint.p(
-                        sourcePlayer.getX(), sourcePlayer.getY(), sourcePlayer.getZ(),
-                        64.0, // 64 block radius
-                        level.dimension()
-                    )
-                ),
-                packet
-            );
+            
+            // Send packet to all players in the level
+            if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                for (net.minecraft.server.level.ServerPlayer player : serverLevel.players()) {
+                    net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player, packet);
+                }
+            }
         }
+    }
+    
+    public int getPlayerId() {
+        return playerId;
+    }
+    
+    public boolean isActive() {
+        return isActive;
     }
 }

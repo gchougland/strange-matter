@@ -1,90 +1,84 @@
 package com.hexvane.strangematter.network;
 
 import com.hexvane.strangematter.StrangeMatterMod;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.simple.SimpleChannel;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 public class NetworkHandler {
     private static final String PROTOCOL_VERSION = "1";
-    public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(
-        ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "main"),
-        () -> PROTOCOL_VERSION,
-        PROTOCOL_VERSION::equals,
-        PROTOCOL_VERSION::equals
-    );
+    public static final PayloadRegistrar INSTANCE = new PayloadRegistrar(PROTOCOL_VERSION);
+    
     
     private static int packetId = 0;
     
     public static void register() {
-        INSTANCE.registerMessage(packetId++, ResearchSyncPacket.class,
-            ResearchSyncPacket::encode,
-            ResearchSyncPacket::new,
+        // Register all packets using NeoForge 1.21.1 network system
+        
+        // Research-related packets
+        INSTANCE.playToClient(ResearchSyncPacket.TYPE, 
+            CustomPacketPayload.codec(ResearchSyncPacket::write, ResearchSyncPacket::new), 
             ResearchSyncPacket::handle);
             
-        INSTANCE.registerMessage(packetId++, ResearchGainPacket.class,
-            ResearchGainPacket::encode,
-            ResearchGainPacket::new,
+        INSTANCE.playToClient(ResearchGainPacket.TYPE, 
+            CustomPacketPayload.codec(ResearchGainPacket::write, ResearchGainPacket::new), 
             ResearchGainPacket::handle);
             
-        INSTANCE.registerMessage(packetId++, ResearchMachineSyncPacket.class,
-            ResearchMachineSyncPacket::encode,
-            ResearchMachineSyncPacket::new_,
-            ResearchMachineSyncPacket::handle);
-            
-        INSTANCE.registerMessage(packetId++, SpendResearchPointsPacket.class,
-            SpendResearchPointsPacket::encode,
-            SpendResearchPointsPacket::new_,
+        INSTANCE.playToServer(SpendResearchPointsPacket.TYPE, 
+            CustomPacketPayload.codec(SpendResearchPointsPacket::write, SpendResearchPointsPacket::new), 
             SpendResearchPointsPacket::handle);
             
-        INSTANCE.registerMessage(packetId++, UpdateMinigameStatesPacket.class,
-            UpdateMinigameStatesPacket::encode,
-            UpdateMinigameStatesPacket::new_,
-            UpdateMinigameStatesPacket::handle);
-            
-        INSTANCE.registerMessage(packetId++, ResearchCompletionPacket.class,
-            ResearchCompletionPacket::encode,
-            ResearchCompletionPacket::new_,
-            ResearchCompletionPacket::handle);
-            
-        INSTANCE.registerMessage(packetId++, MinigameStatePacket.class,
-            MinigameStatePacket::encode,
-            MinigameStatePacket::new_,
-            MinigameStatePacket::handle);
-            
-        INSTANCE.registerMessage(packetId++, RequestResearchMachineStatePacket.class,
-            RequestResearchMachineStatePacket::encode,
-            RequestResearchMachineStatePacket::decode,
+        INSTANCE.playToServer(RequestResearchMachineStatePacket.TYPE, 
+            CustomPacketPayload.codec(RequestResearchMachineStatePacket::write, RequestResearchMachineStatePacket::new), 
             RequestResearchMachineStatePacket::handle);
             
-        INSTANCE.registerMessage(packetId++, GravitySyncPacket.class,
-            GravitySyncPacket::encode,
-            GravitySyncPacket::new,
+        INSTANCE.playToClient(ResearchMachineSyncPacket.TYPE, 
+            CustomPacketPayload.codec(ResearchMachineSyncPacket::write, ResearchMachineSyncPacket::new), 
+            ResearchMachineSyncPacket::handle);
+            
+        INSTANCE.playToServer(MinigameStatePacket.TYPE, 
+            CustomPacketPayload.codec(MinigameStatePacket::write, MinigameStatePacket::new), 
+            MinigameStatePacket::handle);
+            
+        INSTANCE.playToServer(ResearchCompletionPacket.TYPE, 
+            CustomPacketPayload.codec(ResearchCompletionPacket::write, ResearchCompletionPacket::new), 
+            ResearchCompletionPacket::handle);
+            
+        INSTANCE.playToServer(UpdateMinigameStatesPacket.TYPE, 
+            CustomPacketPayload.codec(UpdateMinigameStatesPacket::write, UpdateMinigameStatesPacket::new), 
+            UpdateMinigameStatesPacket::handle);
+        
+        // Gravity and physics packets
+        INSTANCE.playToClient(GravitySyncPacket.TYPE, 
+            CustomPacketPayload.codec(GravitySyncPacket::write, GravitySyncPacket::new), 
             GravitySyncPacket::handle);
-            
-        INSTANCE.registerMessage(packetId++, WarpGunShootPacket.class,
-            WarpGunShootPacket::encode,
-            WarpGunShootPacket::new,
-            WarpGunShootPacket::handle);
-            
-        INSTANCE.registerMessage(packetId++, EjectShardsPacket.class,
-            EjectShardsPacket::encode,
-            EjectShardsPacket::new,
-            EjectShardsPacket::handle);
-            
-        INSTANCE.registerMessage(packetId++, EchoVacuumBeamPacket.class,
-            EchoVacuumBeamPacket::encode,
-            EchoVacuumBeamPacket::new,
-            EchoVacuumBeamPacket::handle);
-            
-        INSTANCE.registerMessage(packetId++, PlayerMorphSyncPacket.class,
-            PlayerMorphSyncPacket::encode,
-            PlayerMorphSyncPacket::decode,
+        
+        // Player morphing packets
+        INSTANCE.playToClient(PlayerMorphSyncPacket.TYPE, 
+            CustomPacketPayload.codec(PlayerMorphSyncPacket::write, PlayerMorphSyncPacket::new), 
             PlayerMorphSyncPacket::handle);
             
-        INSTANCE.registerMessage(packetId++, MobDisguiseSyncPacket.class,
-            MobDisguiseSyncPacket::encode,
-            MobDisguiseSyncPacket::decode,
+        INSTANCE.playToClient(MobDisguiseSyncPacket.TYPE, 
+            CustomPacketPayload.codec(MobDisguiseSyncPacket::write, MobDisguiseSyncPacket::new), 
             MobDisguiseSyncPacket::handle);
+        
+        // Item and tool packets
+        INSTANCE.playToServer(WarpGunShootPacket.TYPE, 
+            CustomPacketPayload.codec(WarpGunShootPacket::write, WarpGunShootPacket::new), 
+            WarpGunShootPacket::handle);
+            
+        INSTANCE.playToClient(EchoVacuumBeamPacket.TYPE, 
+            CustomPacketPayload.codec(EchoVacuumBeamPacket::write, EchoVacuumBeamPacket::new), 
+            EchoVacuumBeamPacket::handle);
+        
+        // Machine and block entity packets
+        INSTANCE.playToClient(MachineStatePacket.TYPE, 
+            CustomPacketPayload.codec(MachineStatePacket::write, MachineStatePacket::new), 
+            MachineStatePacket::handle);
+            
+        INSTANCE.playToServer(EjectShardsPacket.TYPE, 
+            CustomPacketPayload.codec(EjectShardsPacket::write, EjectShardsPacket::new), 
+            EjectShardsPacket::handle);
+            
     }
 }

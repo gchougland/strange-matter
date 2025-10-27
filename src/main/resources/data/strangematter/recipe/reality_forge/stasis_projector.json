@@ -1,0 +1,26 @@
+{
+  "type": "strangematter:reality_forge",
+  "pattern": [
+    "   ",
+    " S ",
+    "III"
+  ],
+  "key": {
+    "S": {
+      "item": "strangematter:gravitic_shard"
+    },
+    "I": {
+      "item": "strangematter:resonite_ingot"
+    }
+  },
+  "shards": {
+    "gravitic": 1,
+    "chrono": 1
+  },
+  "required_research": "stasis_projector",
+  "result": {
+    "id": "strangematter:stasis_projector",
+    "count": 1
+  }
+}
+

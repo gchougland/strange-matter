@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "NNN",
+    "NSN",
+    "NNN"
+  ],
+  "key": {
+    "N": {
+      "item": "strangematter:resonite_nugget"
+    },
+    "S": {
+      "item": "minecraft:stick"
+    }
+  },
+  "result": {
+    "id": "strangematter:resonant_coil",
+    "count": 1
+  }
+}

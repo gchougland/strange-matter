@@ -20,52 +20,18 @@ public class LevelLightEngineMixin {
         // Mixin applied successfully
     }
     
-    // Try targeting a method that's definitely called
-    @Inject(method = "getLightValue", at = @At("RETURN"), cancellable = true)
-    private void onGetLightValue(BlockPos pos, CallbackInfoReturnable<Integer> cir) {
-        ServerLevel serverLevel = getServerLevel();
-        if (serverLevel != null) {
-            ShadowLightProvider provider = ShadowLightProvider.getInstance(serverLevel);
-            
-            int originalLight = cir.getReturnValue();
-            int modifiedLight = provider.getModifiedLightLevel(pos, LightLayer.BLOCK, originalLight);
-            
-            if (modifiedLight != originalLight) {
-                cir.setReturnValue(modifiedLight);
-                // Light value modified by shadow light provider
-            }
-        }
-    }
-    
-    @Inject(method = "getLayerLightValue", at = @At("RETURN"), cancellable = true)
-    private void onGetLayerLightValue(LightLayer lightLayer, BlockPos pos, CallbackInfoReturnable<Integer> cir) {
-        ServerLevel serverLevel = getServerLevel();
-        if (serverLevel != null) {
-            ShadowLightProvider provider = ShadowLightProvider.getInstance(serverLevel);
-            
-            int originalLight = cir.getReturnValue();
-            int modifiedLight = provider.getModifiedLightLevel(pos, lightLayer, originalLight);
-            
-            if (modifiedLight != originalLight) {
-                cir.setReturnValue(modifiedLight);
-                System.out.println("LAYER LIGHT MODIFIED: " + originalLight + " -> " + modifiedLight + " (" + lightLayer + ") at " + pos);
-            }
-        }
-    }
-    
-    // Try targeting a different method that might be called more frequently
-    @Inject(method = "getRawBrightness", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "getRawBrightness(Lnet/minecraft/core/BlockPos;I)I", at = @At("RETURN"), cancellable = true, remap = false)
     private void onGetRawBrightness(BlockPos pos, int defaultValue, CallbackInfoReturnable<Integer> cir) {
         ServerLevel serverLevel = getServerLevel();
         if (serverLevel != null) {
             ShadowLightProvider provider = ShadowLightProvider.getInstance(serverLevel);
             
-            int originalLight = cir.getReturnValue();
-            int modifiedLight = provider.getModifiedLightLevel(pos, LightLayer.BLOCK, originalLight);
-            
-            if (modifiedLight != originalLight) {
+            // Check if position is in shadow radius
+            if (provider.isPositionInShadow(pos)) {
+                int originalLight = cir.getReturnValue();
+                // Reduce light by 10 (don't go below 0)
+                int modifiedLight = Math.max(0, originalLight - 10);
                 cir.setReturnValue(modifiedLight);
-                System.out.println("RAW BRIGHTNESS MODIFIED: " + originalLight + " -> " + modifiedLight + " at " + pos);
             }
         }
     }

@@ -3,17 +3,17 @@ package com.hexvane.strangematter.event;
 import com.hexvane.strangematter.morph.PlayerMorphData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 import java.util.UUID;
 
 /**
  * Handles server-side player morph cleanup and syncing
  */
-@Mod.EventBusSubscriber(modid = "strangematter")
 public class PlayerMorphEventHandler {
     
     /**
@@ -39,10 +39,8 @@ public class PlayerMorphEventHandler {
             if (morphType != null) {
                 UUID targetPlayerUUID = PlayerMorphData.getMorphedPlayerUUID(otherPlayer.getUUID());
                 System.out.println("DEBUG: Syncing morph " + morphType + " for player " + otherPlayer.getName().getString() + " to joining player");
-                com.hexvane.strangematter.network.NetworkHandler.INSTANCE.send(
-                    net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> joiningPlayer),
-                    new com.hexvane.strangematter.network.PlayerMorphSyncPacket(otherPlayer.getUUID(), morphType, targetPlayerUUID, false)
-                );
+                net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(joiningPlayer,
+                    new com.hexvane.strangematter.network.PlayerMorphSyncPacket(otherPlayer.getUUID(), morphType, targetPlayerUUID, false));
             }
         }
     }

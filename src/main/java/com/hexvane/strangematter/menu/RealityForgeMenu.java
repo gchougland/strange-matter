@@ -21,16 +21,19 @@ public class RealityForgeMenu extends BaseMachineMenu {
     private final RealityForgeBlockEntity blockEntity;
     private final ContainerLevelAccess levelAccess;
     private final ContainerData dataAccess;
+    private boolean slotsAdded = false;
     
     public RealityForgeMenu(int windowId, Inventory playerInventory, FriendlyByteBuf data) {
         this(windowId, playerInventory, data.readBlockPos());
     }
     
     public RealityForgeMenu(int windowId, Inventory playerInventory, net.minecraft.core.BlockPos pos) {
-        super(StrangeMatterMod.REALITY_FORGE_MENU.get(), windowId, playerInventory,
-            playerInventory.player.level().getBlockEntity(pos) instanceof RealityForgeBlockEntity be ? be : null, 11);
-        this.blockEntity = playerInventory.player.level().getBlockEntity(pos) instanceof RealityForgeBlockEntity be ? be : null;
-        this.levelAccess = ContainerLevelAccess.create(playerInventory.player.level(), pos);
+        super(StrangeMatterMod.REALITY_FORGE_MENU.get(), windowId, playerInventory, 11);
+        
+        // Get the block entity from the level
+        var level = playerInventory.player.level();
+        this.blockEntity = level.getBlockEntity(pos) instanceof RealityForgeBlockEntity be ? be : null;
+        this.levelAccess = ContainerLevelAccess.create(level, pos);
         this.dataAccess = this.blockEntity != null ? this.blockEntity.getDataAccess() : null;
         
         // Set the current player for research requirement checks
@@ -44,22 +47,18 @@ public class RealityForgeMenu extends BaseMachineMenu {
         }
     }
     
-    // Client-side constructor for when block entity is not available
-    public RealityForgeMenu(int windowId, Inventory playerInventory) {
-        super(StrangeMatterMod.REALITY_FORGE_MENU.get(), windowId, playerInventory, 11);
-        this.blockEntity = null;
-        this.levelAccess = ContainerLevelAccess.NULL;
-        this.dataAccess = null;
-        
-    }
-    
+    // Server-side constructor that takes the block entity directly
     public RealityForgeMenu(int windowId, Inventory playerInventory, RealityForgeBlockEntity blockEntity) {
         super(StrangeMatterMod.REALITY_FORGE_MENU.get(), windowId, playerInventory, blockEntity, 11);
+        
         this.blockEntity = blockEntity;
-        this.levelAccess = ContainerLevelAccess.create(playerInventory.player.level(), 
-            blockEntity != null ? blockEntity.getBlockPos() : net.minecraft.core.BlockPos.ZERO);
+        this.levelAccess = ContainerLevelAccess.create(blockEntity.getLevel(), blockEntity.getBlockPos());
         this.dataAccess = this.blockEntity != null ? this.blockEntity.getDataAccess() : null;
         
+        // Set the current player for research requirement checks
+        if (this.blockEntity != null) {
+            this.blockEntity.setCurrentPlayer(playerInventory.player);
+        }
         
         // Add data synchronization for shard data
         if (this.dataAccess != null) {
@@ -67,8 +66,15 @@ public class RealityForgeMenu extends BaseMachineMenu {
         }
     }
     
+    
+    
+    
     @Override
     protected void addMachineSlots() {
+        if (slotsAdded) {
+            return; // Prevent duplicate slot creation
+        }
+        slotsAdded = true;
         
         // Add crafting grid slots (3x3) - positioned to match the GUI texture
         if (blockEntity != null) {
@@ -190,11 +196,14 @@ public class RealityForgeMenu extends BaseMachineMenu {
             return;
         }
         
-        if (blockEntity != null) {
-            // Send packet to server to handle eject
-            com.hexvane.strangematter.network.NetworkHandler.INSTANCE.sendToServer(
-                new com.hexvane.strangematter.network.EjectShardsPacket(blockEntity.getBlockPos())
-            );
+        // Get the block position from levelAccess
+        if (levelAccess != null) {
+            levelAccess.execute((level, pos) -> {
+                // Send packet to server to handle eject
+                net.neoforged.neoforge.network.PacketDistributor.sendToServer(
+                    new com.hexvane.strangematter.network.EjectShardsPacket(pos)
+                );
+            });
         }
     }
     

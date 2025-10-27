@@ -15,13 +15,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Mixin to intercept entity rendering and apply cognitive disguises when needed.
  * This allows any entity renderer to support cognitive disguises without modification.
  */
-@Mixin(targets = "net.minecraft.client.renderer.entity.LivingEntityRenderer")
+@Mixin(net.minecraft.client.renderer.entity.LivingEntityRenderer.class)
 public class EntityRendererMixin<T extends net.minecraft.world.entity.LivingEntity> {
     
     @Inject(
-        method = "render",
+        method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
         at = @At("HEAD"),
-        cancellable = true
+        cancellable = true,
+        remap = false
     )
     private void onRender(T entity, float entityYaw, float partialTicks, 
                          PoseStack poseStack, MultiBufferSource buffer, int packedLight, 

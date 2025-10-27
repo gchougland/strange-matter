@@ -2,16 +2,18 @@ package com.hexvane.strangematter.client;
 
 import com.hexvane.strangematter.StrangeMatterMod;
 import com.mojang.logging.LogUtils;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import org.slf4j.Logger;
 
 /**
  * Client-only mod events - separated from main mod class to prevent client class loading on server
  */
-@Mod.EventBusSubscriber(modid = StrangeMatterMod.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = StrangeMatterMod.MODID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public class ClientModEvents {
     private static final Logger LOGGER = LogUtils.getLogger();
     
@@ -44,8 +46,7 @@ public class ClientModEvents {
             net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(StrangeMatterMod.RESONITE_TRAPDOOR_BLOCK.get(), net.minecraft.client.renderer.RenderType.cutout());
             net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(StrangeMatterMod.RESONITE_DOOR_BLOCK.get(), net.minecraft.client.renderer.RenderType.cutout());
             
-            // Register Echo Vacuum client handler for proper first/third person rendering
-            net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new EchoVacuumClientHandler());
+            // Echo Vacuum client handler is now registered via @SubscribeEvent annotation
         });
         
         // Initialize custom sound manager
@@ -94,23 +95,30 @@ public class ClientModEvents {
             );
         });
         
-        // Register particle providers
-        event.enqueueWork(() -> {
-            net.minecraft.client.Minecraft.getInstance().particleEngine.register(
-                StrangeMatterMod.ENERGY_ABSORPTION_PARTICLE.get(), 
-                com.hexvane.strangematter.particle.EnergyAbsorptionParticle.Provider::new);
-        });
+        // Particle providers are now registered via RegisterParticleProvidersEvent
         
-        // Register menu screens
+        // Register block entity renderers
         event.enqueueWork(() -> {
-            net.minecraft.client.gui.screens.MenuScreens.register(StrangeMatterMod.RESONANCE_CONDENSER_MENU.get(), com.hexvane.strangematter.client.screen.ResonanceCondenserScreen::new);
             net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(StrangeMatterMod.RESONANCE_CONDENSER_BLOCK_ENTITY.get(), com.hexvane.strangematter.client.ResonanceCondenserRenderer::new);
-            
-            net.minecraft.client.gui.screens.MenuScreens.register(StrangeMatterMod.RESONANT_BURNER_MENU.get(), com.hexvane.strangematter.client.screen.ResonantBurnerScreen::new);
             net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(StrangeMatterMod.RESONANT_BURNER_BLOCK_ENTITY.get(), com.hexvane.strangematter.client.ResonantBurnerRenderer::new);
-            
-            net.minecraft.client.gui.screens.MenuScreens.register(StrangeMatterMod.REALITY_FORGE_MENU.get(), com.hexvane.strangematter.client.screen.RealityForgeScreen::new);
         });
     }
+    
+    @SubscribeEvent
+    public static void registerParticleProviders(RegisterParticleProvidersEvent event) {
+        System.out.println("ClientModEvents: Registering particle provider for ENERGY_ABSORPTION_PARTICLE");
+        event.registerSpriteSet(StrangeMatterMod.ENERGY_ABSORPTION_PARTICLE.get(), 
+            com.hexvane.strangematter.particle.EnergyAbsorptionParticle.Provider::new);
+        System.out.println("ClientModEvents: Particle provider registered successfully");
+    }
+    
+    
+    // Particle spawning is now handled by the ResonanceCondenserRenderer
+    
+    @SubscribeEvent
+    public static void registerMenuScreens(net.neoforged.neoforge.client.event.RegisterMenuScreensEvent event) {
+        event.register(StrangeMatterMod.RESONANCE_CONDENSER_MENU.get(), com.hexvane.strangematter.client.screen.ResonanceCondenserScreen::new);
+        event.register(StrangeMatterMod.RESONANT_BURNER_MENU.get(), com.hexvane.strangematter.client.screen.ResonantBurnerScreen::new);
+        event.register(StrangeMatterMod.REALITY_FORGE_MENU.get(), com.hexvane.strangematter.client.screen.RealityForgeScreen::new);
+    }
 }
-

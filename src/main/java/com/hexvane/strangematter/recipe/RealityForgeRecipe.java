@@ -1,22 +1,21 @@
 package com.hexvane.strangematter.recipe;
 
 import com.google.gson.JsonObject;
-import com.hexvane.strangematter.block.RealityForgeBlockEntity;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
-import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.level.Level;
+import javax.annotation.Nonnull;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class RealityForgeRecipe implements Recipe<Container> {
+public class RealityForgeRecipe implements Recipe<RecipeInput> {
     
     private final ResourceLocation id;
     private final ItemStack result;
@@ -33,27 +32,17 @@ public class RealityForgeRecipe implements Recipe<Container> {
     }
     
     @Override
-    public boolean matches(Container container, Level level) {
+    public boolean matches(@Nonnull RecipeInput recipeInput, @Nonnull Level level) {
         // Check if the crafting grid matches
         for (int i = 0; i < 9; i++) {
-            if (!ingredients.get(i).test(container.getItem(i))) {
+            if (!ingredients.get(i).test(recipeInput.getItem(i))) {
                 return false;
             }
         }
         
         // Check shard requirements
-        if (container instanceof RealityForgeBlockEntity realityForge) {
-            Map<String, Integer> storedShards = realityForge.getStoredShards();
-            for (Map.Entry<String, Integer> requirement : shardRequirements.entrySet()) {
-                String shardType = requirement.getKey();
-                int required = requirement.getValue();
-                int available = storedShards.getOrDefault(shardType, 0);
-                if (available < required) {
-                    return false;
-                }
-            }
-        }
-        
+        // Note: RecipeInput doesn't provide access to block entity data
+        // This will need to be handled by the crafting logic in RealityForgeBlockEntity
         return true;
     }
     
@@ -72,7 +61,7 @@ public class RealityForgeRecipe implements Recipe<Container> {
     }
     
     @Override
-    public ItemStack assemble(Container container, RegistryAccess registryAccess) {
+    public ItemStack assemble(@Nonnull RecipeInput recipeInput, @Nonnull HolderLookup.Provider provider) {
         return result.copy();
     }
     
@@ -82,11 +71,10 @@ public class RealityForgeRecipe implements Recipe<Container> {
     }
     
     @Override
-    public ItemStack getResultItem(RegistryAccess registryAccess) {
+    public ItemStack getResultItem(@Nonnull HolderLookup.Provider provider) {
         return result;
     }
     
-    @Override
     public ResourceLocation getId() {
         return id;
     }
@@ -116,8 +104,124 @@ public class RealityForgeRecipe implements Recipe<Container> {
     public static class Serializer implements RecipeSerializer<RealityForgeRecipe> {
         
         @Override
-        public RealityForgeRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-            ItemStack result = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "result"));
+        public com.mojang.serialization.MapCodec<RealityForgeRecipe> codec() {
+            return com.mojang.serialization.codecs.RecordCodecBuilder.mapCodec(instance -> 
+                instance.group(
+                    // Parse pattern array
+                    com.mojang.serialization.Codec.STRING.listOf().fieldOf("pattern")
+                        .forGetter(recipe -> {
+                            // Reconstruct pattern from ingredients
+                            String[] pattern = new String[3];
+                            for (int i = 0; i < 3; i++) {
+                                StringBuilder row = new StringBuilder();
+                                for (int j = 0; j < 3; j++) {
+                                    int idx = i * 3 + j;
+                                    if (recipe.ingredients.get(idx) != net.minecraft.world.item.crafting.Ingredient.EMPTY) {
+                                        row.append(getPatternChar(idx));
+                                    } else {
+                                        row.append(' ');
+                                    }
+                                }
+                                pattern[i] = row.toString();
+                            }
+                            return java.util.Arrays.asList(pattern);
+                        }),
+                    // Parse key map
+                    com.mojang.serialization.Codec.unboundedMap(com.mojang.serialization.Codec.STRING, 
+                        net.minecraft.world.item.crafting.Ingredient.CODEC).fieldOf("key")
+                        .forGetter(recipe -> {
+                            // Reconstruct key from ingredients
+                            java.util.Map<String, net.minecraft.world.item.crafting.Ingredient> keyMap = new java.util.HashMap<>();
+                            for (int i = 0; i < 9; i++) {
+                                if (recipe.ingredients.get(i) != net.minecraft.world.item.crafting.Ingredient.EMPTY) {
+                                    keyMap.put(String.valueOf((char)('A' + i)), recipe.ingredients.get(i));
+                                }
+                            }
+                            return keyMap;
+                        }),
+                    // Parse shard requirements (optional)
+                    com.mojang.serialization.Codec.unboundedMap(com.mojang.serialization.Codec.STRING, com.mojang.serialization.Codec.INT)
+                        .optionalFieldOf("shard_requirements")
+                        .forGetter(recipe -> java.util.Optional.of(recipe.shardRequirements)),
+                    // Parse shards (legacy, optional)
+                    com.mojang.serialization.Codec.unboundedMap(com.mojang.serialization.Codec.STRING, com.mojang.serialization.Codec.INT)
+                        .optionalFieldOf("shards")
+                        .forGetter(recipe -> java.util.Optional.of(recipe.shardRequirements)),
+                    // Parse required research (optional)
+                    com.mojang.serialization.Codec.STRING.optionalFieldOf("required_research")
+                        .forGetter(recipe -> java.util.Optional.of(recipe.requiredResearch)),
+                    // Parse result - use ItemStack.CODEC which expects {"id": "...", "count": 1}
+                    net.minecraft.world.item.ItemStack.CODEC.fieldOf("result")
+                        .forGetter(recipe -> recipe.getResultItem(null))
+                ).apply(instance, (pattern, key, shardReqs, shards, research, result) -> {
+                    // Merge shard requirements from both fields
+                    java.util.Map<String, Integer> shardRequirements = new java.util.HashMap<>();
+                    if (shardReqs.isPresent()) {
+                        shardRequirements.putAll(shardReqs.get());
+                    }
+                    if (shards.isPresent()) {
+                        shardRequirements.putAll(shards.get());
+                    }
+                    
+                    // Parse ingredients from pattern and key
+                    net.minecraft.core.NonNullList<net.minecraft.world.item.crafting.Ingredient> ingredients = 
+                        net.minecraft.core.NonNullList.withSize(9, net.minecraft.world.item.crafting.Ingredient.EMPTY);
+                    
+                    for (int i = 0; i < pattern.size() && i < 3; i++) {
+                        String row = pattern.get(i);
+                        if (row.length() > 3) continue;
+                        
+                        for (int j = 0; j < row.length(); j++) {
+                            char c = row.charAt(j);
+                            if (c != ' ' && key.containsKey(String.valueOf(c))) {
+                                ingredients.set(i * 3 + j, key.get(String.valueOf(c)));
+                            }
+                        }
+                    }
+                    
+                    // The recipe ID will be provided by the recipe manager
+                    // For now, use a temporary ID
+                    net.minecraft.resources.ResourceLocation recipeId = 
+                        net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("strangematter", "temp");
+                    
+                    return new RealityForgeRecipe(
+                        recipeId,
+                        result,
+                        ingredients,
+                        shardRequirements,
+                        research.orElse("")
+                    );
+                })
+            );
+        }
+        
+        // Helper to convert ingredient index to pattern character
+        private static char getPatternChar(int idx) {
+            return (char)('A' + idx);
+        }
+        
+        @Override
+        public net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, RealityForgeRecipe> streamCodec() {
+            return new net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, RealityForgeRecipe>() {
+                @Override
+                public void encode(net.minecraft.network.RegistryFriendlyByteBuf buffer, RealityForgeRecipe recipe) {
+                    toNetwork(buffer, recipe);
+                }
+                
+                @Override
+                public RealityForgeRecipe decode(net.minecraft.network.RegistryFriendlyByteBuf buffer) {
+                    // First read the ID from the buffer
+                    ResourceLocation id = net.minecraft.resources.ResourceLocation.STREAM_CODEC.decode(buffer);
+                    // The rest of the recipe data is in the buffer, but fromNetwork expects it to continue from where it is
+                    // So we need to create a wrapper that reads from the current position
+                    RealityForgeRecipe recipe = fromNetwork(id, buffer);
+                    return recipe;
+                }
+            };
+        }
+        
+        public RealityForgeRecipe fromJson(ResourceLocation recipeId, JsonObject json, HolderLookup.Provider provider) {
+            ItemStack result = ItemStack.CODEC.parse(provider.createSerializationContext(com.mojang.serialization.JsonOps.INSTANCE), GsonHelper.getAsJsonObject(json, "result")).getOrThrow();
             
             NonNullList<Ingredient> ingredients = NonNullList.withSize(9, Ingredient.EMPTY);
             com.google.gson.JsonArray patternArray = GsonHelper.getAsJsonArray(json, "pattern");
@@ -138,14 +242,20 @@ public class RealityForgeRecipe implements Recipe<Container> {
                 for (int j = 0; j < 3; j++) {
                     char c = row.charAt(j);
                     if (c != ' ') {
-                        ingredients.set(i * 3 + j, Ingredient.fromJson(key.getAsJsonObject(String.valueOf(c))));
+                        ingredients.set(i * 3 + j, Ingredient.CODEC.parse(provider.createSerializationContext(com.mojang.serialization.JsonOps.INSTANCE), key.getAsJsonObject(String.valueOf(c))).getOrThrow());
                     }
                 }
             }
             
             Map<String, Integer> shardRequirements = new HashMap<>();
+            // Check for both "shards" and "shard_requirements" to support both old and new format
             if (json.has("shards")) {
                 JsonObject shards = GsonHelper.getAsJsonObject(json, "shards");
+                for (String key2 : shards.keySet()) {
+                    shardRequirements.put(key2, GsonHelper.getAsInt(shards, key2));
+                }
+            } else if (json.has("shard_requirements")) {
+                JsonObject shards = GsonHelper.getAsJsonObject(json, "shard_requirements");
                 for (String key2 : shards.keySet()) {
                     shardRequirements.put(key2, GsonHelper.getAsInt(shards, key2));
                 }
@@ -160,13 +270,12 @@ public class RealityForgeRecipe implements Recipe<Container> {
             return new RealityForgeRecipe(recipeId, result, ingredients, shardRequirements, requiredResearch);
         }
         
-        @Override
-        public RealityForgeRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
-            ItemStack result = buffer.readItem();
+        public RealityForgeRecipe fromNetwork(ResourceLocation recipeId, net.minecraft.network.RegistryFriendlyByteBuf buffer) {
+            ItemStack result = ItemStack.STREAM_CODEC.decode(buffer);
             
             NonNullList<Ingredient> ingredients = NonNullList.withSize(9, Ingredient.EMPTY);
             for (int i = 0; i < 9; i++) {
-                ingredients.set(i, Ingredient.fromNetwork(buffer));
+                ingredients.set(i, Ingredient.CONTENTS_STREAM_CODEC.decode(buffer));
             }
             
             Map<String, Integer> shardRequirements = new HashMap<>();
@@ -186,12 +295,14 @@ public class RealityForgeRecipe implements Recipe<Container> {
             return new RealityForgeRecipe(recipeId, result, ingredients, shardRequirements, requiredResearch);
         }
         
-        @Override
-        public void toNetwork(FriendlyByteBuf buffer, RealityForgeRecipe recipe) {
-            buffer.writeItem(recipe.result);
+        public void toNetwork(net.minecraft.network.RegistryFriendlyByteBuf buffer, RealityForgeRecipe recipe) {
+            // Write the recipe ID first
+            net.minecraft.resources.ResourceLocation.STREAM_CODEC.encode(buffer, recipe.id);
+            
+            ItemStack.STREAM_CODEC.encode(buffer, recipe.result);
             
             for (Ingredient ingredient : recipe.ingredients) {
-                ingredient.toNetwork(buffer);
+                Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, ingredient);
             }
             
             buffer.writeInt(recipe.shardRequirements.size());

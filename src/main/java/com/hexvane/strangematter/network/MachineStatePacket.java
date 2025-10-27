@@ -3,16 +3,19 @@ package com.hexvane.strangematter.network;
 import com.hexvane.strangematter.api.block.entity.IPacketHandlerTile;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.network.NetworkEvent;
-
-import java.util.function.Supplier;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /**
  * Packet for synchronizing machine state between server and client.
  */
-public class MachineStatePacket {
+public class MachineStatePacket implements CustomPacketPayload {
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("strangematter", "machine_state");
+    public static final Type<MachineStatePacket> TYPE = new Type<>(ID);
+    
     private final BlockPos pos;
     private final FriendlyByteBuf data;
 
@@ -20,23 +23,30 @@ public class MachineStatePacket {
         this.pos = pos;
         this.data = data;
     }
-
-    public static void encode(MachineStatePacket packet, FriendlyByteBuf buffer) {
-        buffer.writeBlockPos(packet.pos);
-        buffer.writeBytes(packet.data);
+    
+    public MachineStatePacket(FriendlyByteBuf buffer) {
+        this.pos = buffer.readBlockPos();
+        int dataLength = buffer.readableBytes();
+        this.data = new FriendlyByteBuf(buffer.readBytes(dataLength));
     }
 
-    public static MachineStatePacket decode(FriendlyByteBuf buffer) {
-        BlockPos pos = buffer.readBlockPos();
-        FriendlyByteBuf data = new FriendlyByteBuf(buffer.readBytes(buffer.readableBytes()));
-        return new MachineStatePacket(pos, data);
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+    
+    public void write(FriendlyByteBuf buffer) {
+        buffer.writeBlockPos(pos);
+        int readerIndex = this.data.readerIndex();
+        this.data.readerIndex(0);
+        buffer.writeBytes(this.data, this.data.readableBytes());
+        this.data.readerIndex(readerIndex);
     }
 
-    public static void handle(MachineStatePacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
+    public static void handle(MachineStatePacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             // Handle on client side
-            Level world = context.getSender() != null ? context.getSender().level() : null;
+            Level world = context.player() != null ? context.player().level() : null;
             if (world != null) {
                 BlockEntity blockEntity = world.getBlockEntity(packet.pos);
                 if (blockEntity instanceof IPacketHandlerTile handlerTile) {
@@ -44,18 +54,37 @@ public class MachineStatePacket {
                 }
             }
         });
-        context.setPacketHandled(true);
     }
 
     public static void sendToClient(IPacketHandlerTile tile) {
         if (tile == null || !(tile instanceof BlockEntity blockEntity)) {
             return;
         }
-        if (blockEntity.getLevel() == null || blockEntity.getLevel().isClientSide) {
+        Level level = blockEntity.getLevel();
+        if (level == null || level.isClientSide) {
             return;
         }
-        FriendlyByteBuf buffer = new FriendlyByteBuf(io.netty.buffer.Unpooled.buffer());
-        MachineStatePacket packet = new MachineStatePacket(blockEntity.getBlockPos(), tile.getStatePacket(buffer));
-        // TODO: Register and send packet through Forge network system
+        
+        // Create buffer for the data
+        FriendlyByteBuf dataBuffer = new FriendlyByteBuf(io.netty.buffer.Unpooled.buffer());
+        tile.getStatePacket(dataBuffer);
+        
+        // Create the packet with the position and data buffer
+        MachineStatePacket packet = new MachineStatePacket(blockEntity.getBlockPos(), dataBuffer);
+        
+        // Send packet to all players in the level
+        if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+            for (net.minecraft.server.level.ServerPlayer player : serverLevel.players()) {
+                net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player, packet);
+            }
+        }
+    }
+    
+    public BlockPos getPos() {
+        return pos;
+    }
+    
+    public FriendlyByteBuf getData() {
+        return data;
     }
 }

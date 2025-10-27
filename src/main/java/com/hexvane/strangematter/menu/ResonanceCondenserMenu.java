@@ -54,6 +54,37 @@ public class ResonanceCondenserMenu extends BaseMachineMenu {
         }
     }
     
+    // Client-side constructor for when block entity is not available
+    public ResonanceCondenserMenu(int windowId, Inventory inventory) {
+        super(com.hexvane.strangematter.StrangeMatterMod.RESONANCE_CONDENSER_MENU.get(), windowId, inventory, 1);
+        this.blockEntity = null;
+        
+        // Create a dummy ContainerData for client-side synchronization
+        this.dataAccess = new ContainerData() {
+            private final int[] data = new int[7]; // 7 elements to match BaseMachineBlockEntity
+            
+            @Override
+            public int get(int index) {
+                return index >= 0 && index < data.length ? data[index] : 0;
+            }
+            
+            @Override
+            public void set(int index, int value) {
+                if (index >= 0 && index < data.length) {
+                    data[index] = value;
+                }
+            }
+            
+            @Override
+            public int getCount() {
+                return data.length;
+            }
+        };
+        
+        // Add the ContainerData to the menu for synchronization
+        this.addDataSlots(this.dataAccess);
+    }
+    
     
     @Override
     protected void addMachineSlots() {

@@ -1,155 +1,155 @@
 {
   "research_tablet_open": {
     "sounds": ["strangematter:research_tablet_open"],
-    "subtitle": "Research tablet opens"
+    "subtitle": "subtitles.strangematter.research_tablet_open"
   },
   "research_tablet_node_hover": {
     "sounds": ["strangematter:research_tablet_node_hover"],
-    "subtitle": "Research node hover"
+    "subtitle": "subtitles.strangematter.research_tablet_node_hover"
   },
   "research_tablet_node_click": {
     "sounds": ["strangematter:research_tablet_node_click"],
-    "subtitle": "Research node click"
+    "subtitle": "subtitles.strangematter.research_tablet_node_click"
   },
   "research_tablet_page_turn": {
     "sounds": ["strangematter:research_tablet_page_turn"],
-    "subtitle": "Research page turn"
+    "subtitle": "subtitles.strangematter.research_tablet_page_turn"
   },
   "research_node_locked_click": {
     "sounds": ["strangematter:research_node_locked_click"],
-    "subtitle": "Research node locked"
+    "subtitle": "subtitles.strangematter.research_node_locked_click"
   },
   "research_note_create": {
     "sounds": ["strangematter:research_note_create"],
-    "subtitle": "Research note created"
+    "subtitle": "subtitles.strangematter.research_note_create"
   },
   "research_machine_open": {
     "sounds": ["strangematter:research_machine_open"],
-    "subtitle": "Research machine opens"
+    "subtitle": "subtitles.strangematter.research_machine_open"
   },
   "research_machine_note_insert": {
     "sounds": ["strangematter:research_machine_note_insert"],
-    "subtitle": "Research note inserted"
+    "subtitle": "subtitles.strangematter.research_machine_note_insert"
   },
   "research_machine_note_reject": {
     "sounds": ["strangematter:research_machine_note_reject"],
-    "subtitle": "Research note rejected"
+    "subtitle": "subtitles.strangematter.research_machine_note_reject"
   },
   "research_machine_begin_research": {
     "sounds": ["strangematter:research_machine_begin_research"],
-    "subtitle": "Research begins"
+    "subtitle": "subtitles.strangematter.research_machine_begin_research"
   },
   "research_machine_idle_loop": {
     "sounds": ["strangematter:research_machine_idle_loop"],
-    "subtitle": "Research machine humming"
+    "subtitle": "subtitles.strangematter.research_machine_idle_loop"
   },
   "research_machine_success": {
     "sounds": ["strangematter:research_machine_success"],
-    "subtitle": "Research completed successfully"
+    "subtitle": "subtitles.strangematter.research_machine_success"
   },
   "research_machine_failure": {
     "sounds": ["strangematter:research_machine_failure"],
-    "subtitle": "Research failed"
+    "subtitle": "subtitles.strangematter.research_machine_failure"
   },
   "research_machine_instability_high": {
     "sounds": ["strangematter:research_machine_instability_high"],
-    "subtitle": "High instability warning"
+    "subtitle": "subtitles.strangematter.research_machine_instability_high"
   },
   "research_machine_instability_critical": {
     "sounds": ["strangematter:research_machine_instability_critical"],
-    "subtitle": "Critical instability warning"
+    "subtitle": "subtitles.strangematter.research_machine_instability_critical"
   },
   "energy_dial_toggle": {
     "sounds": ["strangematter:energy_dial_toggle"],
-    "subtitle": "Dial toggled"
+    "subtitle": "subtitles.strangematter.energy_dial_toggle"
   },
   "energy_button_click": {
     "sounds": ["strangematter:energy_button_click"],
-    "subtitle": "Button clicked"
+    "subtitle": "subtitles.strangematter.energy_button_click"
   },
   "energy_wave_align": {
     "sounds": ["strangematter:energy_wave_align"],
-    "subtitle": "Waves aligned"
+    "subtitle": "subtitles.strangematter.energy_wave_align"
   },
   "energy_wave_misalign": {
     "sounds": ["strangematter:energy_wave_misalign"],
-    "subtitle": "Waves misaligned"
+    "subtitle": "subtitles.strangematter.energy_wave_misalign"
   },
   "minigame_stable": {
     "sounds": ["strangematter:minigame_stable"],
-    "subtitle": "Minigame stable"
+    "subtitle": "subtitles.strangematter.minigame_stable"
   },
   "minigame_unstable": {
     "sounds": ["strangematter:minigame_unstable"],
-    "subtitle": "Minigame unstable"
+    "subtitle": "subtitles.strangematter.minigame_unstable"
   },
   "field_scanner_scan": {
     "sounds": ["strangematter:field_scanner_scan"],
-    "subtitle": "Field scanner scanning"
+    "subtitle": "subtitles.strangematter.field_scanner_scan"
   },
   "gravity_anomaly_loop": {
     "sounds": ["strangematter:gravity_anomaly_loop"],
-    "subtitle": "Gravity anomaly detected"
+    "subtitle": "subtitles.strangematter.gravity_anomaly_loop"
   },
   "energetic_rift_loop": {
     "sounds": ["strangematter:energetic_rift_loop"],
-    "subtitle": "Energetic rift detected"
+    "subtitle": "subtitles.strangematter.energetic_rift_loop"
   },
   "echoing_shadow_loop": {
     "sounds": ["strangematter:echoing_shadow_loop"],
-    "subtitle": "Echoing shadow detected"
+    "subtitle": "subtitles.strangematter.echoing_shadow_loop"
   },
   "warp_gate_loop": {
     "sounds": ["strangematter:warp_gate_loop"],
-    "subtitle": "Warp gate active"
+    "subtitle": "subtitles.strangematter.warp_gate_loop"
   },
   "temporal_bloom_loop": {
     "sounds": ["strangematter:temporal_bloom_loop"],
-    "subtitle": "Temporal bloom active"
+    "subtitle": "subtitles.strangematter.temporal_bloom_loop"
   },
   "thoughtwell_loop": {
     "sounds": ["strangematter:thoughtwell_loop"],
-    "subtitle": "Thoughtwell active"
+    "subtitle": "subtitles.strangematter.thoughtwell_loop"
   },
   "warp_gun_shoot": {
     "sounds": ["strangematter:warp_gun_shoot"],
-    "subtitle": "Warp gun fires"
+    "subtitle": "subtitles.strangematter.warp_gun_shoot"
   },
   "echo_vacuum_charge_up": {
     "sounds": ["strangematter:echo_vacuum_charge_up"],
-    "subtitle": "Echo Vacuum charging up"
+    "subtitle": "subtitles.strangematter.echo_vacuum_charge_up"
   },
   "echo_vacuum_fire_loop": {
     "sounds": ["strangematter:echo_vacuum_fire_loop"],
-    "subtitle": "Echo Vacuum firing",
+    "subtitle": "subtitles.strangematter.echo_vacuum_fire_loop",
     "stream": true
   },
   "echo_vacuum_charge_down": {
     "sounds": ["strangematter:echo_vacuum_charge_down"],
-    "subtitle": "Echo Vacuum powering down"
+    "subtitle": "subtitles.strangematter.echo_vacuum_charge_down"
   },
   "echo_vacuum_contain": {
     "sounds": ["strangematter:echo_vacuum_contain"],
-    "subtitle": "Anomaly contained"
+    "subtitle": "subtitles.strangematter.echo_vacuum_contain"
   },
   "reality_forge_craft": {
     "sounds": ["strangematter:reality_forge_craft"],
-    "subtitle": "Reality Forge crafts"
+    "subtitle": "subtitles.strangematter.reality_forge_craft"
   },
   "reality_forge_insert": {
     "sounds": ["strangematter:reality_forge_insert"],
-    "subtitle": "Shard inserted"
+    "subtitle": "subtitles.strangematter.reality_forge_insert"
   },
   "stasis_projector_on": {
     "sounds": ["strangematter:stasis_projector_on"],
-    "subtitle": "Stasis Projector activated"
+    "subtitle": "subtitles.strangematter.stasis_projector_on"
   },
   "stasis_projector_off": {
     "sounds": ["strangematter:stasis_projector_off"],
-    "subtitle": "Stasis Projector deactivated"
+    "subtitle": "subtitles.strangematter.stasis_projector_off"
   },
   "graviton_chargeup": {
     "sounds": ["strangematter:graviton_chargeup"],
-    "subtitle": "Graviton Hammer charging"
+    "subtitle": "subtitles.strangematter.graviton_chargeup"
   }
 }

@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
@@ -47,7 +48,7 @@ public class ResonantConduitRenderer implements BlockEntityRenderer<ResonantCond
         VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(CONDUIT_TEXTURE));
 
         // Determine connection pattern
-        List<Direction> connectedDirections = getConnectedDirections(conduitBlock, blockState);
+        List<Direction> connectedDirections = getConnectedDirections(blockEntity);
         boolean shouldRenderJoint = shouldRenderJoint(connectedDirections);
 
         // Render the joint only if needed
@@ -63,16 +64,10 @@ public class ResonantConduitRenderer implements BlockEntityRenderer<ResonantCond
     }
 
     /**
-     * Get list of connected directions
+     * Get list of connected directions from the block entity
      */
-    private List<Direction> getConnectedDirections(ResonantConduitBlock conduitBlock, BlockState blockState) {
-        List<Direction> connected = new ArrayList<>();
-        for (Direction direction : Direction.values()) {
-            if (conduitBlock.isConnected(blockState, direction)) {
-                connected.add(direction);
-            }
-        }
-        return connected;
+    private List<Direction> getConnectedDirections(ResonantConduitBlockEntity blockEntity) {
+        return blockEntity.getConnectedDirections();
     }
 
     /**
@@ -260,13 +255,12 @@ public class ResonantConduitRenderer implements BlockEntityRenderer<ResonantCond
      */
     private void addVertex(VertexConsumer buffer, PoseStack poseStack, float x, float y, float z,
                           float u, float v, int combinedLight, int combinedOverlay) {
-        buffer.vertex(poseStack.last().pose(), x, y, z)
-                .color(1.0f, 1.0f, 1.0f, 1.0f)
-                .uv(u, v)
-                .overlayCoords(combinedOverlay)
-                .uv2(combinedLight)
-                .normal(poseStack.last().normal(), 0, 1, 0)
-                .endVertex();
+        buffer.addVertex(poseStack.last().pose(), x, y, z)
+                .setColor(255, 255, 255, 255)
+                .setUv(u, v)
+                .setOverlay(combinedOverlay)
+                .setLight(combinedLight)
+                .setNormal(0.0f, 1.0f, 0.0f);
     }
 
     @Override

@@ -4,13 +4,17 @@ import com.hexvane.strangematter.block.ResearchMachineBlockEntity;
 import com.hexvane.strangematter.research.ResearchType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Supplier;
 
-public class UpdateMinigameStatesPacket {
+public class UpdateMinigameStatesPacket implements CustomPacketPayload {
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("strangematter", "update_minigame_states");
+    public static final Type<UpdateMinigameStatesPacket> TYPE = new Type<>(ID);
+    
     private final BlockPos pos;
     private final Map<ResearchType, Boolean> minigameStates;
     
@@ -19,17 +23,8 @@ public class UpdateMinigameStatesPacket {
         this.minigameStates = minigameStates;
     }
     
-    public static void encode(UpdateMinigameStatesPacket packet, FriendlyByteBuf buffer) {
-        buffer.writeBlockPos(packet.pos);
-        buffer.writeInt(packet.minigameStates.size());
-        for (Map.Entry<ResearchType, Boolean> entry : packet.minigameStates.entrySet()) {
-            buffer.writeEnum(entry.getKey());
-            buffer.writeBoolean(entry.getValue());
-        }
-    }
-    
-    public static UpdateMinigameStatesPacket new_(FriendlyByteBuf buffer) {
-        BlockPos pos = buffer.readBlockPos();
+    public UpdateMinigameStatesPacket(FriendlyByteBuf buffer) {
+        this.pos = buffer.readBlockPos();
         int size = buffer.readInt();
         Map<ResearchType, Boolean> minigameStates = new HashMap<>();
         for (int i = 0; i < size; i++) {
@@ -37,15 +32,28 @@ public class UpdateMinigameStatesPacket {
             boolean isStable = buffer.readBoolean();
             minigameStates.put(type, isStable);
         }
-        return new UpdateMinigameStatesPacket(pos, minigameStates);
+        this.minigameStates = minigameStates;
     }
     
-    public static void handle(UpdateMinigameStatesPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+    
+    public void write(FriendlyByteBuf buffer) {
+        buffer.writeBlockPos(pos);
+        buffer.writeInt(minigameStates.size());
+        for (Map.Entry<ResearchType, Boolean> entry : minigameStates.entrySet()) {
+            buffer.writeEnum(entry.getKey());
+            buffer.writeBoolean(entry.getValue());
+        }
+    }
+    
+    public static void handle(UpdateMinigameStatesPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
-            if (context.getSender() != null) {
+            if (context.player() != null) {
                 // Server side - update the research machine
-                var player = context.getSender();
+                var player = context.player();
                 var level = player.level();
                 var blockEntity = level.getBlockEntity(packet.pos);
                 
@@ -55,6 +63,13 @@ public class UpdateMinigameStatesPacket {
                 }
             }
         });
-        context.setPacketHandled(true);
+    }
+    
+    public BlockPos getPos() {
+        return pos;
+    }
+    
+    public Map<ResearchType, Boolean> getMinigameStates() {
+        return minigameStates;
     }
 }

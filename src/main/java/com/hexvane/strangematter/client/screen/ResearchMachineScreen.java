@@ -153,7 +153,7 @@ public class ResearchMachineScreen extends Screen {
         if (blockEntity != null) {
             com.hexvane.strangematter.network.RequestResearchMachineStatePacket packet = 
                 new com.hexvane.strangematter.network.RequestResearchMachineStatePacket(blockEntity.getBlockPos());
-            com.hexvane.strangematter.network.NetworkHandler.INSTANCE.sendToServer(packet);
+            net.neoforged.neoforge.network.PacketDistributor.sendToServer(packet);
         }
         
         // Check if machine is locked to another player
@@ -303,9 +303,6 @@ public class ResearchMachineScreen extends Screen {
     
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        // Render background
-        renderBackground(guiGraphics);
-        
         // Render GUI elements
         renderGuiBackground(guiGraphics);
         renderBorder(guiGraphics);
@@ -324,7 +321,10 @@ public class ResearchMachineScreen extends Screen {
         // Render buttons
         renderButtons(guiGraphics, mouseX, mouseY);
         
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        // Render widgets explicitly instead of calling super.render() to avoid blurred background
+        for (net.minecraft.client.gui.components.Renderable renderable : this.renderables) {
+            renderable.render(guiGraphics, mouseX, mouseY, partialTick);
+        }
     }
     
     private void renderGuiBackground(GuiGraphics guiGraphics) {
@@ -806,7 +806,7 @@ public class ResearchMachineScreen extends Screen {
         com.hexvane.strangematter.network.ResearchCompletionPacket packet = 
             new com.hexvane.strangematter.network.ResearchCompletionPacket(blockEntity.getBlockPos(), success);
         
-        com.hexvane.strangematter.network.NetworkHandler.INSTANCE.sendToServer(packet);
+        net.neoforged.neoforge.network.PacketDistributor.sendToServer(packet);
     }
     
     @Override
@@ -880,7 +880,7 @@ public class ResearchMachineScreen extends Screen {
         // Send state to server
         com.hexvane.strangematter.network.MinigameStatePacket packet = 
             new com.hexvane.strangematter.network.MinigameStatePacket(blockEntity.getBlockPos(), minigameStates);
-        com.hexvane.strangematter.network.NetworkHandler.INSTANCE.sendToServer(packet);
+        net.neoforged.neoforge.network.PacketDistributor.sendToServer(packet);
     }
     
     /**

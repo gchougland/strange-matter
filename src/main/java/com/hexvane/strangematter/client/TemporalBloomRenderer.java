@@ -121,14 +121,14 @@ public class TemporalBloomRenderer extends EntityRenderer<TemporalBloomEntity> {
         float alpha = 0.8f;
         
         // Simple quad
-        consumer.vertex(matrix4f, -size, -size, 0).color(1.0f, 0.8f, 1.0f, alpha)
-               .uv(0.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-        consumer.vertex(matrix4f, size, -size, 0).color(1.0f, 0.8f, 1.0f, alpha)
-               .uv(1.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-        consumer.vertex(matrix4f, size, size, 0).color(1.0f, 0.8f, 1.0f, alpha)
-               .uv(1.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-        consumer.vertex(matrix4f, -size, size, 0).color(1.0f, 0.8f, 1.0f, alpha)
-               .uv(0.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
+        consumer.addVertex(matrix4f, -size, -size, 0).setColor((int)(1.0f * 255), (int)(0.8f * 255), (int)(1.0f * 255), (int)(alpha * 255))
+               .setUv(0.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
+        consumer.addVertex(matrix4f, size, -size, 0).setColor((int)(1.0f * 255), (int)(0.8f * 255), (int)(1.0f * 255), (int)(alpha * 255))
+               .setUv(1.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
+        consumer.addVertex(matrix4f, size, size, 0).setColor((int)(1.0f * 255), (int)(0.8f * 255), (int)(1.0f * 255), (int)(alpha * 255))
+               .setUv(1.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
+        consumer.addVertex(matrix4f, -size, size, 0).setColor((int)(1.0f * 255), (int)(0.8f * 255), (int)(1.0f * 255), (int)(alpha * 255))
+               .setUv(0.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
         
         poseStack.popPose();
     }
@@ -181,10 +181,10 @@ public class TemporalBloomRenderer extends EntityRenderer<TemporalBloomEntity> {
             float b = 1.0f;
             
             // Render a quad facing the camera
-            consumer.vertex(matrix4f, -size, -size, 0).color(r, g, b, alpha).uv(0.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-            consumer.vertex(matrix4f, size, -size, 0).color(r, g, b, alpha).uv(1.0f, 0.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-            consumer.vertex(matrix4f, size, size, 0).color(r, g, b, alpha).uv(1.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
-            consumer.vertex(matrix4f, -size, size, 0).color(r, g, b, alpha).uv(0.0f, 1.0f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 0, 1).endVertex();
+            consumer.addVertex(matrix4f, -size, -size, 0).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(alpha * 255)).setUv(0.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
+            consumer.addVertex(matrix4f, size, -size, 0).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(alpha * 255)).setUv(1.0f, 0.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
+            consumer.addVertex(matrix4f, size, size, 0).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(alpha * 255)).setUv(1.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
+            consumer.addVertex(matrix4f, -size, size, 0).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(alpha * 255)).setUv(0.0f, 1.0f).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0.0f, 0.0f, 1.0f);
             
             poseStack.popPose();
         }

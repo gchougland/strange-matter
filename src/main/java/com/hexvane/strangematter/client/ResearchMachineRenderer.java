@@ -12,8 +12,8 @@ import com.hexvane.strangematter.StrangeMatterMod;
 
 public class ResearchMachineRenderer implements BlockEntityRenderer<ResearchMachineBlockEntity> {
     
-    private static final ResourceLocation MACHINE_OBJ = new ResourceLocation(StrangeMatterMod.MODID, "models/block/research_machine.obj");
-    private static final ResourceLocation MACHINE_TEXTURE = new ResourceLocation(StrangeMatterMod.MODID, "textures/block/research_machine.png");
+    private static final ResourceLocation MACHINE_OBJ = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "models/block/research_machine.obj");
+    private static final ResourceLocation MACHINE_TEXTURE = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/block/research_machine.png");
     
     private OBJModel machineModel;
     

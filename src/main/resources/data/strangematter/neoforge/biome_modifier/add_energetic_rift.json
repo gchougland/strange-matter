@@ -1,0 +1,15 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": {
+    "type": "neoforge:not",
+    "value": {
+      "type": "neoforge:or",
+      "values": [
+        "#minecraft:is_ocean",
+        "#minecraft:is_river"
+      ]
+    }
+  },
+  "features": "strangematter:energetic_rift",
+  "step": "surface_structures"
+}

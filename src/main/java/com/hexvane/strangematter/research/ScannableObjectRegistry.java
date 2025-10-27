@@ -4,7 +4,7 @@ import com.hexvane.strangematter.Config;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import com.hexvane.strangematter.StrangeMatterMod;
 
 import java.util.HashMap;
@@ -56,12 +56,12 @@ public class ScannableObjectRegistry {
     }
     
     public static Optional<ScannableObject> getScannableForEntity(Entity entity) {
-        ResourceLocation entityType = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
+        ResourceLocation entityType = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
         return Optional.ofNullable(entityScannables.get(entityType));
     }
     
     public static Optional<ScannableObject> getScannableForBlock(BlockState blockState) {
-        ResourceLocation blockType = ForgeRegistries.BLOCKS.getKey(blockState.getBlock());
+        ResourceLocation blockType = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(blockState.getBlock());
         return Optional.ofNullable(blockScannables.get(blockType));
     }
     

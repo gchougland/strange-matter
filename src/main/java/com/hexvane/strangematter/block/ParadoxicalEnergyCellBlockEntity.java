@@ -2,17 +2,16 @@ package com.hexvane.strangematter.block;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.IEnergyStorage;
+import com.hexvane.strangematter.energy.EnergyAttachment;
 import com.hexvane.strangematter.energy.ResonanceEnergyStorage;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 import com.hexvane.strangematter.StrangeMatterMod;
 
 /**
@@ -22,13 +21,14 @@ import com.hexvane.strangematter.StrangeMatterMod;
 public class ParadoxicalEnergyCellBlockEntity extends BlockEntity {
     
     private final ResonanceEnergyStorage energyStorage;
-    private final LazyOptional<IEnergyStorage> energyOptional;
     
     public ParadoxicalEnergyCellBlockEntity(BlockPos pos, BlockState state) {
         super(StrangeMatterMod.PARADOXICAL_ENERGY_CELL_BLOCK_ENTITY.get(), pos, state);
         // Create infinite energy storage
         this.energyStorage = new ResonanceEnergyStorage(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
-        this.energyOptional = LazyOptional.of(() -> this.energyStorage);
+        
+        // Attach energy storage to this block entity
+        EnergyAttachment.attachEnergyStorage(this, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
     }
     
     public static void tick(Level level, BlockPos pos, BlockState state, ParadoxicalEnergyCellBlockEntity blockEntity) {
@@ -49,7 +49,8 @@ public class ParadoxicalEnergyCellBlockEntity extends BlockEntity {
             BlockEntity adjacentEntity = level.getBlockEntity(adjacentPos);
             
             if (adjacentEntity != null) {
-                adjacentEntity.getCapability(ForgeCapabilities.ENERGY, direction.getOpposite()).ifPresent(adjacentStorage -> {
+                if (EnergyAttachment.hasEnergyStorage(adjacentEntity)) {
+                    IEnergyStorage adjacentStorage = EnergyAttachment.getEnergyStorage(adjacentEntity);
                     if (adjacentStorage.canReceive()) {
                         // Try to transfer energy
                         int transferRate = com.hexvane.strangematter.Config.paradoxicalCellTransferRate;
@@ -61,44 +62,29 @@ public class ParadoxicalEnergyCellBlockEntity extends BlockEntity {
                                 setChanged();
                             }
                         }
+                        }
                     }
-                });
             }
         }
     }
     
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-        if (cap == ForgeCapabilities.ENERGY) {
-            return energyOptional.cast();
-        }
-        return super.getCapability(cap, side);
+    // Energy system access methods
+    public ResonanceEnergyStorage getEnergyStorage() {
+        return energyStorage;
     }
     
     @Override
-    public void invalidateCaps() {
-        super.invalidateCaps();
-        energyOptional.invalidate();
-    }
-    
-    @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.saveAdditional(tag, provider);
         tag.putInt("energy", energyStorage.getEnergyStored());
     }
     
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        super.loadAdditional(tag, provider);
         energyStorage.setEnergy(tag.getInt("energy"));
     }
     
     // Note: getDisplayName() is not needed for block entities that don't have GUIs
     
-    /**
-     * Get the energy storage for GUI access
-     */
-    public ResonanceEnergyStorage getEnergyStorage() {
-        return energyStorage;
-    }
 }

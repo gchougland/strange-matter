@@ -39,12 +39,12 @@ public class ResoniteOreBlock extends Block {
         // Check if the tool has silk touch
         if (builder.getOptionalParameter(LootContextParams.THIS_ENTITY) instanceof Player player) {
             ItemStack tool = player.getMainHandItem();
-            if (EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SILK_TOUCH, tool) > 0) {
+            if (tool.getEnchantmentLevel(builder.getLevel().registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT).getOrThrow(Enchantments.SILK_TOUCH)) > 0) {
                 // Drop the ore block itself with silk touch
                 drops.add(new ItemStack(this));
             } else {
                 // Drop 1-2 raw resonite, affected by fortune
-                int fortuneLevel = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.BLOCK_FORTUNE, tool);
+                int fortuneLevel = tool.getEnchantmentLevel(builder.getLevel().registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE));
                 int dropCount = 1 + builder.getLevel().getRandom().nextInt(2); // 1-2 base drops
                 
                 // Apply fortune: each level adds 0-1 extra drops, max 4 total

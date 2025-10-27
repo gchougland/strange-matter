@@ -110,8 +110,6 @@ public class ResearchTabletScreen extends Screen {
     
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(guiGraphics);
-        
         // Render main GUI background as grey box
         int bPadding = 10;
         guiGraphics.fill(guiX + bPadding, guiY + bPadding, guiX + GUI_WIDTH - bPadding, guiY + GUI_HEIGHT - bPadding, 0xFF404040);
@@ -125,7 +123,10 @@ public class ResearchTabletScreen extends Screen {
         // Render research points display
         renderResearchPoints(guiGraphics);
         
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        // Render widgets explicitly instead of calling super.render()
+        for (net.minecraft.client.gui.components.Renderable renderable : this.renderables) {
+            renderable.render(guiGraphics, mouseX, mouseY, partialTick);
+        }
         
         // Render overlay last to appear on top of everything including item icons
         RenderSystem.setShaderTexture(0, RESEARCH_TABLET_OVERLAY);
@@ -861,6 +862,6 @@ public class ResearchTabletScreen extends Screen {
         com.hexvane.strangematter.network.SpendResearchPointsPacket packet = 
             new com.hexvane.strangematter.network.SpendResearchPointsPacket(node.getResearchCosts(), node.getId());
         
-        com.hexvane.strangematter.network.NetworkHandler.INSTANCE.sendToServer(packet);
+        net.neoforged.neoforge.network.PacketDistributor.sendToServer(packet);
     }
 }

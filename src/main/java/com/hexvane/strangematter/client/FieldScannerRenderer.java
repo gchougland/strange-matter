@@ -5,13 +5,14 @@ import com.mojang.math.Axis;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import javax.annotation.Nonnull;
 
 public class FieldScannerRenderer implements IClientItemExtensions {
     
     @Override
-    public boolean applyForgeHandTransform(PoseStack poseStack, LocalPlayer player, HumanoidArm arm, 
-                                         ItemStack itemInHand, float partialTick, float equipProcess, 
+    public boolean applyForgeHandTransform(@Nonnull PoseStack poseStack, @Nonnull LocalPlayer player, @Nonnull HumanoidArm arm, 
+                                         @Nonnull ItemStack itemInHand, float partialTick, float equipProcess, 
                                          float swingProcess) {
         
         // Check if the item is being used (scanning)
@@ -40,16 +41,12 @@ public class FieldScannerRenderer implements IClientItemExtensions {
     }
     
     private boolean isScanning(ItemStack stack) {
-        if (stack.hasTag()) {
-            return stack.getTag().getBoolean("scanning");
-        }
-        return false;
+        net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+        return !customData.isEmpty() && customData.copyTag().getBoolean("scanning");
     }
     
     private int getScanProgress(ItemStack stack) {
-        if (stack.hasTag()) {
-            return stack.getTag().getInt("scan_progress");
-        }
-        return 0;
+        net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+        return !customData.isEmpty() ? customData.copyTag().getInt("scan_progress") : 0;
     }
 }

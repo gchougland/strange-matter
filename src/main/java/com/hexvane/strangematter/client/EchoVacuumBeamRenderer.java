@@ -17,7 +17,7 @@ import org.joml.Matrix3f;
 
 public class EchoVacuumBeamRenderer {
     
-    private static final ResourceLocation BEAM_TEXTURE = new ResourceLocation("strangematter", "textures/particle/beam.png");
+    private static final ResourceLocation BEAM_TEXTURE = ResourceLocation.fromNamespaceAndPath("strangematter", "textures/particle/beam.png");
     
     public void renderBeam(PoseStack poseStack, MultiBufferSource buffer, int packedLight, 
                           Vec3 start, Vec3 end, Vec3 direction, boolean isFirstPerson, boolean hitTarget, Vec3 localBeamEnd) {
@@ -155,10 +155,10 @@ public class EchoVacuumBeamRenderer {
         Matrix3f normal = poseStack.last().normal();
         
         // Render as a proper quad with rotated UVs (90 degrees clockwise)
-        consumer.vertex(matrix, (float)(x1 + perpX1), (float)(y1 + perpY1), (float)(z1 + perpZ1)).color(r, g, b, a).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal((float)dx, (float)dy, (float)dz).endVertex();
-        consumer.vertex(matrix, (float)(x2 + perpX1), (float)(y2 + perpY1), (float)(z2 + perpZ1)).color(r, g, b, a).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal((float)dx, (float)dy, (float)dz).endVertex();
-        consumer.vertex(matrix, (float)(x2 + perpX2), (float)(y2 + perpY2), (float)(z2 + perpZ2)).color(r, g, b, a).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal((float)dx, (float)dy, (float)dz).endVertex();
-        consumer.vertex(matrix, (float)(x1 + perpX2), (float)(y1 + perpY2), (float)(z1 + perpZ2)).color(r, g, b, a).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal((float)dx, (float)dy, (float)dz).endVertex();
+        consumer.addVertex(matrix, (float)(x1 + perpX1), (float)(y1 + perpY1), (float)(z1 + perpZ1)).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(0, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal((float)dx, (float)dy, (float)dz);
+        consumer.addVertex(matrix, (float)(x2 + perpX1), (float)(y2 + perpY1), (float)(z2 + perpZ1)).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(0, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal((float)dx, (float)dy, (float)dz);
+        consumer.addVertex(matrix, (float)(x2 + perpX2), (float)(y2 + perpY2), (float)(z2 + perpZ2)).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(1, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal((float)dx, (float)dy, (float)dz);
+        consumer.addVertex(matrix, (float)(x1 + perpX2), (float)(y1 + perpY2), (float)(z1 + perpZ2)).setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255)).setUv(1, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal((float)dx, (float)dy, (float)dz);
     }
     
     private void renderVacuumConeParticles(PoseStack poseStack, MultiBufferSource buffer, int packedLight, 
@@ -166,7 +166,7 @@ public class EchoVacuumBeamRenderer {
         
         // Use white wool texture like WarpGateAnomalyRenderer
         VertexConsumer consumer = buffer.getBuffer(RenderType.entityTranslucentCull(
-            new ResourceLocation("minecraft", "textures/block/white_concrete.png")));
+            ResourceLocation.fromNamespaceAndPath("minecraft", "textures/block/white_concrete.png")));
         
         int cyanColor = 0x00FFFF;
         float alpha = 0.8f;
@@ -230,7 +230,7 @@ public class EchoVacuumBeamRenderer {
         
         // Use white wool texture like WarpGateAnomalyRenderer
         VertexConsumer consumer = buffer.getBuffer(RenderType.entityTranslucentCull(
-            new ResourceLocation("minecraft", "textures/block/white_concrete.png")));
+            ResourceLocation.fromNamespaceAndPath("minecraft", "textures/block/white_concrete.png")));
         
         int cyanColor = 0x00FFFF;
         float alpha = 0.8f;
@@ -280,63 +280,55 @@ public class EchoVacuumBeamRenderer {
         Matrix3f normal = poseStack.last().normal();
         
         // Front face
-        vertexConsumer.vertex(matrix, -halfSize, -halfSize, 0.0f)
-            .color(r, g, b, alpha)
-            .uv(0.0f, 1.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, 1.0f)
-            .endVertex();
-        vertexConsumer.vertex(matrix, halfSize, -halfSize, 0.0f)
-            .color(r, g, b, alpha)
-            .uv(1.0f, 1.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, 1.0f)
-            .endVertex();
-        vertexConsumer.vertex(matrix, halfSize, halfSize, 0.0f)
-            .color(r, g, b, alpha)
-            .uv(1.0f, 0.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, 1.0f)
-            .endVertex();
-        vertexConsumer.vertex(matrix, -halfSize, halfSize, 0.0f)
-            .color(r, g, b, alpha)
-            .uv(0.0f, 0.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, 1.0f)
-            .endVertex();
+        vertexConsumer.addVertex(matrix, -halfSize, -halfSize, 0.0f)
+            .setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(alpha * 255))
+            .setUv(0.0f, 1.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
+        vertexConsumer.addVertex(matrix, halfSize, -halfSize, 0.0f)
+            .setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(alpha * 255))
+            .setUv(1.0f, 1.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
+        vertexConsumer.addVertex(matrix, halfSize, halfSize, 0.0f)
+            .setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(alpha * 255))
+            .setUv(1.0f, 0.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
+        vertexConsumer.addVertex(matrix, -halfSize, halfSize, 0.0f)
+            .setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(alpha * 255))
+            .setUv(0.0f, 0.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
         
         // Back face (for double-sided rendering)
-        vertexConsumer.vertex(matrix, -halfSize, halfSize, 0.0f)
-            .color(r, g, b, alpha)
-            .uv(0.0f, 0.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, -1.0f)
-            .endVertex();
-        vertexConsumer.vertex(matrix, halfSize, halfSize, 0.0f)
-            .color(r, g, b, alpha)
-            .uv(1.0f, 0.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, -1.0f)
-            .endVertex();
-        vertexConsumer.vertex(matrix, halfSize, -halfSize, 0.0f)
-            .color(r, g, b, alpha)
-            .uv(1.0f, 1.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, -1.0f)
-            .endVertex();
-        vertexConsumer.vertex(matrix, -halfSize, -halfSize, 0.0f)
-            .color(r, g, b, alpha)
-            .uv(0.0f, 1.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, -1.0f)
-            .endVertex();
+        vertexConsumer.addVertex(matrix, -halfSize, halfSize, 0.0f)
+            .setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(alpha * 255))
+            .setUv(0.0f, 0.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, -1.0f);
+        vertexConsumer.addVertex(matrix, halfSize, halfSize, 0.0f)
+            .setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(alpha * 255))
+            .setUv(1.0f, 0.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, -1.0f);
+        vertexConsumer.addVertex(matrix, halfSize, -halfSize, 0.0f)
+            .setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(alpha * 255))
+            .setUv(1.0f, 1.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, -1.0f);
+        vertexConsumer.addVertex(matrix, -halfSize, -halfSize, 0.0f)
+            .setColor((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(alpha * 255))
+            .setUv(0.0f, 1.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, -1.0f);
     }
 }

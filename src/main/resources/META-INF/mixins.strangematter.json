@@ -1,20 +1,13 @@
 {
   "required": true,
-  "minVersion": "0.8",
   "package": "com.hexvane.strangematter.mixin",
-  "compatibilityLevel": "JAVA_17",
-  "refmap": "strangematter.refmap.json",
-  "mixins": [
-    "LevelLightEngineMixin",
-    "ServerLevelMixin"
-  ],
+  "mixins": [],
   "client": [
-    "LightTextureMixin",
     "EntityRendererMixin",
     "PlayerRendererMixin"
   ],
   "injectors": {
-    "defaultRequire": 0
+    "defaultRequire": 1
   },
-  "verbose": true
+  "minVersion": "0.8"
 }

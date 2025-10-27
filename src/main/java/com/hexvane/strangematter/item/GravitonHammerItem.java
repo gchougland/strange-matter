@@ -100,7 +100,7 @@ public class GravitonHammerItem extends Item {
     }
     
     @Override
-    public int getUseDuration(@Nonnull ItemStack stack) {
+    public int getUseDuration(@Nonnull ItemStack stack, @Nonnull LivingEntity entity) {
         return 72000; // Max duration for charging
     }
     
@@ -136,7 +136,6 @@ public class GravitonHammerItem extends Item {
         return 6.0f;
     }
     
-    @Override
     public boolean isCorrectToolForDrops(@Nonnull BlockState block) {
         // Can mine anything a diamond pickaxe can mine
         return block.requiresCorrectToolForDrops();
@@ -153,51 +152,53 @@ public class GravitonHammerItem extends Item {
     }
     
     @Override
-    public void appendHoverText(@Nonnull ItemStack stack, @Nullable Level level, @Nonnull List<Component> tooltipComponents, @Nonnull TooltipFlag isAdvanced) {
+    public void appendHoverText(@Nonnull ItemStack stack, @Nonnull Item.TooltipContext context, @Nonnull List<Component> tooltipComponents, @Nonnull TooltipFlag isAdvanced) {
         tooltipComponents.add(Component.literal("§7Left click: 3x3 area mining"));
         tooltipComponents.add(Component.literal("§7Left click + Crouch: Single block mining"));
         tooltipComponents.add(Component.literal("§7Right click hold: Charged tunnel mining"));
     }
     
     private void startCharging(ItemStack stack) {
-        CompoundTag tag = stack.getOrCreateTag();
-        tag.putBoolean(CHARGING_TAG, true);
-        tag.putInt(CHARGE_LEVEL_TAG, 0);
-        tag.putInt(CHARGE_TIME_TAG, 0);
+        net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, stack, tag -> {
+            tag.putBoolean(CHARGING_TAG, true);
+            tag.putInt(CHARGE_LEVEL_TAG, 0);
+            tag.putInt(CHARGE_TIME_TAG, 0);
+        });
     }
     
     private void stopCharging(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag != null) {
+        net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, stack, tag -> {
             tag.putBoolean(CHARGING_TAG, false);
             tag.putInt(CHARGE_LEVEL_TAG, 0);
             tag.putInt(CHARGE_TIME_TAG, 0);
-        }
+        });
     }
     
     private boolean isCharging(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag != null && tag.getBoolean(CHARGING_TAG);
+        net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+        return !customData.isEmpty() && customData.copyTag().getBoolean(CHARGING_TAG);
     }
     
     private int getChargeLevel(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag != null ? tag.getInt(CHARGE_LEVEL_TAG) : 0;
+        net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+        return !customData.isEmpty() ? customData.copyTag().getInt(CHARGE_LEVEL_TAG) : 0;
     }
     
     private void setChargeLevel(ItemStack stack, int level) {
-        CompoundTag tag = stack.getOrCreateTag();
-        tag.putInt(CHARGE_LEVEL_TAG, level);
+        net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, stack, tag -> {
+            tag.putInt(CHARGE_LEVEL_TAG, level);
+        });
     }
     
     private int getChargeTime(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag != null ? tag.getInt(CHARGE_TIME_TAG) : 0;
+        net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+        return !customData.isEmpty() ? customData.copyTag().getInt(CHARGE_TIME_TAG) : 0;
     }
     
     private void setChargeTime(ItemStack stack, int time) {
-        CompoundTag tag = stack.getOrCreateTag();
-        tag.putInt(CHARGE_TIME_TAG, time);
+        net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, stack, tag -> {
+            tag.putInt(CHARGE_TIME_TAG, time);
+        });
     }
     
     
@@ -411,7 +412,7 @@ public class GravitonHammerItem extends Item {
     }
     
     @Override
-    public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> consumer) {
+    public void initializeClient(java.util.function.Consumer<net.neoforged.neoforge.client.extensions.common.IClientItemExtensions> consumer) {
         consumer.accept(new com.hexvane.strangematter.client.GravitonHammerRenderer());
     }
 }

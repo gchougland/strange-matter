@@ -5,7 +5,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -21,8 +23,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
+import net.neoforged.api.distmarker.Dist;
 
 public class RealityForgeBlock extends Block implements EntityBlock {
     
@@ -52,14 +53,29 @@ public class RealityForgeBlock extends Block implements EntityBlock {
     }
     
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        if (!level.isClientSide) {
+    protected ItemInteractionResult useItemOn(ItemStack itemStack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if (!level.isClientSide && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
             BlockEntity tile = level.getBlockEntity(pos);
             if (tile instanceof com.hexvane.strangematter.block.RealityForgeBlockEntity realityForge) {
-                // Sync shard data to client before opening GUI so shards render correctly
-                realityForge.syncToClient();
-                // Use NetworkHooks.openScreen like other machines
-                net.minecraftforge.network.NetworkHooks.openScreen((net.minecraft.server.level.ServerPlayer) player, realityForge, pos);
+                // Use NeoForge IContainerFactory approach with buffer data
+                serverPlayer.openMenu(realityForge, buffer -> {
+                    buffer.writeBlockPos(pos);
+                });
+                return ItemInteractionResult.SUCCESS;
+            }
+        }
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
+    
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        if (!level.isClientSide && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+            BlockEntity tile = level.getBlockEntity(pos);
+            if (tile instanceof com.hexvane.strangematter.block.RealityForgeBlockEntity realityForge) {
+                // Use NeoForge IContainerFactory approach with buffer data
+                serverPlayer.openMenu(realityForge, buffer -> {
+                    buffer.writeBlockPos(pos);
+                });
                 return InteractionResult.SUCCESS;
             }
         }

@@ -1,7 +1,7 @@
 package com.hexvane.strangematter.block;
 
 import com.hexvane.strangematter.StrangeMatterMod;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 /**
  * Gravitic Shard Ore Block - drops gravitic shards when mined.

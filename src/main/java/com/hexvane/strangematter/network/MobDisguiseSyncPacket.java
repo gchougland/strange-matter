@@ -1,15 +1,19 @@
 package com.hexvane.strangematter.network;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.UUID;
-import java.util.function.Supplier;
 
 /**
  * Packet to sync mob cognitive disguise data from server to client
  */
-public class MobDisguiseSyncPacket {
+public class MobDisguiseSyncPacket implements CustomPacketPayload {
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("strangematter", "mob_disguise_sync");
+    public static final Type<MobDisguiseSyncPacket> TYPE = new Type<>(ID);
+    
     private final UUID mobUUID;
     private final String disguiseType;
     private final int disguiseDuration;
@@ -29,7 +33,24 @@ public class MobDisguiseSyncPacket {
         this.clearDisguise = true;
     }
     
-    public void encode(FriendlyByteBuf buf) {
+    public MobDisguiseSyncPacket(FriendlyByteBuf buf) {
+        this.mobUUID = buf.readUUID();
+        this.clearDisguise = buf.readBoolean();
+        if (!clearDisguise) {
+            this.disguiseType = buf.readUtf();
+            this.disguiseDuration = buf.readInt();
+        } else {
+            this.disguiseType = "";
+            this.disguiseDuration = 0;
+        }
+    }
+    
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+    
+    public void write(FriendlyByteBuf buf) {
         buf.writeUUID(mobUUID);
         buf.writeBoolean(clearDisguise);
         if (!clearDisguise) {
@@ -38,32 +59,34 @@ public class MobDisguiseSyncPacket {
         }
     }
     
-    public static MobDisguiseSyncPacket decode(FriendlyByteBuf buf) {
-        UUID mobUUID = buf.readUUID();
-        boolean clearDisguise = buf.readBoolean();
-        if (clearDisguise) {
-            return new MobDisguiseSyncPacket(mobUUID);
-        } else {
-            String disguiseType = buf.readUtf();
-            int disguiseDuration = buf.readInt();
-            return new MobDisguiseSyncPacket(mobUUID, disguiseType, disguiseDuration);
-        }
-    }
-    
-    public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
+    public static void handle(MobDisguiseSyncPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             // This runs on the client side
-            if (clearDisguise) {
-                com.hexvane.strangematter.entity.ThoughtwellEntity.removeDisguise(mobUUID);
+            if (packet.clearDisguise) {
+                com.hexvane.strangematter.entity.ThoughtwellEntity.removeDisguise(packet.mobUUID);
                 // Clear cached disguise entity on client
-                com.hexvane.strangematter.client.CognitiveDisguiseRenderer.cleanupDisguise(mobUUID);
+                com.hexvane.strangematter.client.CognitiveDisguiseRenderer.cleanupDisguise(packet.mobUUID);
             } else {
                 // Apply the disguise on the client
-                com.hexvane.strangematter.entity.ThoughtwellEntity.setDisguise(mobUUID, disguiseType, disguiseDuration);
+                com.hexvane.strangematter.entity.ThoughtwellEntity.setDisguise(packet.mobUUID, packet.disguiseType, packet.disguiseDuration);
             }
         });
-        context.setPacketHandled(true);
+    }
+    
+    public UUID getMobUUID() {
+        return mobUUID;
+    }
+    
+    public String getDisguiseType() {
+        return disguiseType;
+    }
+    
+    public int getDisguiseDuration() {
+        return disguiseDuration;
+    }
+    
+    public boolean isClearDisguise() {
+        return clearDisguise;
     }
 }
 

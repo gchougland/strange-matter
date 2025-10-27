@@ -4,7 +4,7 @@ import com.hexvane.strangematter.research.ResearchType;
 import com.hexvane.strangematter.sound.StrangeMatterSounds;
 import com.hexvane.strangematter.StrangeMatterMod;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -73,9 +73,9 @@ public class TemporalBloomEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(IS_ACTIVE, true);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(IS_ACTIVE, true);
     }
     
     @Override
@@ -450,7 +450,7 @@ public class TemporalBloomEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    protected RegistryObject<Block> getShardOreBlock() {
+    protected DeferredHolder<Block, Block> getShardOreBlock() {
         return StrangeMatterMod.CHRONO_SHARD_ORE_BLOCK;
     }
     

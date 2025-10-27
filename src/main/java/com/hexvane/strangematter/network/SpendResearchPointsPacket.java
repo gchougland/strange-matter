@@ -2,12 +2,17 @@ package com.hexvane.strangematter.network;
 
 import com.hexvane.strangematter.research.ResearchType;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.Map;
-import java.util.function.Supplier;
 
-public class SpendResearchPointsPacket {
+public class SpendResearchPointsPacket implements CustomPacketPayload {
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("strangematter", "spend_research_points");
+    public static final Type<SpendResearchPointsPacket> TYPE = new Type<>(ID);
+    
     private final Map<ResearchType, Integer> costs;
     private final String researchId;
     
@@ -16,16 +21,7 @@ public class SpendResearchPointsPacket {
         this.researchId = researchId;
     }
     
-    public static void encode(SpendResearchPointsPacket packet, FriendlyByteBuf buffer) {
-        buffer.writeInt(packet.costs.size());
-        for (Map.Entry<ResearchType, Integer> entry : packet.costs.entrySet()) {
-            buffer.writeEnum(entry.getKey());
-            buffer.writeInt(entry.getValue());
-        }
-        buffer.writeUtf(packet.researchId);
-    }
-    
-    public static SpendResearchPointsPacket new_(FriendlyByteBuf buffer) {
+    public SpendResearchPointsPacket(FriendlyByteBuf buffer) {
         int size = buffer.readInt();
         Map<ResearchType, Integer> costs = new java.util.HashMap<>();
         for (int i = 0; i < size; i++) {
@@ -34,15 +30,29 @@ public class SpendResearchPointsPacket {
             costs.put(type, amount);
         }
         String researchId = buffer.readUtf();
-        return new SpendResearchPointsPacket(costs, researchId);
+        this.costs = costs;
+        this.researchId = researchId;
     }
     
-    public static void handle(SpendResearchPointsPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+    
+    public void write(FriendlyByteBuf buffer) {
+        buffer.writeInt(costs.size());
+        for (Map.Entry<ResearchType, Integer> entry : costs.entrySet()) {
+            buffer.writeEnum(entry.getKey());
+            buffer.writeInt(entry.getValue());
+        }
+        buffer.writeUtf(researchId);
+    }
+    
+    public static void handle(SpendResearchPointsPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
-            if (context.getSender() != null) {
+            if (context.player() != null) {
                 // Server side - spend the research points
-                var player = context.getSender();
+                var player = context.player();
                 com.hexvane.strangematter.research.ResearchData researchData = 
                     com.hexvane.strangematter.research.ResearchData.get(player);
                 
@@ -67,7 +77,7 @@ public class SpendResearchPointsPacket {
                     
                     if (player.getInventory().add(researchNote)) {
                         // Sync to client
-                        researchData.syncToClient(player);
+                        researchData.syncToClient((ServerPlayer) player);
                         
                         // Send success message
                         player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
@@ -78,7 +88,7 @@ public class SpendResearchPointsPacket {
                         for (Map.Entry<ResearchType, Integer> entry : packet.costs.entrySet()) {
                             researchData.addResearchPoints(entry.getKey(), entry.getValue());
                         }
-                        researchData.syncToClient(player);
+                        researchData.syncToClient((ServerPlayer) player);
                         
                         player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
                             "research.strangematter.inventory_full"));
@@ -90,6 +100,13 @@ public class SpendResearchPointsPacket {
                 }
             }
         });
-        context.setPacketHandled(true);
+    }
+    
+    public Map<ResearchType, Integer> getCosts() {
+        return costs;
+    }
+    
+    public String getResearchId() {
+        return researchId;
     }
 }

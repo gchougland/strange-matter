@@ -43,6 +43,37 @@ public class ResonantBurnerMenu extends BaseMachineMenu {
         }
     }
     
+    // Client-side constructor for when block entity is not available
+    public ResonantBurnerMenu(int windowId, Inventory inventory) {
+        super(com.hexvane.strangematter.StrangeMatterMod.RESONANT_BURNER_MENU.get(), windowId, inventory, 1);
+        this.blockEntity = null;
+        
+        // Create a dummy ContainerData for client-side synchronization
+        this.dataAccess = new ContainerData() {
+            private final int[] data = new int[7]; // 7 elements to match BaseMachineBlockEntity
+            
+            @Override
+            public int get(int index) {
+                return index >= 0 && index < data.length ? data[index] : 0;
+            }
+            
+            @Override
+            public void set(int index, int value) {
+                if (index >= 0 && index < data.length) {
+                    data[index] = value;
+                }
+            }
+            
+            @Override
+            public int getCount() {
+                return data.length;
+            }
+        };
+        
+        // Add the ContainerData to the menu for synchronization
+        this.addDataSlots(this.dataAccess);
+    }
+    
     @Override
     protected void addMachineSlots() {
         // Add single fuel slot (machine slot 0) - positioned to match the GUI texture
@@ -82,7 +113,7 @@ public class ResonantBurnerMenu extends BaseMachineMenu {
                 @Override
                 public void clearContent() { items.clear(); }
             };
-            this.addSlot(new FuelSlot(dummyContainer, 0, 80, 35)); // Fuel slot in the center
+            this.addSlot(new FuelSlot(dummyContainer, 0, 80, 24)); // Fuel slot in the center
         }
     }
 

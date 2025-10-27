@@ -18,6 +18,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.item.CompassItem;
@@ -138,25 +139,25 @@ public class AnomalyResonatorItem extends CompassItem {
     }
     
     private void syncWithAnomaly(ItemStack stack, BaseAnomalyEntity anomaly) {
-        CompoundTag tag = stack.getOrCreateTag();
-        
         // Add this anomaly to the synced list
         List<UUID> syncedAnomalies = getSyncedAnomalies(stack);
         syncedAnomalies.add(anomaly.getUUID());
         setSyncedAnomalies(stack, syncedAnomalies);
         
-        // Set as last synced anomaly
-        tag.putUUID(LAST_ANOMALY_TAG, anomaly.getUUID());
+        // Set as last synced anomaly using DataComponents
+        net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, stack, tag -> {
+            tag.putUUID(LAST_ANOMALY_TAG, anomaly.getUUID());
+        });
     }
     
     private List<UUID> getSyncedAnomalies(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag == null || !tag.contains(SYNCED_ANOMALIES_TAG)) {
+        net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+        if (customData.isEmpty() || !customData.contains(SYNCED_ANOMALIES_TAG)) {
             return new java.util.ArrayList<>();
         }
         
         List<UUID> synced = new java.util.ArrayList<>();
-        net.minecraft.nbt.ListTag listTag = tag.getList(SYNCED_ANOMALIES_TAG, net.minecraft.nbt.Tag.TAG_STRING);
+        net.minecraft.nbt.ListTag listTag = customData.copyTag().getList(SYNCED_ANOMALIES_TAG, net.minecraft.nbt.Tag.TAG_STRING);
         for (int i = 0; i < listTag.size(); i++) {
             try {
                 synced.add(UUID.fromString(listTag.getString(i)));
@@ -168,17 +169,18 @@ public class AnomalyResonatorItem extends CompassItem {
     }
     
     private void setSyncedAnomalies(ItemStack stack, List<UUID> syncedAnomalies) {
-        CompoundTag tag = stack.getOrCreateTag();
-        net.minecraft.nbt.ListTag listTag = new net.minecraft.nbt.ListTag();
-        for (UUID uuid : syncedAnomalies) {
-            listTag.add(net.minecraft.nbt.StringTag.valueOf(uuid.toString()));
-        }
-        tag.put(SYNCED_ANOMALIES_TAG, listTag);
+        net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, stack, tag -> {
+            net.minecraft.nbt.ListTag listTag = new net.minecraft.nbt.ListTag();
+            for (UUID uuid : syncedAnomalies) {
+                listTag.add(net.minecraft.nbt.StringTag.valueOf(uuid.toString()));
+            }
+            tag.put(SYNCED_ANOMALIES_TAG, listTag);
+        });
     }
     
     @Override
-    public void appendHoverText(ItemStack stack, Level level, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, level, tooltip, flag);
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, tooltip, flag);
         
         tooltip.add(Component.literal("§7Points to the nearest unsynced anomaly"));
         tooltip.add(Component.literal("§7Right-click to check status"));
@@ -239,10 +241,10 @@ public class AnomalyResonatorItem extends CompassItem {
     
     // Method to get the target position for the compass needle
     public static BlockPos getTargetPosition(ItemStack stack, Level level, Player player) {
-        // Check if we have a cached target position in NBT
-        CompoundTag tag = stack.getTag();
-        if (tag != null && tag.contains("target_pos")) {
-            CompoundTag posTag = tag.getCompound("target_pos");
+        // Check if we have a cached target position using DataComponents
+        net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+        if (!customData.isEmpty() && customData.contains("target_pos")) {
+            CompoundTag posTag = customData.copyTag().getCompound("target_pos");
             int x = posTag.getInt("x");
             int y = posTag.getInt("y");
             int z = posTag.getInt("z");
@@ -253,22 +255,22 @@ public class AnomalyResonatorItem extends CompassItem {
         return null;
     }
     
-    // Method to set the target position in NBT (called from server side)
+    // Method to set the target position using DataComponents (called from server side)
     public static void setTargetPosition(ItemStack stack, BlockPos pos) {
-        CompoundTag tag = stack.getOrCreateTag();
-        CompoundTag posTag = new CompoundTag();
-        posTag.putInt("x", pos.getX());
-        posTag.putInt("y", pos.getY());
-        posTag.putInt("z", pos.getZ());
-        tag.put("target_pos", posTag);
+        net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, stack, tag -> {
+            CompoundTag posTag = new CompoundTag();
+            posTag.putInt("x", pos.getX());
+            posTag.putInt("y", pos.getY());
+            posTag.putInt("z", pos.getZ());
+            tag.put("target_pos", posTag);
+        });
     }
     
     // Method to clear the target position
     public static void clearTargetPosition(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag != null) {
+        net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, stack, tag -> {
             tag.remove("target_pos");
-        }
+        });
     }
     
     

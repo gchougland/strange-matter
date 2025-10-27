@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -22,8 +23,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
+import net.neoforged.api.distmarker.Dist;
 import com.hexvane.strangematter.StrangeMatterMod;
 
 import java.util.HashMap;
@@ -69,46 +69,45 @@ public class ResearchMachineBlock extends Block implements EntityBlock {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
     
-    @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        ItemStack heldItem = player.getItemInHand(hand);
+    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        // Empty hand interaction: open GUI
+        if (level.isClientSide) {
+            BlockEntity blockEntity = level.getBlockEntity(pos);
+            if (blockEntity != null) {
+                com.hexvane.strangematter.client.ScreenHelper.openResearchMachineScreen(blockEntity);
+            }
+        }
         
+        return InteractionResult.SUCCESS;
+    }
+    
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         // Check if player is holding a research note
-        if (!heldItem.isEmpty() && heldItem.getItem() instanceof com.hexvane.strangematter.item.ResearchNoteItem) {
+        if (!stack.isEmpty() && stack.getItem() instanceof com.hexvane.strangematter.item.ResearchNoteItem) {
             if (!level.isClientSide) {
                 BlockEntity blockEntity = level.getBlockEntity(pos);
                 if (blockEntity instanceof ResearchMachineBlockEntity researchMachine) {
-                    if (researchMachine.insertResearchNote(heldItem, player)) {
+                    if (researchMachine.insertResearchNote(stack, player)) {
                         // Remove the research note from player's hand
                         if (!player.getAbilities().instabuild) {
-                            heldItem.shrink(1);
+                            stack.shrink(1);
                         }
                         player.sendSystemMessage(net.minecraft.network.chat.Component.translatable("block.strangematter.research_machine.note_inserted"));
-                        return InteractionResult.SUCCESS;
+                        return ItemInteractionResult.SUCCESS;
                     } else {
                         player.sendSystemMessage(net.minecraft.network.chat.Component.translatable("block.strangematter.research_machine.already_has_note"));
                         // Play reject sound
                         level.playSound(null, pos, StrangeMatterSounds.RESEARCH_MACHINE_NOTE_REJECT.get(), 
                             net.minecraft.sounds.SoundSource.BLOCKS, 0.6f, 1.0f);
-                        return InteractionResult.PASS;
+                        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
                     }
                 }
             }
-            return InteractionResult.SUCCESS;
+            return ItemInteractionResult.SUCCESS;
         }
         
-        // Default behavior: open GUI
-        if (level.isClientSide) {
-            // Open GUI on client side
-            BlockEntity blockEntity = level.getBlockEntity(pos);
-            if (blockEntity != null) {
-                BlockEntity finalBlockEntity = blockEntity;
-                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> 
-                    com.hexvane.strangematter.client.ScreenHelper.openResearchMachineScreen(finalBlockEntity));
-            }
-        }
-        
-        return InteractionResult.SUCCESS;
+        // Not a research note, allow default block interaction
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
     
     @Override

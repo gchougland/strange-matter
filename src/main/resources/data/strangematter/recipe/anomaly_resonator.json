@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " C ",
+    "COC",
+    " C "
+  ],
+  "key": {
+    "C": {
+      "item": "strangematter:resonite_ingot"
+    },
+    "O": {
+      "tag": "strangematter:anomaly_shards"
+    }
+  },
+  "result": {
+    "id": "strangematter:anomaly_resonator",
+    "count": 1
+  }
+}

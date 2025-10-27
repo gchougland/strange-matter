@@ -81,8 +81,7 @@ public class PlayerMorphRenderer {
                 morphEntityCache.remove(player.getUUID());
             }
             
-            // Special handling for player morphs - temporarily disabled to fix server crash
-            // TODO: Re-enable player morph skin rendering after fixing client-server separation
+            // Create the morph entity
             morphEntity = morphType.create(player.level());
             
             if (morphEntity == null) {

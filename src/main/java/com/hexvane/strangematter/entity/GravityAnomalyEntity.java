@@ -25,7 +25,7 @@ import com.hexvane.strangematter.StrangeMatterMod;
 import com.hexvane.strangematter.GravityData;
 import com.hexvane.strangematter.research.ResearchType;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.util.List;
 import java.util.Set;
@@ -60,7 +60,7 @@ public class GravityAnomalyEntity extends BaseAnomalyEntity {
     
     // Track affected players and their modifiers
     private Set<Player> affectedPlayers = new HashSet<>();
-    private AttributeModifier lowGravityModifier = new AttributeModifier("Low Gravity", 0.0, AttributeModifier.Operation.ADDITION);
+    private AttributeModifier lowGravityModifier = new AttributeModifier(ResourceLocation.fromNamespaceAndPath("strangematter", "low_gravity"), 0.0, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE);
     
     // Sound system - using StrangeMatterSounds for consistency
     
@@ -69,9 +69,9 @@ public class GravityAnomalyEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(IS_ACTIVE, true);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(IS_ACTIVE, true);
     }
     
     @Override
@@ -94,10 +94,7 @@ public class GravityAnomalyEntity extends BaseAnomalyEntity {
                 
                 // Send packet to clear gravity force on client
                 if (!level().isClientSide) {
-                    NetworkHandler.INSTANCE.send(
-                        net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> (net.minecraft.server.level.ServerPlayer) player), 
-                        new GravitySyncPacket(0.0) // Send 0 to clear the effect
-                    );
+                    net.neoforged.neoforge.network.PacketDistributor.sendToPlayer((net.minecraft.server.level.ServerPlayer) player, new GravitySyncPacket(0.0)); // Send 0 to clear the effect
                     LOGGER.info("[GRAVITY ANOMALY] Server: Player {} left range, sent clear packet", player.getName().getString());
                 }
                 return true;
@@ -177,10 +174,7 @@ public class GravityAnomalyEntity extends BaseAnomalyEntity {
         
         // Send packet to client for synchronization
         if (!this.level().isClientSide) {
-            NetworkHandler.INSTANCE.send(
-                net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> (net.minecraft.server.level.ServerPlayer) player), 
-                new GravitySyncPacket(forceMultiplier)
-            );
+            net.neoforged.neoforge.network.PacketDistributor.sendToPlayer((net.minecraft.server.level.ServerPlayer) player, new GravitySyncPacket(forceMultiplier));
         } else {
             LOGGER.info("[GRAVITY ANOMALY] Client: Player {} in field, force: {}", player.getName().getString(), forceMultiplier);
         }
@@ -290,7 +284,7 @@ public class GravityAnomalyEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    protected RegistryObject<Block> getShardOreBlock() {
+    protected DeferredHolder<Block, Block> getShardOreBlock() {
         return StrangeMatterMod.GRAVITIC_SHARD_ORE_BLOCK;
     }
     
@@ -301,7 +295,7 @@ public class GravityAnomalyEntity extends BaseAnomalyEntity {
     // Method to get the ambient sound (not an override since Entity doesn't have this)
     public SoundEvent getAmbientSound() {
         // Return the gravity anomaly loop sound
-        return SoundEvents.AMBIENT_CAVE.get();
+        return SoundEvents.AMBIENT_CAVE.value();
     }
     
     public boolean isActive() {

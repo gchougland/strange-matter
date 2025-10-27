@@ -41,7 +41,7 @@ public class FieldScannerItem extends Item {
     }
     
     @Override
-    public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> consumer) {
+    public void initializeClient(java.util.function.Consumer<net.neoforged.neoforge.client.extensions.common.IClientItemExtensions> consumer) {
         consumer.accept(new com.hexvane.strangematter.client.FieldScannerRenderer());
     }
     
@@ -172,7 +172,7 @@ public class FieldScannerItem extends Item {
     }
     
     @Override
-    public int getUseDuration(ItemStack stack) {
+    public int getUseDuration(ItemStack stack, LivingEntity entity) {
         return isScanning(stack) ? SCAN_DURATION : 0;
     }
     
@@ -187,49 +187,52 @@ public class FieldScannerItem extends Item {
     }
     
     private void startScanning(ItemStack stack, String objectId, ScannableObject scannable) {
-        CompoundTag tag = stack.getOrCreateTag();
-        tag.putBoolean(SCANNING_TAG, true);
-        tag.putString(SCAN_TARGET_TAG, objectId);
-        tag.putString("scan_type", scannable.getResearchType().getName());
-        tag.putInt("scan_amount", scannable.getResearchAmount());
-        tag.putInt(SCAN_PROGRESS_TAG, 0);
+        net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, stack, tag -> {
+            tag.putBoolean(SCANNING_TAG, true);
+            tag.putString(SCAN_TARGET_TAG, objectId);
+            tag.putString("scan_type", scannable.getResearchType().getName());
+            tag.putInt("scan_amount", scannable.getResearchAmount());
+            tag.putInt(SCAN_PROGRESS_TAG, 0);
+        });
         
         // Start the use animation by setting the use duration
         // This will trigger the onUseTick method
     }
     
     private void startScanning(ItemStack stack, String objectId, ScannableObject scannable, Entity entity) {
-        CompoundTag tag = stack.getOrCreateTag();
-        tag.putBoolean(SCANNING_TAG, true);
-        tag.putString(SCAN_TARGET_TAG, objectId);
-        tag.putString("scan_type", scannable.getResearchType().getName());
-        tag.putInt("scan_amount", scannable.getResearchAmount());
-        tag.putInt(SCAN_PROGRESS_TAG, 0);
-        tag.putString(SCAN_ENTITY_TAG, entity.getType().toString());
+        net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, stack, tag -> {
+            tag.putBoolean(SCANNING_TAG, true);
+            tag.putString(SCAN_TARGET_TAG, objectId);
+            tag.putString("scan_type", scannable.getResearchType().getName());
+            tag.putInt("scan_amount", scannable.getResearchAmount());
+            tag.putInt(SCAN_PROGRESS_TAG, 0);
+            tag.putString(SCAN_ENTITY_TAG, entity.getType().toString());
+        });
         
         // Start the use animation by setting the use duration
         // This will trigger the onUseTick method
     }
     
     private void stopScanning(ItemStack stack) {
-        CompoundTag tag = stack.getOrCreateTag();
-        tag.putBoolean(SCANNING_TAG, false);
-        tag.remove(SCAN_TARGET_TAG);
-        tag.remove("scan_type");
-        tag.remove("scan_amount");
-        tag.remove(SCAN_PROGRESS_TAG);
-        tag.remove(SCAN_ENTITY_TAG);
-        // Add a cooldown to prevent immediate re-scanning
-        tag.putLong("scan_cooldown", System.currentTimeMillis() + 1000); // 1 second cooldown
+        net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, stack, tag -> {
+            tag.putBoolean(SCANNING_TAG, false);
+            tag.remove(SCAN_TARGET_TAG);
+            tag.remove("scan_type");
+            tag.remove("scan_amount");
+            tag.remove(SCAN_PROGRESS_TAG);
+            tag.remove(SCAN_ENTITY_TAG);
+            // Add a cooldown to prevent immediate re-scanning
+            tag.putLong("scan_cooldown", System.currentTimeMillis() + 1000); // 1 second cooldown
+        });
     }
     
     private void completeScan(Level level, Player player, ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag == null) return;
+        net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+        if (customData.isEmpty()) return;
         
-        String objectId = tag.getString(SCAN_TARGET_TAG);
-        ResearchType researchType = ResearchType.fromName(tag.getString("scan_type"));
-        int amount = tag.getInt("scan_amount");
+        String objectId = customData.copyTag().getString(SCAN_TARGET_TAG);
+        ResearchType researchType = ResearchType.fromName(customData.copyTag().getString("scan_type"));
+        int amount = customData.copyTag().getInt("scan_amount");
         
         if (researchType != null) {
             // Add research points
@@ -240,13 +243,11 @@ public class FieldScannerItem extends Item {
             // Sync to client
             if (player instanceof ServerPlayer serverPlayer) {
                 researchData.syncToClient(serverPlayer);
-                NetworkHandler.INSTANCE.send(
-                    net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> serverPlayer), 
-                    new ResearchGainPacket(researchType, amount)
-                );
+                net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(serverPlayer, 
+                    new ResearchGainPacket(researchType, amount));
                 
                 // Trigger advancement for scanning anomaly
-                String entityType = tag.getString(SCAN_ENTITY_TAG);
+                String entityType = customData.copyTag().getString(SCAN_ENTITY_TAG);
                 if (!entityType.isEmpty()) {
                     // Find the entity by type to trigger the advancement
                     level.getEntitiesOfClass(Entity.class, player.getBoundingBox().inflate(10.0))
@@ -254,7 +255,7 @@ public class FieldScannerItem extends Item {
                         .filter(entity -> entity.getType().toString().equals(entityType))
                         .findFirst()
                         .ifPresent(entity -> {
-                            StrangeMatterMod.SCAN_ANOMALY_TRIGGER.trigger(serverPlayer, entity);
+                            com.hexvane.strangematter.advancement.ModCriteriaTriggers.SCAN_ANOMALY_TRIGGER.get().trigger(serverPlayer, entity);
                         });
                 }
             }
@@ -270,29 +271,31 @@ public class FieldScannerItem extends Item {
     }
     
     public boolean isScanning(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag != null && tag.getBoolean(SCANNING_TAG);
+        net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+        return !customData.isEmpty() && customData.copyTag().getBoolean(SCANNING_TAG);
     }
     
     public boolean isOnCooldown(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag == null) return false;
-        long cooldown = tag.getLong("scan_cooldown");
+        net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+        if (customData.isEmpty()) return false;
+        long cooldown = customData.copyTag().getLong("scan_cooldown");
         return System.currentTimeMillis() < cooldown;
     }
     
     private void setCooldown(ItemStack stack, long durationMs) {
-        CompoundTag tag = stack.getOrCreateTag();
-        tag.putLong("scan_cooldown", System.currentTimeMillis() + durationMs);
+        net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, stack, tag -> {
+            tag.putLong("scan_cooldown", System.currentTimeMillis() + durationMs);
+        });
     }
     
     private int getScanProgress(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag != null ? tag.getInt(SCAN_PROGRESS_TAG) : 0;
+        net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
+        return !customData.isEmpty() ? customData.copyTag().getInt(SCAN_PROGRESS_TAG) : 0;
     }
     
     private void setScanProgress(ItemStack stack, int progress) {
-        CompoundTag tag = stack.getOrCreateTag();
-        tag.putInt(SCAN_PROGRESS_TAG, progress);
+        net.minecraft.world.item.component.CustomData.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA, stack, tag -> {
+            tag.putInt(SCAN_PROGRESS_TAG, progress);
+        });
     }
 }

@@ -73,7 +73,7 @@ public class MiniWarpGateRenderer extends EntityRenderer<MiniWarpGateEntity> {
         // Main portal ring - always visible with base alpha
         poseStack.pushPose();
         poseStack.mulPose(Axis.ZP.rotationDegrees(rotation * 0.5f));
-        poseStack.translate(0.0, 0.0, -0.01f); // Inverted Z offset so it's behind other layers
+        poseStack.translate(0.0, 0.0, 0.01f); // Inverted Z offset so it's behind other layers
         float baseAlpha = 0.8f; // Base visibility
         
         // Reduce alpha when on cooldown
@@ -88,7 +88,7 @@ public class MiniWarpGateRenderer extends EntityRenderer<MiniWarpGateEntity> {
         if (isActive) {
             poseStack.pushPose();
             poseStack.mulPose(Axis.ZP.rotationDegrees(-rotation * 0.3f));
-            poseStack.translate(0.0, 0.0, -0.05f); // Inverted Z offset so inner portal is in front
+            poseStack.translate(0.0, 0.0, 0.05f); // Inverted Z offset so inner portal is in front
             float innerAlpha = 0.6f;
             
             // Reduce inner portal visibility when on cooldown
@@ -162,70 +162,62 @@ public class MiniWarpGateRenderer extends EntityRenderer<MiniWarpGateEntity> {
         float halfSize = size / 2.0f;
         
         // Front face
-        vertexConsumer.vertex(matrix, -halfSize, -halfSize, 0.0f)
-            .color(1.0f, 1.0f, 1.0f, alpha)
-            .uv(0.0f, 1.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, 1.0f)
-            .endVertex();
+        vertexConsumer.addVertex(matrix, -halfSize, -halfSize, 0.0f)
+            .setColor(255, 255, 255, (int)(alpha * 255))
+            .setUv(0.0f, 1.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
             
-        vertexConsumer.vertex(matrix, halfSize, -halfSize, 0.0f)
-            .color(1.0f, 1.0f, 1.0f, alpha)
-            .uv(1.0f, 1.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, 1.0f)
-            .endVertex();
+        vertexConsumer.addVertex(matrix, halfSize, -halfSize, 0.0f)
+            .setColor(255, 255, 255, (int)(alpha * 255))
+            .setUv(1.0f, 1.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
             
-        vertexConsumer.vertex(matrix, halfSize, halfSize, 0.0f)
-            .color(1.0f, 1.0f, 1.0f, alpha)
-            .uv(1.0f, 0.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, 1.0f)
-            .endVertex();
+        vertexConsumer.addVertex(matrix, halfSize, halfSize, 0.0f)
+            .setColor(255, 255, 255, (int)(alpha * 255))
+            .setUv(1.0f, 0.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
             
-        vertexConsumer.vertex(matrix, -halfSize, halfSize, 0.0f)
-            .color(1.0f, 1.0f, 1.0f, alpha)
-            .uv(0.0f, 0.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, 1.0f)
-            .endVertex();
+        vertexConsumer.addVertex(matrix, -halfSize, halfSize, 0.0f)
+            .setColor(255, 255, 255, (int)(alpha * 255))
+            .setUv(0.0f, 0.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
         
         // Back face (flipped winding order)
-        vertexConsumer.vertex(matrix, -halfSize, halfSize, 0.0f)
-            .color(1.0f, 1.0f, 1.0f, alpha)
-            .uv(0.0f, 0.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, -1.0f)
-            .endVertex();
+        vertexConsumer.addVertex(matrix, -halfSize, halfSize, 0.0f)
+            .setColor(255, 255, 255, (int)(alpha * 255))
+            .setUv(0.0f, 0.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, -1.0f);
             
-        vertexConsumer.vertex(matrix, halfSize, halfSize, 0.0f)
-            .color(1.0f, 1.0f, 1.0f, alpha)
-            .uv(1.0f, 0.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, -1.0f)
-            .endVertex();
+        vertexConsumer.addVertex(matrix, halfSize, halfSize, 0.0f)
+            .setColor(255, 255, 255, (int)(alpha * 255))
+            .setUv(1.0f, 0.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, -1.0f);
             
-        vertexConsumer.vertex(matrix, halfSize, -halfSize, 0.0f)
-            .color(1.0f, 1.0f, 1.0f, alpha)
-            .uv(1.0f, 1.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, -1.0f)
-            .endVertex();
+        vertexConsumer.addVertex(matrix, halfSize, -halfSize, 0.0f)
+            .setColor(255, 255, 255, (int)(alpha * 255))
+            .setUv(1.0f, 1.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, -1.0f);
             
-        vertexConsumer.vertex(matrix, -halfSize, -halfSize, 0.0f)
-            .color(1.0f, 1.0f, 1.0f, alpha)
-            .uv(0.0f, 1.0f)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, -1.0f)
-            .endVertex();
+        vertexConsumer.addVertex(matrix, -halfSize, -halfSize, 0.0f)
+            .setColor(255, 255, 255, (int)(alpha * 255))
+            .setUv(0.0f, 1.0f)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, -1.0f);
     }
     
     private void renderQuadWithWarbling(PoseStack poseStack, VertexConsumer vertexConsumer, float width, float height, 
@@ -251,37 +243,33 @@ public class MiniWarpGateRenderer extends EntityRenderer<MiniWarpGateEntity> {
         float warbling4 = (float) Math.sin(time * 3.0f + 4.71f) * warblingStrength; // 270 degrees offset
         
         // Render the quad with warbled vertices
-        vertexConsumer.vertex(matrix, -halfWidth + warbling1, -halfHeight + warbling1, 0.0f)
-            .color(1.0f, 1.0f, 1.0f, alpha)
-            .uv(u0, v1)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, 1.0f)
-            .endVertex();
+        vertexConsumer.addVertex(matrix, -halfWidth + warbling1, -halfHeight + warbling1, 0.0f)
+            .setColor(255, 255, 255, (int)(alpha * 255))
+            .setUv(u0, v1)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
             
-        vertexConsumer.vertex(matrix, halfWidth + warbling2, -halfHeight + warbling2, 0.0f)
-            .color(1.0f, 1.0f, 1.0f, alpha)
-            .uv(u1, v1)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, 1.0f)
-            .endVertex();
+        vertexConsumer.addVertex(matrix, halfWidth + warbling2, -halfHeight + warbling2, 0.0f)
+            .setColor(255, 255, 255, (int)(alpha * 255))
+            .setUv(u1, v1)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
             
-        vertexConsumer.vertex(matrix, halfWidth + warbling3, halfHeight + warbling3, 0.0f)
-            .color(1.0f, 1.0f, 1.0f, alpha)
-            .uv(u1, v0)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, 1.0f)
-            .endVertex();
+        vertexConsumer.addVertex(matrix, halfWidth + warbling3, halfHeight + warbling3, 0.0f)
+            .setColor(255, 255, 255, (int)(alpha * 255))
+            .setUv(u1, v0)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
             
-        vertexConsumer.vertex(matrix, -halfWidth + warbling4, halfHeight + warbling4, 0.0f)
-            .color(1.0f, 1.0f, 1.0f, alpha)
-            .uv(u0, v0)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, 1.0f)
-            .endVertex();
+        vertexConsumer.addVertex(matrix, -halfWidth + warbling4, halfHeight + warbling4, 0.0f)
+            .setColor(255, 255, 255, (int)(alpha * 255))
+            .setUv(u0, v0)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
     }
     
     private void renderQuad(PoseStack poseStack, VertexConsumer vertexConsumer, float width, float height, 
@@ -295,37 +283,33 @@ public class MiniWarpGateRenderer extends EntityRenderer<MiniWarpGateEntity> {
         float halfHeight = height / 2.0f;
         
         // Render the quad
-        vertexConsumer.vertex(matrix, -halfWidth, -halfHeight, 0.0f)
-            .color(1.0f, 1.0f, 1.0f, alpha)
-            .uv(u0, v1)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, 1.0f)
-            .endVertex();
+        vertexConsumer.addVertex(matrix, -halfWidth, -halfHeight, 0.0f)
+            .setColor(255, 255, 255, (int)(alpha * 255))
+            .setUv(u0, v1)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
             
-        vertexConsumer.vertex(matrix, halfWidth, -halfHeight, 0.0f)
-            .color(1.0f, 1.0f, 1.0f, alpha)
-            .uv(u1, v1)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, 1.0f)
-            .endVertex();
+        vertexConsumer.addVertex(matrix, halfWidth, -halfHeight, 0.0f)
+            .setColor(255, 255, 255, (int)(alpha * 255))
+            .setUv(u1, v1)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
             
-        vertexConsumer.vertex(matrix, halfWidth, halfHeight, 0.0f)
-            .color(1.0f, 1.0f, 1.0f, alpha)
-            .uv(u1, v0)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, 1.0f)
-            .endVertex();
+        vertexConsumer.addVertex(matrix, halfWidth, halfHeight, 0.0f)
+            .setColor(255, 255, 255, (int)(alpha * 255))
+            .setUv(u1, v0)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
             
-        vertexConsumer.vertex(matrix, -halfWidth, halfHeight, 0.0f)
-            .color(1.0f, 1.0f, 1.0f, alpha)
-            .uv(u0, v0)
-            .overlayCoords(OverlayTexture.NO_OVERLAY)
-            .uv2(packedLight)
-            .normal(normal, 0.0f, 0.0f, 1.0f)
-            .endVertex();
+        vertexConsumer.addVertex(matrix, -halfWidth, halfHeight, 0.0f)
+            .setColor(255, 255, 255, (int)(alpha * 255))
+            .setUv(u0, v0)
+            .setOverlay(OverlayTexture.NO_OVERLAY)
+            .setLight(packedLight)
+            .setNormal(0.0f, 0.0f, 1.0f);
     }
     
     @Override

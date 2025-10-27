@@ -222,7 +222,7 @@ public class AnomalyCommand {
                 System.out.println("Locate Command: Searching for warp gate structures from player position: " + playerPos);
                 System.out.println("Locate Command: Server level: " + serverLevel);
                 
-                // Create a TagKey for our warp gate structure using the correct 1.20.1 Forge API
+                // Create a TagKey for our warp gate structure
                 var warpGateTag = net.minecraft.tags.TagKey.create(
                     net.minecraft.core.registries.Registries.STRUCTURE,
                     net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("strangematter", "warp_gate_anomaly")

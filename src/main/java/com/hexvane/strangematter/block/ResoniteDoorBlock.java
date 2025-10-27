@@ -10,13 +10,12 @@ public class ResoniteDoorBlock extends DoorBlock {
     
     public ResoniteDoorBlock() {
         // Use OAK BlockSetType so it can be opened by hand (not requiring redstone like iron doors)
-        super(BlockBehaviour.Properties.of()
+        super(BlockSetType.OAK, BlockBehaviour.Properties.of()
             .mapColor(MapColor.COLOR_PURPLE)
             .strength(3.0f, 6.0f)
             .sound(SoundType.METAL)
             .requiresCorrectToolForDrops()
-            .noOcclusion(), 
-            BlockSetType.OAK
+            .noOcclusion()
         );
     }
 }
