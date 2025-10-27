@@ -9,7 +9,7 @@ All notable changes to Strange Matter will be documented in this file.
 
 ### Fixed
 - **Warp Gate Entity Language Entry**: Added missing language entry for Warp Gate Entity
-- **Hoverboard**: Fixed issue with hoverboard sinking inside slabs and causing fall damage.
+- **Hoverboard**: Fixed issue with hoverboard sinking inside slabs and causing fall damage. Smoothed out turning as well.
 
 
 ## [0.2.5] - 2025-10-20
