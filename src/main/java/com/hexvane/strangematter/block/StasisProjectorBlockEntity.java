@@ -9,7 +9,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -26,6 +25,9 @@ public class StasisProjectorBlockEntity extends BlockEntity {
     private UUID capturedItemEntityUUID = null;
     private Entity cachedEntity = null;
     private ItemEntity cachedItemEntity = null;
+    
+    // Color for the stasis field (default to cyan)
+    private int fieldColor = 0x00FFFF; // Cyan color by default
     
     // Height above the projector where items/entities float
     private static final double FLOAT_HEIGHT = 0.25;
@@ -82,6 +84,20 @@ public class StasisProjectorBlockEntity extends BlockEntity {
     
     public Entity getCapturedEntity() {
         return cachedEntity;
+    }
+    
+    public int getFieldColor() {
+        return fieldColor;
+    }
+    
+    public void setFieldColor(int color) {
+        this.fieldColor = color;
+        setChanged();
+        
+        // Sync to client
+        if (level != null && !level.isClientSide) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+        }
     }
     
     @Override
@@ -155,10 +171,27 @@ public class StasisProjectorBlockEntity extends BlockEntity {
             long gameTime = level.getGameTime();
             double bobOffset = Math.sin((gameTime + 0) / 10.0) * 0.1; // Bob up and down by 0.1 blocks
             
-            blockEntity.cachedEntity.setPos(centerPos.x, centerPos.y + bobOffset, centerPos.z);
+            Vec3 targetPos = new Vec3(centerPos.x, centerPos.y + bobOffset, centerPos.z);
+            blockEntity.cachedEntity.setPos(targetPos.x, targetPos.y, targetPos.z);
             blockEntity.cachedEntity.setDeltaMovement(Vec3.ZERO);
             blockEntity.cachedEntity.setNoGravity(true);
             blockEntity.cachedEntity.setInvulnerable(true);
+            
+            // Force the entity to stay in place by overriding any external velocity changes
+            // This prevents entities from floating away in low gravity dimensions from other mods
+            Vec3 currentPos = blockEntity.cachedEntity.position();
+            double distance = currentPos.distanceTo(targetPos);
+            
+            // If the entity has drifted away, force it back to the target position
+            if (distance > 0.2) { // Slightly larger tolerance for entities
+                blockEntity.cachedEntity.setPos(targetPos.x, targetPos.y, targetPos.z);
+            }
+            
+            // Continuously reset velocity to zero to counteract any external forces
+            Vec3 currentVelocity = blockEntity.cachedEntity.getDeltaMovement();
+            if (currentVelocity.lengthSqr() > 0.001) { // Only reset if there's significant movement
+                blockEntity.cachedEntity.setDeltaMovement(Vec3.ZERO);
+            }
             
             // Rotate the entity slowly (like items do)
             float rotationSpeed = 4.0f; // Degrees per tick
@@ -202,12 +235,31 @@ public class StasisProjectorBlockEntity extends BlockEntity {
                 return;
             }
             
-            // Keep item in stasis
+            // Keep item in stasis - actively counteract external gravity forces
+            // This prevents items from floating away in low gravity dimensions from other mods
             blockEntity.cachedItemEntity.setPos(centerPos.x, centerPos.y, centerPos.z);
             blockEntity.cachedItemEntity.setDeltaMovement(Vec3.ZERO);
             blockEntity.cachedItemEntity.setNoGravity(true);
             blockEntity.cachedItemEntity.setPickUpDelay(40); // Can't be picked up
             blockEntity.cachedItemEntity.setUnlimitedLifetime(); // Prevent despawning
+            
+            // Force the item to stay in place by overriding any external velocity changes
+            // This is crucial for low gravity dimensions where external mods might apply forces
+            Vec3 currentPos = blockEntity.cachedItemEntity.position();
+            Vec3 targetPos = centerPos;
+            double distance = currentPos.distanceTo(targetPos);
+            
+            // If the item has drifted away, force it back to the center
+            if (distance > 0.1) {
+                blockEntity.cachedItemEntity.setPos(targetPos.x, targetPos.y, targetPos.z);
+            }
+            
+            // Continuously reset velocity to zero to counteract any external forces
+            Vec3 currentVelocity = blockEntity.cachedItemEntity.getDeltaMovement();
+            if (currentVelocity.lengthSqr() > 0.001) { // Only reset if there's significant movement
+                blockEntity.cachedItemEntity.setDeltaMovement(Vec3.ZERO);
+            }
+            
             return; // Already have an item, don't capture more
         }
         
@@ -281,6 +333,7 @@ public class StasisProjectorBlockEntity extends BlockEntity {
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
         super.saveAdditional(tag, provider);
         tag.putBoolean("Powered", powered);
+        tag.putInt("FieldColor", fieldColor);
         
         if (capturedEntityUUID != null) {
             tag.putUUID("CapturedEntityUUID", capturedEntityUUID);
@@ -295,6 +348,7 @@ public class StasisProjectorBlockEntity extends BlockEntity {
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
         super.loadAdditional(tag, provider);
         powered = tag.getBoolean("Powered");
+        fieldColor = tag.getInt("FieldColor");
         
         if (tag.hasUUID("CapturedEntityUUID")) {
             capturedEntityUUID = tag.getUUID("CapturedEntityUUID");

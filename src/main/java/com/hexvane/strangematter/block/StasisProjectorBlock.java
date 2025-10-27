@@ -5,6 +5,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -47,7 +48,35 @@ public class StasisProjectorBlock extends Block implements EntityBlock {
     
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        // Allow item placement to work normally
+        // Handle dye application
+        if (stack.getItem() instanceof DyeItem dyeItem) {
+            if (!level.isClientSide) {
+                BlockEntity blockEntity = level.getBlockEntity(pos);
+                if (blockEntity instanceof StasisProjectorBlockEntity stasisProjector) {
+                    // Get the dye color
+                    int dyeColor = dyeItem.getDyeColor().getFireworkColor();
+                    stasisProjector.setFieldColor(dyeColor);
+                    
+                    // Consume the dye
+                    if (!player.getAbilities().instabuild) {
+                        stack.shrink(1);
+                    }
+                    
+                    // Play sound and show message
+                    level.playSound(null, pos, net.minecraft.sounds.SoundEvents.DYE_USE, 
+                        net.minecraft.sounds.SoundSource.BLOCKS, 1.0f, 1.0f);
+                    
+                    player.displayClientMessage(
+                        Component.translatable("message.strangematter.stasis_projector.dyed", 
+                            dyeItem.getDyeColor().getName()),
+                        true
+                    );
+                }
+            }
+            return ItemInteractionResult.SUCCESS;
+        }
+        
+        // Allow other item interactions to work normally
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
     

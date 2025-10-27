@@ -397,6 +397,7 @@
   "block.strangematter.stasis_projector.tooltip": "A device that projects a stasis field to suspend items and entities in time. Shift right-click to toggle on/off.",
   "message.strangematter.stasis_projector.on": "Stasis Projector activated",
   "message.strangematter.stasis_projector.off": "Stasis Projector deactivated",
+  "message.strangematter.stasis_projector.dyed": "Stasis field colored with %s dye",
   "gui.strangematter.resonance_energy": "Resonance Energy: %d/%d",
   "gui.strangematter.progress": "Progress: %d/%d",
   "gui.strangematter.burn_progress": "Burn Progress: %d/%d",
