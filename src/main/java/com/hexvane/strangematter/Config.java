@@ -19,21 +19,27 @@ public class Config {
     
     private static final ForgeConfigSpec.BooleanValue ENABLE_GRAVITY_ANOMALY;
     private static final ForgeConfigSpec.IntValue GRAVITY_ANOMALY_RARITY;
+    private static final ForgeConfigSpec.ConfigValue<java.util.List<String>> GRAVITY_ANOMALY_DIMENSIONS;
     
     private static final ForgeConfigSpec.BooleanValue ENABLE_TEMPORAL_BLOOM;
     private static final ForgeConfigSpec.IntValue TEMPORAL_BLOOM_RARITY;
+    private static final ForgeConfigSpec.ConfigValue<java.util.List<String>> TEMPORAL_BLOOM_DIMENSIONS;
     
     private static final ForgeConfigSpec.BooleanValue ENABLE_WARP_GATE;
     private static final ForgeConfigSpec.IntValue WARP_GATE_RARITY;
+    private static final ForgeConfigSpec.ConfigValue<java.util.List<String>> WARP_GATE_DIMENSIONS;
     
     private static final ForgeConfigSpec.BooleanValue ENABLE_ENERGETIC_RIFT;
     private static final ForgeConfigSpec.IntValue ENERGETIC_RIFT_RARITY;
+    private static final ForgeConfigSpec.ConfigValue<java.util.List<String>> ENERGETIC_RIFT_DIMENSIONS;
     
     private static final ForgeConfigSpec.BooleanValue ENABLE_ECHOING_SHADOW;
     private static final ForgeConfigSpec.IntValue ECHOING_SHADOW_RARITY;
+    private static final ForgeConfigSpec.ConfigValue<java.util.List<String>> ECHOING_SHADOW_DIMENSIONS;
     
     private static final ForgeConfigSpec.BooleanValue ENABLE_THOUGHTWELL;
     private static final ForgeConfigSpec.IntValue THOUGHTWELL_RARITY;
+    private static final ForgeConfigSpec.ConfigValue<java.util.List<String>> THOUGHTWELL_DIMENSIONS;
 
     // ========================================
     // WORLD GENERATION - ORE GENERATION
@@ -231,6 +237,9 @@ public class Config {
         GRAVITY_ANOMALY_RARITY = BUILDER
                 .comment("Gravity Anomaly spawn rarity (1/N chance per chunk)")
                 .defineInRange("gravityAnomalyRarity", 500, 1, 100000);
+        GRAVITY_ANOMALY_DIMENSIONS = BUILDER
+                .comment("Dimensions where Gravity Anomalies can spawn (empty list = all dimensions)")
+                .define("gravityAnomalyDimensions", new java.util.ArrayList<>(java.util.Arrays.asList("minecraft:overworld")));
         
         ENABLE_TEMPORAL_BLOOM = BUILDER
                 .comment("Enable Temporal Bloom world generation")
@@ -238,6 +247,9 @@ public class Config {
         TEMPORAL_BLOOM_RARITY = BUILDER
                 .comment("Temporal Bloom spawn rarity (1/N chance per chunk)")
                 .defineInRange("temporalBloomRarity", 500, 1, 100000);
+        TEMPORAL_BLOOM_DIMENSIONS = BUILDER
+                .comment("Dimensions where Temporal Blooms can spawn (empty list = all dimensions)")
+                .define("temporalBloomDimensions", new java.util.ArrayList<>(java.util.Arrays.asList("minecraft:overworld")));
         
         ENABLE_WARP_GATE = BUILDER
                 .comment("Enable Warp Gate world generation")
@@ -245,6 +257,9 @@ public class Config {
         WARP_GATE_RARITY = BUILDER
                 .comment("Warp Gate spawn rarity (1/N chance per chunk)")
                 .defineInRange("warpGateRarity", 500, 1, 100000);
+        WARP_GATE_DIMENSIONS = BUILDER
+                .comment("Dimensions where Warp Gates can spawn (empty list = all dimensions)")
+                .define("warpGateDimensions", new java.util.ArrayList<>(java.util.Arrays.asList("minecraft:overworld")));
         
         ENABLE_ENERGETIC_RIFT = BUILDER
                 .comment("Enable Energetic Rift world generation")
@@ -252,6 +267,9 @@ public class Config {
         ENERGETIC_RIFT_RARITY = BUILDER
                 .comment("Energetic Rift spawn rarity (1/N chance per chunk)")
                 .defineInRange("energeticRiftRarity", 500, 1, 100000);
+        ENERGETIC_RIFT_DIMENSIONS = BUILDER
+                .comment("Dimensions where Energetic Rifts can spawn (empty list = all dimensions)")
+                .define("energeticRiftDimensions", new java.util.ArrayList<>(java.util.Arrays.asList("minecraft:overworld")));
         
         ENABLE_ECHOING_SHADOW = BUILDER
                 .comment("Enable Echoing Shadow world generation")
@@ -259,6 +277,9 @@ public class Config {
         ECHOING_SHADOW_RARITY = BUILDER
                 .comment("Echoing Shadow spawn rarity (1/N chance per chunk)")
                 .defineInRange("echoingShadowRarity", 500, 1, 100000);
+        ECHOING_SHADOW_DIMENSIONS = BUILDER
+                .comment("Dimensions where Echoing Shadows can spawn (empty list = all dimensions)")
+                .define("echoingShadowDimensions", new java.util.ArrayList<>(java.util.Arrays.asList("minecraft:overworld")));
         
         ENABLE_THOUGHTWELL = BUILDER
                 .comment("Enable Thoughtwell world generation")
@@ -266,6 +287,9 @@ public class Config {
         THOUGHTWELL_RARITY = BUILDER
                 .comment("Thoughtwell spawn rarity (1/N chance per chunk)")
                 .defineInRange("thoughtwellRarity", 500, 1, 100000);
+        THOUGHTWELL_DIMENSIONS = BUILDER
+                .comment("Dimensions where Thoughtwells can spawn (empty list = all dimensions)")
+                .define("thoughtwellDimensions", new java.util.ArrayList<>(java.util.Arrays.asList("minecraft:overworld")));
         
         BUILDER.pop(); // anomalies
         
@@ -763,21 +787,27 @@ public class Config {
     // Public static fields to access config values
     public static boolean enableGravityAnomaly;
     public static int gravityAnomalyRarity;
+    public static java.util.List<String> gravityAnomalyDimensions;
     
     public static boolean enableTemporalBloom;
     public static int temporalBloomRarity;
+    public static java.util.List<String> temporalBloomDimensions;
     
     public static boolean enableWarpGate;
     public static int warpGateRarity;
+    public static java.util.List<String> warpGateDimensions;
     
     public static boolean enableEnergeticRift;
     public static int energeticRiftRarity;
+    public static java.util.List<String> energeticRiftDimensions;
     
     public static boolean enableEchoingShadow;
     public static int echoingShadowRarity;
+    public static java.util.List<String> echoingShadowDimensions;
     
     public static boolean enableThoughtwell;
     public static int thoughtwellRarity;
+    public static java.util.List<String> thoughtwellDimensions;
     
     public static boolean enableResoniteOre;
     public static int resoniteOreVeinsPerChunk;
@@ -938,21 +968,27 @@ public class Config {
         // Anomaly spawn rates
         enableGravityAnomaly = ENABLE_GRAVITY_ANOMALY.get();
         gravityAnomalyRarity = GRAVITY_ANOMALY_RARITY.get();
+        gravityAnomalyDimensions = GRAVITY_ANOMALY_DIMENSIONS.get();
         
         enableTemporalBloom = ENABLE_TEMPORAL_BLOOM.get();
         temporalBloomRarity = TEMPORAL_BLOOM_RARITY.get();
+        temporalBloomDimensions = TEMPORAL_BLOOM_DIMENSIONS.get();
         
         enableWarpGate = ENABLE_WARP_GATE.get();
         warpGateRarity = WARP_GATE_RARITY.get();
+        warpGateDimensions = WARP_GATE_DIMENSIONS.get();
         
         enableEnergeticRift = ENABLE_ENERGETIC_RIFT.get();
         energeticRiftRarity = ENERGETIC_RIFT_RARITY.get();
+        energeticRiftDimensions = ENERGETIC_RIFT_DIMENSIONS.get();
         
         enableEchoingShadow = ENABLE_ECHOING_SHADOW.get();
         echoingShadowRarity = ECHOING_SHADOW_RARITY.get();
+        echoingShadowDimensions = ECHOING_SHADOW_DIMENSIONS.get();
         
         enableThoughtwell = ENABLE_THOUGHTWELL.get();
         thoughtwellRarity = THOUGHTWELL_RARITY.get();
+        thoughtwellDimensions = THOUGHTWELL_DIMENSIONS.get();
         
         // Ore generation
         enableResoniteOre = ENABLE_RESONITE_ORE.get();

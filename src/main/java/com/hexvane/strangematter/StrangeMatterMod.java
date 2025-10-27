@@ -62,7 +62,7 @@ import com.hexvane.strangematter.worldgen.GravityAnomalyConfiguredFeature;
 import com.hexvane.strangematter.worldgen.EchoingShadowConfiguredFeature;
 import com.hexvane.strangematter.worldgen.ThoughtwellConfiguredFeature;
 import com.hexvane.strangematter.worldgen.WarpGateAnomalyStructure;
-import com.hexvane.strangematter.worldgen.WarpGateAnomalyFeature;
+import com.hexvane.strangematter.worldgen.WarpGateAnomalyConfiguredFeature;
 import com.hexvane.strangematter.network.NetworkHandler;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.registries.Registries;
@@ -160,6 +160,7 @@ public class StrangeMatterMod
     // Register the configurable biome modifier codec
     public static final RegistryObject<Codec<com.hexvane.strangematter.worldgen.ConfiguredBiomeModifier>> CONFIGURED_BIOME_MODIFIER = 
         BIOME_MODIFIER_SERIALIZERS.register("configured_biome_modifier", () -> com.hexvane.strangematter.worldgen.ConfiguredBiomeModifier.CODEC);
+    
 
     // Creates a new research item with the id "strangematter:field_scanner"
     public static final RegistryObject<Item> FIELD_SCANNER = ITEMS.register("field_scanner", FieldScannerItem::new);
@@ -487,8 +488,8 @@ public class StrangeMatterMod
     public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> THOUGHTWELL_FEATURE = FEATURES.register("thoughtwell", 
         () -> new com.hexvane.strangematter.worldgen.ThoughtwellConfiguredFeature());
     
-    public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> WARP_GATE_ANOMALY_FEATURE = FEATURES.register("warp_gate_anomaly_feature", 
-        () -> new WarpGateAnomalyFeature(net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration.CODEC));
+    public static final RegistryObject<Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> WARP_GATE_ANOMALY_FEATURE = FEATURES.register("warp_gate_anomaly", 
+        () -> new WarpGateAnomalyConfiguredFeature());
     
 
     // Structure Types

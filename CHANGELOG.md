@@ -2,6 +2,10 @@
 
 All notable changes to Strange Matter will be documented in this file.
 
+## [0.2.6] - Unreleased
+
+### Fixed
+
 
 ## [0.2.5] - 2025-10-20
 
