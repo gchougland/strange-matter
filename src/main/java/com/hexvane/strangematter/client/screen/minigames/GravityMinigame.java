@@ -223,8 +223,13 @@ public class GravityMinigame extends ResearchMinigame {
                                 mouseY >= handleY && mouseY < handleY + SLIDER_HANDLE_HEIGHT);
         
         // Render slider handle with highlighting
-        if (handleHovered) {
-            // Render highlighted handle (brighter)
+        if (sliderActive) {
+            // Render active handle (being dragged) - brightest with stronger glow
+            guiGraphics.blit(SLIDER_HANDLE_TEXTURE, handleX, handleY, 0, 0, SLIDER_HANDLE_WIDTH, SLIDER_HANDLE_HEIGHT, SLIDER_HANDLE_WIDTH, SLIDER_HANDLE_HEIGHT);
+            // Add a strong glow effect for active state
+            guiGraphics.fill(handleX - 2, handleY - 2, handleX + SLIDER_HANDLE_WIDTH + 2, handleY + SLIDER_HANDLE_HEIGHT + 2, 0x80FFFFFF);
+        } else if (handleHovered) {
+            // Render highlighted handle (hovered) - medium brightness
             guiGraphics.blit(SLIDER_HANDLE_TEXTURE, handleX, handleY, 0, 0, SLIDER_HANDLE_WIDTH, SLIDER_HANDLE_HEIGHT, SLIDER_HANDLE_WIDTH, SLIDER_HANDLE_HEIGHT);
             // Add a subtle glow effect
             guiGraphics.fill(handleX - 1, handleY - 1, handleX + SLIDER_HANDLE_WIDTH + 1, handleY + SLIDER_HANDLE_HEIGHT + 1, 0x40FFFFFF);
@@ -284,14 +289,34 @@ public class GravityMinigame extends ResearchMinigame {
     protected boolean handleClick(int mouseX, int mouseY, int button, int panelX, int panelY, int panelWidth, int panelHeight) {
         if (!isActive) return false;
         
-        // Check if clicking on slider (updated position)
+        // Check if clicking on slider (including handle area)
         int sliderX = panelX + panelWidth / 2 - SLIDER_WIDTH / 2;
         int sliderY = panelY + panelHeight - 8;
         
+        // Expand click area to include the handle height above and below the bar
+        int clickAreaY = sliderY - (SLIDER_HANDLE_HEIGHT - SLIDER_HEIGHT) / 2;
+        int clickAreaHeight = SLIDER_HANDLE_HEIGHT;
+        
         if (mouseX >= sliderX && mouseX < sliderX + SLIDER_WIDTH &&
-            mouseY >= sliderY && mouseY < sliderY + SLIDER_HEIGHT) {
+            mouseY >= clickAreaY && mouseY < clickAreaY + clickAreaHeight) {
             
             sliderActive = true;
+            
+            // Immediately update slider value to match click position
+            double relativeX = (mouseX - sliderX) / (double) SLIDER_WIDTH;
+            relativeX = Math.max(0.0, Math.min(1.0, relativeX)); // Clamp to slider bounds
+            
+            // Convert to discrete slider value (-5 to 5) with snap to nearest notch
+            double normalizedValue = relativeX * (SLIDER_NOTCHES - 1);
+            int nearestNotch = (int) Math.round(normalizedValue);
+            sliderValue = MIN_GRAVITY + nearestNotch;
+            
+            // Clamp to valid range
+            sliderValue = Math.max(MIN_GRAVITY, Math.min(MAX_GRAVITY, sliderValue));
+            
+            // Reset drift when actively adjusting
+            isDrifting = false;
+            driftTicks = 0;
             
             // Play click sound
             if (minecraft != null && minecraft.player != null) {
@@ -317,6 +342,7 @@ public class GravityMinigame extends ResearchMinigame {
         int sliderX = panelX + panelWidth / 2 - SLIDER_WIDTH / 2;
         
         // Convert mouse position to slider value (0.0 to 1.0 across slider width)
+        // Allow dragging slightly outside the slider bounds for better responsiveness
         double relativeX = (mouseX - sliderX) / (double) SLIDER_WIDTH;
         relativeX = Math.max(0.0, Math.min(1.0, relativeX)); // Clamp to slider bounds
         

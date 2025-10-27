@@ -231,13 +231,21 @@ public class HoverboardEntity extends Entity {
         }
         
         if (rider != null) {
-            // Make the hoverboard follow the player's look direction
-            this.setYRot(rider.getYRot());
-            this.yRotO = rider.yRotO;
+            // Make the hoverboard follow the player's look direction smoothly
+            float targetYaw = rider.getYRot();
+            float currentYaw = this.getYRot();
             
-            // Sync the rider's rotation to match the hoverboard's rotation
-            rider.setYRot(this.getYRot());
-            rider.yRotO = this.yRotO;
+            // Calculate the shortest rotation path to avoid spinning
+            float yawDiff = targetYaw - currentYaw;
+            while (yawDiff > 180.0f) yawDiff -= 360.0f;
+            while (yawDiff < -180.0f) yawDiff += 360.0f;
+            
+            // Apply smooth rotation with a damping factor
+            float rotationSpeed = 0.3f; // Adjust this value for smoother/faster rotation
+            float newYaw = currentYaw + (yawDiff * rotationSpeed);
+            
+            this.setYRot(newYaw);
+            this.yRotO = this.getYRot();
         }
     }
     
