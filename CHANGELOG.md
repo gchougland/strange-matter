@@ -2,6 +2,13 @@
 
 All notable changes to Strange Matter will be documented in this file.
 
+## [0.2.6] - Unreleased
+
+### Added
+- **Dimension Config**: Added configurable list of dimensions for anomalies to spawn in.
+
+### Fixed
+- **Warp Gate Entity Language Entry**: Added missing language entry for Warp Gate Entity
 
 ## [0.2.5] - 2025-10-20
 
@@ -15,10 +22,6 @@ All notable changes to Strange Matter will be documented in this file.
   - **Reality Forge Recipe**: Craftable using resonite ingots, resonant circuit, and containment capsule
   - **Research Integration**: Locked behind containment basics research with configurable costs
   - **Configurable Performance**: Adjustable max speed and acceleration via config file
-
-### Improved
-- **Research System**: Added comprehensive info page for hoverboard with recipe display
-- **Configuration Options**: Added hoverboard-specific config settings for customization
 
 ## [0.2.4] - 2025-10-19
 

@@ -57,9 +57,8 @@ import com.hexvane.strangematter.entity.MiniWarpGateEntity;
 import com.hexvane.strangematter.item.HoverboardItem;
 import com.hexvane.strangematter.entity.HoverboardEntity;
 import com.hexvane.strangematter.worldgen.GravityAnomalyConfiguredFeature;
+import com.hexvane.strangematter.worldgen.WarpGateAnomalyConfiguredFeature;
 import com.hexvane.strangematter.worldgen.EchoingShadowConfiguredFeature;
-import com.hexvane.strangematter.worldgen.WarpGateAnomalyStructure;
-import com.hexvane.strangematter.worldgen.WarpGateAnomalyFeature;
 import com.hexvane.strangematter.network.NetworkHandler;
 import com.hexvane.strangematter.energy.EnergyAttachment;
 import com.mojang.logging.LogUtils;
@@ -131,6 +130,7 @@ public class StrangeMatterMod
     public static final DeferredHolder<PlacementModifierType<?>, PlacementModifierType<com.hexvane.strangematter.worldgen.ConfiguredCountPlacement>> CONFIGURED_COUNT_PLACEMENT =
         PLACEMENT_MODIFIERS.register("configured_count_placement", 
             () -> () -> com.mojang.serialization.MapCodec.assumeMapUnsafe(com.hexvane.strangematter.worldgen.ConfiguredCountPlacement.CODEC));
+    
     // Create a Deferred Register to hold StructureTypes
     public static final DeferredRegister<StructureType<?>> STRUCTURE_TYPES = DeferredRegister.create(Registries.STRUCTURE_TYPE, MODID);
     // Create a Deferred Register to hold ParticleTypes
@@ -475,13 +475,10 @@ public class StrangeMatterMod
     public static final DeferredHolder<Feature<?>, Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> THOUGHTWELL_FEATURE = FEATURES.register("thoughtwell", 
         () -> new com.hexvane.strangematter.worldgen.ThoughtwellConfiguredFeature());
     
-    public static final DeferredHolder<Feature<?>, Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> WARP_GATE_ANOMALY_FEATURE = FEATURES.register("warp_gate_anomaly_feature", 
-        () -> new WarpGateAnomalyFeature(net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration.CODEC));
+    public static final DeferredHolder<Feature<?>, Feature<net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration>> WARP_GATE_ANOMALY_FEATURE = FEATURES.register("warp_gate_anomaly", 
+        () -> new WarpGateAnomalyConfiguredFeature());
     
 
-    // Structure Types
-    public static final DeferredHolder<StructureType<?>, StructureType<WarpGateAnomalyStructure>> WARP_GATE_ANOMALY_STRUCTURE = STRUCTURE_TYPES.register("warp_gate_anomaly_structure", 
-        () -> () -> com.mojang.serialization.MapCodec.assumeMapUnsafe(WarpGateAnomalyStructure.CODEC));
 
 
 

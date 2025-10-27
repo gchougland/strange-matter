@@ -262,7 +262,7 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
                 if (actualDistance < 500) {
                     continue;
                 }
-                
+                System.out.println("WarpGate: test3");
                 // Force load the chunk to check the area
                 int chunkX = candidatePos.getX() >> 4;
                 int chunkZ = candidatePos.getZ() >> 4;
@@ -298,6 +298,7 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
                 
                 // Check if this location already has a warp gate
                 // Find the actual surface height at this location
+                System.out.println("WarpGate: test1");
                 int surfaceY = serverLevel.getHeight(Heightmap.Types.WORLD_SURFACE, candidatePos.getX(), candidatePos.getZ());
                 
                 // Safety check: if height is too low (likely ungenerated chunk), use a reasonable default
@@ -346,6 +347,7 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
                         }
                     }
                     
+                    System.out.println("WarpGate: test2");
                     // Spawn the warp gate entity at the center
                     WarpGateAnomalyEntity newWarpGate = StrangeMatterMod.WARP_GATE_ANOMALY_ENTITY.get().create(serverLevel);
                     if (newWarpGate != null) {

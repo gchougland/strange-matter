@@ -1,0 +1,16 @@
+{
+  "feature": "strangematter:warp_gate_anomaly",
+  "placement": [
+    {
+      "type": "strangematter:configured_rarity_filter",
+      "feature_type": "warp_gate_anomaly"
+    },
+    {
+      "type": "minecraft:in_square"
+    },
+    {
+      "type": "minecraft:heightmap",
+      "heightmap": "MOTION_BLOCKING"
+    }
+  ]
+}
