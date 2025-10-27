@@ -6,10 +6,13 @@ All notable changes to Strange Matter will be documented in this file.
 
 ### Added
 - **Dimension Config**: Added configurable list of dimensions for anomalies to spawn in.
+- **Dyeable Stasis Projector**: Added the ability to right click the stasis projector with dyes to color the field.
 
 ### Fixed
 - **Warp Gate Entity Language Entry**: Added missing language entry for Warp Gate Entity
 - **Hoverboard**: Fixed issue with hoverboard sinking inside slabs and causing fall damage. Smoothed out turning as well.
+- **Improved slider responsiveness**: Improved the responsiveness of the gravity minigames slider.
+- **More Aggressive Stasis Projector**: Improved stasis projector to better counteract gravity from other mods.
 
 
 ## [0.2.5] - 2025-10-20

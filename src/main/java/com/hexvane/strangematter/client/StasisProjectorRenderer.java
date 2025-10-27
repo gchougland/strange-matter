@@ -69,20 +69,24 @@ public class StasisProjectorRenderer implements BlockEntityRenderer<StasisProjec
         
         Matrix4f matrix = poseStack.last().pose();
         Matrix3f normal = poseStack.last().normal();
-        renderQuad(consumer, matrix, normal, size, packedLight, alpha, false); // Front face
-        renderQuad(consumer, matrix, normal, size, packedLight, alpha, true);  // Back face
+        renderQuad(consumer, matrix, normal, size, packedLight, alpha, false, blockEntity); // Front face
+        renderQuad(consumer, matrix, normal, size, packedLight, alpha, true, blockEntity);  // Back face
         poseStack.popPose();
     }
     
-    private void renderQuad(VertexConsumer consumer, Matrix4f matrix, Matrix3f normal, float size, int packedLight, float alpha, boolean reversed) {
+    private void renderQuad(VertexConsumer consumer, Matrix4f matrix, Matrix3f normal, float size, int packedLight, float alpha, boolean reversed, StasisProjectorBlockEntity blockEntity) {
         // Render a vertical quad centered at origin
-        // Use full white color to let texture alpha show through
+        // Extract RGB components from the color field
+        int color = blockEntity.getFieldColor();
+        float red = ((color >> 16) & 0xFF) / 255.0f;
+        float green = ((color >> 8) & 0xFF) / 255.0f;
+        float blue = (color & 0xFF) / 255.0f;
         
         if (!reversed) {
             // Front face (normal winding order)
             // Bottom-left
             consumer.vertex(matrix, -size, -size, 0.0f)
-                .color(1.0f, 1.0f, 1.0f, alpha)
+                .color(red, green, blue, alpha)
                 .uv(0.0f, 1.0f)
                 .overlayCoords(OverlayTexture.NO_OVERLAY)
                 .uv2(packedLight)
@@ -91,7 +95,7 @@ public class StasisProjectorRenderer implements BlockEntityRenderer<StasisProjec
             
             // Bottom-right
             consumer.vertex(matrix, size, -size, 0.0f)
-                .color(1.0f, 1.0f, 1.0f, alpha)
+                .color(red, green, blue, alpha)
                 .uv(1.0f, 1.0f)
                 .overlayCoords(OverlayTexture.NO_OVERLAY)
                 .uv2(packedLight)
@@ -100,7 +104,7 @@ public class StasisProjectorRenderer implements BlockEntityRenderer<StasisProjec
             
             // Top-right
             consumer.vertex(matrix, size, size, 0.0f)
-                .color(1.0f, 1.0f, 1.0f, alpha)
+                .color(red, green, blue, alpha)
                 .uv(1.0f, 0.0f)
                 .overlayCoords(OverlayTexture.NO_OVERLAY)
                 .uv2(packedLight)
@@ -109,7 +113,7 @@ public class StasisProjectorRenderer implements BlockEntityRenderer<StasisProjec
             
             // Top-left
             consumer.vertex(matrix, -size, size, 0.0f)
-                .color(1.0f, 1.0f, 1.0f, alpha)
+                .color(red, green, blue, alpha)
                 .uv(0.0f, 0.0f)
                 .overlayCoords(OverlayTexture.NO_OVERLAY)
                 .uv2(packedLight)
@@ -119,7 +123,7 @@ public class StasisProjectorRenderer implements BlockEntityRenderer<StasisProjec
             // Back face (reversed winding order)
             // Top-left
             consumer.vertex(matrix, -size, size, 0.0f)
-                .color(1.0f, 1.0f, 1.0f, alpha)
+                .color(red, green, blue, alpha)
                 .uv(0.0f, 0.0f)
                 .overlayCoords(OverlayTexture.NO_OVERLAY)
                 .uv2(packedLight)
@@ -128,7 +132,7 @@ public class StasisProjectorRenderer implements BlockEntityRenderer<StasisProjec
             
             // Top-right
             consumer.vertex(matrix, size, size, 0.0f)
-                .color(1.0f, 1.0f, 1.0f, alpha)
+                .color(red, green, blue, alpha)
                 .uv(1.0f, 0.0f)
                 .overlayCoords(OverlayTexture.NO_OVERLAY)
                 .uv2(packedLight)
@@ -137,7 +141,7 @@ public class StasisProjectorRenderer implements BlockEntityRenderer<StasisProjec
             
             // Bottom-right
             consumer.vertex(matrix, size, -size, 0.0f)
-                .color(1.0f, 1.0f, 1.0f, alpha)
+                .color(red, green, blue, alpha)
                 .uv(1.0f, 1.0f)
                 .overlayCoords(OverlayTexture.NO_OVERLAY)
                 .uv2(packedLight)
@@ -146,7 +150,7 @@ public class StasisProjectorRenderer implements BlockEntityRenderer<StasisProjec
             
             // Bottom-left
             consumer.vertex(matrix, -size, -size, 0.0f)
-                .color(1.0f, 1.0f, 1.0f, alpha)
+                .color(red, green, blue, alpha)
                 .uv(0.0f, 1.0f)
                 .overlayCoords(OverlayTexture.NO_OVERLAY)
                 .uv2(packedLight)

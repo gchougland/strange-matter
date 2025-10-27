@@ -4,6 +4,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -48,6 +50,32 @@ public class StasisProjectorBlock extends Block implements EntityBlock {
         if (!level.isClientSide) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof StasisProjectorBlockEntity stasisProjector) {
+                ItemStack heldItem = player.getItemInHand(hand);
+                
+                // Check if player is holding a dye
+                if (heldItem.getItem() instanceof DyeItem dyeItem) {
+                    // Get the dye color and convert to RGB
+                    int dyeColor = dyeItem.getDyeColor().getFireworkColor();
+                    stasisProjector.setFieldColor(dyeColor);
+                    
+                    // Consume the dye
+                    if (!player.getAbilities().instabuild) {
+                        heldItem.shrink(1);
+                    }
+                    
+                    // Play sound and show message
+                    level.playSound(null, pos, net.minecraft.sounds.SoundEvents.DYE_USE, 
+                        net.minecraft.sounds.SoundSource.BLOCKS, 1.0f, 1.0f);
+                    
+                    player.displayClientMessage(
+                        Component.translatable("message.strangematter.stasis_projector.color_changed", 
+                            dyeItem.getDyeColor().getName()),
+                        true
+                    );
+                    
+                    return InteractionResult.SUCCESS;
+                }
+                
                 // Toggle on/off when shift right-clicking
                 if (player.isShiftKeyDown()) {
                     stasisProjector.togglePower();
