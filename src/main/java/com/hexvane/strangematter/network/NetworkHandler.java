@@ -80,5 +80,10 @@ public class NetworkHandler {
             CustomPacketPayload.codec(EjectShardsPacket::write, EjectShardsPacket::new), 
             EjectShardsPacket::handle);
             
+        // Hoverboard jump packet
+        INSTANCE.playToServer(HoverboardJumpPacket.TYPE, 
+            CustomPacketPayload.codec(HoverboardJumpPacket::write, HoverboardJumpPacket::new), 
+            HoverboardJumpPacket::handle);
+            
     }
 }

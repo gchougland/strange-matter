@@ -103,12 +103,12 @@ public class EnergeticRiftEntity extends BaseAnomalyEntity {
         if (lightningCooldown > 0) lightningCooldown--;
         
         // Zap entities in range
-        if (zapCooldown <= 0) {
+        if (zapCooldown <= 0 && com.hexvane.strangematter.Config.enableEnergeticEntityZap) {
             zapEntitiesInRange();
         }
         
         // Strike lightning rods in range
-        if (lightningCooldown <= 0) {
+        if (lightningCooldown <= 0 && com.hexvane.strangematter.Config.enableEnergeticLightningRod) {
             strikeLightningRods();
         }
         

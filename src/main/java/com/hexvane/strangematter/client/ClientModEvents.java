@@ -46,6 +46,14 @@ public class ClientModEvents {
             net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(StrangeMatterMod.RESONITE_TRAPDOOR_BLOCK.get(), net.minecraft.client.renderer.RenderType.cutout());
             net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(StrangeMatterMod.RESONITE_DOOR_BLOCK.get(), net.minecraft.client.renderer.RenderType.cutout());
             
+            // Set render layers for shard crystal blocks (semi-transparent)
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(StrangeMatterMod.SHADE_SHARD_CRYSTAL.get(), net.minecraft.client.renderer.RenderType.translucent());
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(StrangeMatterMod.GRAVITIC_SHARD_CRYSTAL.get(), net.minecraft.client.renderer.RenderType.translucent());
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(StrangeMatterMod.ENERGETIC_SHARD_CRYSTAL.get(), net.minecraft.client.renderer.RenderType.translucent());
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(StrangeMatterMod.INSIGHT_SHARD_CRYSTAL.get(), net.minecraft.client.renderer.RenderType.translucent());
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(StrangeMatterMod.CHRONO_SHARD_CRYSTAL.get(), net.minecraft.client.renderer.RenderType.translucent());
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(StrangeMatterMod.SPATIAL_SHARD_CRYSTAL.get(), net.minecraft.client.renderer.RenderType.translucent());
+            
             // Echo Vacuum client handler is now registered via @SubscribeEvent annotation
         });
         

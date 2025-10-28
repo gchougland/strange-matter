@@ -6,14 +6,12 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -129,7 +127,7 @@ public class ResearchNodeInfoScreen extends Screen {
         fieldScanner.content = "research.strangematter.research.field_scanner.content";
         fieldScanner.hasRecipes = true;
         fieldScanner.hasScreenshots = false;
-        fieldScanner.recipeName = "field_scanner";
+        fieldScanner.recipeName = "strangematter:field_scanner";
         pages.add(fieldScanner);
         
         // Page 3: Research Tablet (with recipe)
@@ -138,7 +136,7 @@ public class ResearchNodeInfoScreen extends Screen {
         researchTablet.content = "research.strangematter.research.research_tablet.content";
         researchTablet.hasRecipes = true;
         researchTablet.hasScreenshots = false;
-        researchTablet.recipeName = "research_tablet";
+        researchTablet.recipeName = "strangematter:research_tablet";
         pages.add(researchTablet);
         
         // Page 4: Using the Research Machine (with recipe)
@@ -147,7 +145,7 @@ public class ResearchNodeInfoScreen extends Screen {
         machineUsage.content = "research.strangematter.research.machine_usage.content";
         machineUsage.hasRecipes = true;
         machineUsage.hasScreenshots = false;
-        machineUsage.recipeName = "research_machine";
+        machineUsage.recipeName = "strangematter:research_machine";
         pages.add(machineUsage);
         
         // Page 3: Research Minigames
@@ -193,7 +191,7 @@ public class ResearchNodeInfoScreen extends Screen {
         scannerRecipe.hasRecipes = true;
         scannerRecipe.hasScreenshots = false;
         // recipeItems no longer needed - extracted programmatically from recipe registry
-        scannerRecipe.recipeName = "field_scanner";
+        scannerRecipe.recipeName = "strangematter:field_scanner";
         pages.add(scannerRecipe);
         
         // Page 4: Using the Field Scanner
@@ -213,7 +211,7 @@ public class ResearchNodeInfoScreen extends Screen {
         intro.content = "research.strangematter.anomaly_resonator.intro.content";
         intro.hasRecipes = true;
         intro.hasScreenshots = false;
-        intro.recipeName = "anomaly_resonator";
+        intro.recipeName = "strangematter:anomaly_resonator";
         pages.add(intro);
         
         // Page 2: How It Works and Usage
@@ -232,7 +230,7 @@ public class ResearchNodeInfoScreen extends Screen {
         intro.content = "research.strangematter.field_scanner.intro.content";
         intro.hasRecipes = true;
         intro.hasScreenshots = false;
-        intro.recipeName = "field_scanner";
+        intro.recipeName = "strangematter:field_scanner";
         pages.add(intro);
     }
     
@@ -327,7 +325,7 @@ public class ResearchNodeInfoScreen extends Screen {
         coil.content = "research.strangematter.resonite.coil.content";
         coil.hasRecipes = true;
         coil.hasScreenshots = false;
-        coil.recipeName = "resonant_coil";
+        coil.recipeName = "strangematter:resonant_coil";
         pages.add(coil);
 
         // Page 3: Resonant Circuit Recipe
@@ -336,7 +334,7 @@ public class ResearchNodeInfoScreen extends Screen {
         circuit.content = "research.strangematter.resonite.circuit.content";
         circuit.hasRecipes = true;
         circuit.hasScreenshots = false;
-        circuit.recipeName = "resonant_circuit";
+        circuit.recipeName = "strangematter:resonant_circuit";
         pages.add(circuit);
     }
     
@@ -357,7 +355,7 @@ public class ResearchNodeInfoScreen extends Screen {
         burner.content = "research.strangematter.resonant_energy.burner.content";
         burner.hasRecipes = true;
         burner.hasScreenshots = false;
-        burner.recipeName = "resonant_burner";
+        burner.recipeName = "strangematter:resonant_burner";
         pages.add(burner);
     }
     
@@ -368,7 +366,7 @@ public class ResearchNodeInfoScreen extends Screen {
         intro.content = "research.strangematter.reality_forge.intro.content";
         intro.hasRecipes = true;
         intro.hasScreenshots = false;
-        intro.recipeName = "reality_forge";
+        intro.recipeName = "strangematter:reality_forge";
         pages.add(intro);
 
         // Page 2: Usage with Screenshot
@@ -388,7 +386,7 @@ public class ResearchNodeInfoScreen extends Screen {
         intro.content = "research.strangematter.resonance_condenser.intro.content";
         intro.hasRecipes = true;
         intro.hasScreenshots = false;
-        intro.recipeName = "resonance_condenser";
+        intro.recipeName = "strangematter:resonance_condenser";
         intro.isRealityForgeRecipe = true;
         // Shard requirements are now read from the recipe registry
         pages.add(intro);
@@ -410,7 +408,7 @@ public class ResearchNodeInfoScreen extends Screen {
         intro.content = "research.strangematter.containment_basics.intro.content";
         intro.hasRecipes = true;
         intro.hasScreenshots = false;
-        intro.recipeName = "echo_vacuum";
+        intro.recipeName = "strangematter:echo_vacuum";
         intro.isRealityForgeRecipe = true;
         pages.add(intro);
 
@@ -420,7 +418,7 @@ public class ResearchNodeInfoScreen extends Screen {
         capsule.content = "research.strangematter.containment_basics.capsule.content";
         capsule.hasRecipes = true;
         capsule.hasScreenshots = false;
-        capsule.recipeName = "containment_capsule";
+        capsule.recipeName = "strangematter:containment_capsule";
         capsule.isRealityForgeRecipe = true;
         pages.add(capsule);
     }
@@ -432,7 +430,7 @@ public class ResearchNodeInfoScreen extends Screen {
         intro.content = "research.strangematter.echoform_imprinter.intro.content";
         intro.hasRecipes = true;
         intro.hasScreenshots = false;
-        intro.recipeName = "echoform_imprinter";
+        intro.recipeName = "strangematter:echoform_imprinter";
         intro.isRealityForgeRecipe = true;
         pages.add(intro);
         
@@ -464,7 +462,7 @@ public class ResearchNodeInfoScreen extends Screen {
         intro.content = "research.strangematter.warp_gun.intro.content";
         intro.hasRecipes = true;
         intro.hasScreenshots = false;
-        intro.recipeName = "warp_gun";
+        intro.recipeName = "strangematter:warp_gun";
         intro.isRealityForgeRecipe = true;
         pages.add(intro);
 
@@ -484,7 +482,7 @@ public class ResearchNodeInfoScreen extends Screen {
         intro.content = "research.strangematter.graviton_hammer.intro.content";
         intro.hasRecipes = true;
         intro.hasScreenshots = false;
-        intro.recipeName = "graviton_hammer";
+        intro.recipeName = "strangematter:graviton_hammer";
         intro.isRealityForgeRecipe = true;
         pages.add(intro);
 
@@ -506,7 +504,7 @@ public class ResearchNodeInfoScreen extends Screen {
         intro.content = "research.strangematter.stasis_projector.intro.content";
         intro.hasRecipes = true;
         intro.hasScreenshots = false;
-        intro.recipeName = "stasis_projector";
+        intro.recipeName = "strangematter:stasis_projector";
         intro.isRealityForgeRecipe = true;
         pages.add(intro);
 
@@ -538,7 +536,7 @@ public class ResearchNodeInfoScreen extends Screen {
         intro.content = "research.strangematter.rift_stabilizer.intro.content";
         intro.hasRecipes = true;
         intro.hasScreenshots = false;
-        intro.recipeName = "rift_stabilizer";
+        intro.recipeName = "strangematter:rift_stabilizer";
         intro.isRealityForgeRecipe = true;
         pages.add(intro);
 
@@ -636,7 +634,7 @@ public class ResearchNodeInfoScreen extends Screen {
         intro.content = "research.strangematter.levitation_pad.intro.content";
         intro.hasRecipes = true;
         intro.hasScreenshots = false;
-        intro.recipeName = "levitation_pad";
+        intro.recipeName = "strangematter:levitation_pad";
         intro.isRealityForgeRecipe = true;
         pages.add(intro);
         
@@ -656,7 +654,7 @@ public class ResearchNodeInfoScreen extends Screen {
         intro.content = "research.strangematter.hoverboard.intro.content";
         intro.hasRecipes = true;
         intro.hasScreenshots = false;
-        intro.recipeName = "hoverboard";
+        intro.recipeName = "strangematter:hoverboard";
         intro.isRealityForgeRecipe = true;
         pages.add(intro);
     }
@@ -1065,12 +1063,9 @@ public class ResearchNodeInfoScreen extends Screen {
     private java.util.List<TooltipSlot> tooltipSlots = new java.util.ArrayList<>();
     
     private void drawRecipeInGrid(GuiGraphics guiGraphics, String recipeName, int gridX, int gridY, int slotSize) {
-        // Get the recipe from Minecraft's recipe registry
-        // If recipeName already has a namespace (contains ':'), use it as-is
-        // Otherwise, prepend "strangematter:"
-        String fullRecipeName = recipeName.contains(":") ? recipeName : "strangematter:" + recipeName;
-        ResourceLocation recipeId = ResourceLocation.parse(fullRecipeName);
-        Recipe<?> recipe = this.minecraft.level.getRecipeManager().byKey(recipeId).map(net.minecraft.world.item.crafting.RecipeHolder::value).orElse(null);
+        // Get the recipe by looking up recipes that produce the result item
+        // This works even when KubeJS modifies recipe IDs
+        CraftingRecipe recipe = findRecipeByResultItem(recipeName);
 
         if (recipe == null) {
             // Recipe not found, draw empty grid
@@ -1078,13 +1073,8 @@ public class ResearchNodeInfoScreen extends Screen {
             return;
         }
 
-        // Handle different recipe types
-        if (recipe instanceof CraftingRecipe craftingRecipe) {
-            drawCraftingRecipe(guiGraphics, craftingRecipe, gridX, gridY, slotSize);
-        } else {
-            // Unsupported recipe type, draw empty grid
-            drawEmptyRecipeGrid(guiGraphics, gridX, gridY, slotSize);
-        }
+        // Draw the crafting recipe
+        drawCraftingRecipe(guiGraphics, recipe, gridX, gridY, slotSize);
     }
     
     private void drawCraftingRecipe(GuiGraphics guiGraphics, CraftingRecipe recipe, int gridX, int gridY, int slotSize) {
@@ -1164,15 +1154,13 @@ public class ResearchNodeInfoScreen extends Screen {
     private List<String> getUniqueIngredients(String recipeName) {
         List<String> uniqueIngredients = new ArrayList<>();
         
-        // Get the recipe from Minecraft's recipe registry
-        // If recipeName already has a namespace (contains ':'), use it as-is
-        // Otherwise, prepend "strangematter:"
-        String fullRecipeName = recipeName.contains(":") ? recipeName : "strangematter:" + recipeName;
-        ResourceLocation recipeId = ResourceLocation.parse(fullRecipeName);
-        Recipe<?> recipe = this.minecraft.level.getRecipeManager().byKey(recipeId).map(net.minecraft.world.item.crafting.RecipeHolder::value).orElse(null);
+        // Get all recipes that produce the result item
+        // This works even when KubeJS modifies recipe IDs
+        List<CraftingRecipe> recipes = findAllRecipesByResultItem(recipeName);
         
-        if (recipe instanceof CraftingRecipe craftingRecipe) {
-            List<Ingredient> ingredients = craftingRecipe.getIngredients();
+        // Collect unique ingredients from all recipes
+        for (CraftingRecipe recipe : recipes) {
+            List<Ingredient> ingredients = recipe.getIngredients();
             for (Ingredient ingredient : ingredients) {
                 if (!ingredient.isEmpty()) {
                     ItemStack[] stacks = ingredient.getItems();
@@ -1218,6 +1206,86 @@ public class ResearchNodeInfoScreen extends Screen {
         }
         
         return uniqueIngredients;
+    }
+    
+    /**
+     * Finds all crafting recipes that produce the specified result item.
+     * This works even when KubeJS modifies recipe IDs, as it searches by result item instead of recipe ID.
+     * 
+     * @param recipeName The item ID to search for (e.g., "field_scanner" or "strangematter:field_scanner")
+     * @return A list of all CraftingRecipes that produce the item, or an empty list if none found
+     */
+    private List<CraftingRecipe> findAllRecipesByResultItem(String recipeName) {
+        List<CraftingRecipe> matchingRecipes = new ArrayList<>();
+        
+        if (this.minecraft == null || this.minecraft.level == null) {
+            return matchingRecipes;
+        }
+        
+        try {
+            // Parse the recipe name as an item ID
+            // If recipeName already has a namespace (contains ':'), use it as-is
+            // Otherwise, prepend "strangematter:"
+            String fullItemName = recipeName.contains(":") ? recipeName : "strangematter:" + recipeName;
+            ResourceLocation itemId = ResourceLocation.parse(fullItemName);
+            
+            // Get the item from the registry
+            Item item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(itemId);
+            if (item == null) {
+                return matchingRecipes;
+            }
+            
+            // Get all crafting recipes and filter by result item
+            // This approach works even when KubeJS modifies recipe IDs
+            net.minecraft.world.item.crafting.RecipeManager recipeManager = this.minecraft.level.getRecipeManager();
+            net.minecraft.world.item.crafting.RecipeType<net.minecraft.world.item.crafting.CraftingRecipe> craftingType = 
+                net.minecraft.world.item.crafting.RecipeType.CRAFTING;
+            
+            List<net.minecraft.world.item.crafting.RecipeHolder<net.minecraft.world.item.crafting.CraftingRecipe>> allRecipes = 
+                recipeManager.getAllRecipesFor(craftingType);
+            
+            // Filter to find all recipes that produce the target item
+            net.minecraft.core.HolderLookup.Provider registryAccess = this.minecraft.level.registryAccess();
+            for (net.minecraft.world.item.crafting.RecipeHolder<net.minecraft.world.item.crafting.CraftingRecipe> holder : allRecipes) {
+                CraftingRecipe recipe = holder.value();
+                ItemStack recipeResult = recipe.getResultItem(registryAccess);
+                
+                // Check if the recipe produces the same item (compare item type)
+                if (!recipeResult.isEmpty() && recipeResult.getItem() == item) {
+                    matchingRecipes.add(recipe);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error finding recipes for item: " + recipeName, e);
+        }
+        
+        return matchingRecipes;
+    }
+    
+    /**
+     * Finds a crafting recipe by looking up recipes that produce the specified result item.
+     * Cycles through all available recipes for the item based on time.
+     * 
+     * @param recipeName The item ID to search for (e.g., "field_scanner" or "strangematter:field_scanner")
+     * @return A CraftingRecipe that produces the item (cycling through all available), or null if none found
+     */
+    private CraftingRecipe findRecipeByResultItem(String recipeName) {
+        List<CraftingRecipe> recipes = findAllRecipesByResultItem(recipeName);
+        
+        if (recipes.isEmpty()) {
+            return null;
+        }
+        
+        // If only one recipe, return it immediately
+        if (recipes.size() == 1) {
+            return recipes.get(0);
+        }
+        
+        // Cycle through multiple recipes (change every 3 seconds)
+        long currentTime = System.currentTimeMillis();
+        int cycleIndex = (int) ((currentTime / 3000) % recipes.size()); // Change every 3 seconds
+        
+        return recipes.get(cycleIndex);
     }
     
     private void drawTextureInSlot(GuiGraphics guiGraphics, ResourceLocation texture, int x, int y) {

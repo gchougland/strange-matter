@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SS",
+    "SS"
+  ],
+  "key": {
+    "S": {
+      "item": "strangematter:energetic_shard"
+    }
+  },
+  "result": {
+    "id": "strangematter:energetic_shard_crystal",
+    "count": 1
+  }
+}

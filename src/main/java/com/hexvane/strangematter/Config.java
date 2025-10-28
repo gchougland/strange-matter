@@ -74,6 +74,8 @@ public class Config {
     
     // Temporal Bloom
     private static final ModConfigSpec.BooleanValue ENABLE_TEMPORAL_EFFECTS;
+    private static final ModConfigSpec.BooleanValue ENABLE_TEMPORAL_CROP_EFFECTS;
+    private static final ModConfigSpec.BooleanValue ENABLE_TEMPORAL_MOB_TRANSFORMATION;
     private static final ModConfigSpec.DoubleValue TEMPORAL_EFFECT_RADIUS;
     private static final ModConfigSpec.IntValue TEMPORAL_CROP_GROWTH_STAGES;
     private static final ModConfigSpec.IntValue TEMPORAL_CROP_COOLDOWN;
@@ -82,6 +84,8 @@ public class Config {
     
     // Energetic Rift
     private static final ModConfigSpec.BooleanValue ENABLE_ENERGETIC_EFFECTS;
+    private static final ModConfigSpec.BooleanValue ENABLE_ENERGETIC_ENTITY_ZAP;
+    private static final ModConfigSpec.BooleanValue ENABLE_ENERGETIC_LIGHTNING_ROD;
     private static final ModConfigSpec.DoubleValue ENERGETIC_ZAP_RADIUS;
     private static final ModConfigSpec.DoubleValue ENERGETIC_LIGHTNING_RADIUS;
     private static final ModConfigSpec.DoubleValue ENERGETIC_ZAP_DAMAGE;
@@ -97,6 +101,8 @@ public class Config {
     
     // Echoing Shadow
     private static final ModConfigSpec.BooleanValue ENABLE_SHADOW_EFFECTS;
+    private static final ModConfigSpec.BooleanValue ENABLE_SHADOW_LIGHT_ABSORPTION;
+    private static final ModConfigSpec.BooleanValue ENABLE_SHADOW_MOB_SPAWN;
     private static final ModConfigSpec.DoubleValue SHADOW_EFFECT_RADIUS;
     private static final ModConfigSpec.DoubleValue SHADOW_LIGHT_ABSORPTION;
     private static final ModConfigSpec.DoubleValue SHADOW_MOB_SPAWN_BOOST;
@@ -104,6 +110,8 @@ public class Config {
     
     // Thoughtwell
     private static final ModConfigSpec.BooleanValue ENABLE_THOUGHTWELL_EFFECTS;
+    private static final ModConfigSpec.BooleanValue ENABLE_THOUGHTWELL_PLAYER_NAUSEA;
+    private static final ModConfigSpec.BooleanValue ENABLE_THOUGHTWELL_MOB_DISGUISE;
     private static final ModConfigSpec.DoubleValue THOUGHTWELL_EFFECT_RADIUS;
     private static final ModConfigSpec.IntValue THOUGHTWELL_CONFUSION_DURATION;
     private static final ModConfigSpec.IntValue THOUGHTWELL_RESEARCH_POINTS;
@@ -168,6 +176,7 @@ public class Config {
     private static final ModConfigSpec.IntValue HOVERBOARD_COST;
     private static final ModConfigSpec.DoubleValue HOVERBOARD_MAX_SPEED;
     private static final ModConfigSpec.DoubleValue HOVERBOARD_ACCELERATION;
+    private static final ModConfigSpec.BooleanValue HIDE_RECIPES_IN_RECIPE_VIEWERS;
 
     // ========================================
     // GRAVITON HAMMER CONFIG VALUES
@@ -365,8 +374,14 @@ public class Config {
         // Temporal Bloom
         BUILDER.comment("Temporal Bloom Effect Settings").push("temporal_bloom");
         ENABLE_TEMPORAL_EFFECTS = BUILDER
-                .comment("Enable Temporal Bloom effects (crop growth/mob transformation)")
+                .comment("Enable all Temporal Bloom effects (master toggle)")
                 .define("enableEffects", true);
+        ENABLE_TEMPORAL_CROP_EFFECTS = BUILDER
+                .comment("Enable crop growth/de-growth effects")
+                .define("enableCropEffects", true);
+        ENABLE_TEMPORAL_MOB_TRANSFORMATION = BUILDER
+                .comment("Enable mob transformation effects (baby/adult transformation)")
+                .define("enableMobTransformation", true);
         TEMPORAL_EFFECT_RADIUS = BUILDER
                 .comment("Effect radius in blocks")
                 .defineInRange("effectRadius", 8.0, 1.0, 32.0);
@@ -387,8 +402,14 @@ public class Config {
         // Energetic Rift
         BUILDER.comment("Energetic Rift Effect Settings").push("energetic_rift");
         ENABLE_ENERGETIC_EFFECTS = BUILDER
-                .comment("Enable Energetic Rift effects (lightning/zapping)")
+                .comment("Enable all Energetic Rift effects (master toggle)")
                 .define("enableEffects", true);
+        ENABLE_ENERGETIC_ENTITY_ZAP = BUILDER
+                .comment("Enable entity zapping damage effect")
+                .define("enableEntityZap", true);
+        ENABLE_ENERGETIC_LIGHTNING_ROD = BUILDER
+                .comment("Enable lightning rod striking effect")
+                .define("enableLightningRod", true);
         ENERGETIC_ZAP_RADIUS = BUILDER
                 .comment("Entity zap radius in blocks")
                 .defineInRange("zapRadius", 6.0, 1.0, 32.0);
@@ -428,8 +449,14 @@ public class Config {
         // Echoing Shadow
         BUILDER.comment("Echoing Shadow Effect Settings").push("echoing_shadow");
         ENABLE_SHADOW_EFFECTS = BUILDER
-                .comment("Enable Echoing Shadow effects (light absorption/mob spawning)")
+                .comment("Enable all Echoing Shadow effects (master toggle)")
                 .define("enableEffects", true);
+        ENABLE_SHADOW_LIGHT_ABSORPTION = BUILDER
+                .comment("Enable light absorption effect (darkens area)")
+                .define("enableLightAbsorption", true);
+        ENABLE_SHADOW_MOB_SPAWN = BUILDER
+                .comment("Enable mob spawning boost effect")
+                .define("enableMobSpawn", true);
         SHADOW_EFFECT_RADIUS = BUILDER
                 .comment("Effect radius in blocks")
                 .defineInRange("effectRadius", 8.0, 1.0, 32.0);
@@ -447,8 +474,14 @@ public class Config {
         // Thoughtwell
         BUILDER.comment("Thoughtwell Effect Settings").push("thoughtwell");
         ENABLE_THOUGHTWELL_EFFECTS = BUILDER
-                .comment("Enable Thoughtwell effects (confusion)")
+                .comment("Enable all Thoughtwell effects (master toggle)")
                 .define("enableEffects", true);
+        ENABLE_THOUGHTWELL_PLAYER_NAUSEA = BUILDER
+                .comment("Enable player nausea/confusion effect")
+                .define("enablePlayerNausea", true);
+        ENABLE_THOUGHTWELL_MOB_DISGUISE = BUILDER
+                .comment("Enable mob disguise effect (mobs appear as different mobs)")
+                .define("enableMobDisguise", true);
         THOUGHTWELL_EFFECT_RADIUS = BUILDER
                 .comment("Effect radius in blocks")
                 .defineInRange("effectRadius", 6.0, 1.0, 32.0);
@@ -672,6 +705,14 @@ public class Config {
                 .defineInRange("hoverboardAcceleration", 0.03, 0.01, 0.2);
         
         BUILDER.pop(); // node_costs
+        
+        HIDE_RECIPES_IN_RECIPE_VIEWERS = BUILDER
+                .comment("Hide Strange Matter recipes in JEI/REI/EMI recipe viewers",
+                        "When enabled, recipes will only be visible in the Research Tablet.",
+                        "This encourages players to use the research system to discover recipes.",
+                        "Defaults to false (recipes visible in recipe viewers)")
+                .define("hideRecipesInRecipeViewers", false);
+        
         BUILDER.pop(); // research
         
         // ========================================
@@ -829,6 +870,8 @@ public class Config {
     
     // Temporal Bloom
     public static boolean enableTemporalEffects;
+    public static boolean enableTemporalCropEffects;
+    public static boolean enableTemporalMobTransformation;
     public static double temporalEffectRadius;
     public static int temporalCropGrowthStages;
     public static int temporalCropCooldown;
@@ -837,6 +880,8 @@ public class Config {
     
     // Energetic Rift
     public static boolean enableEnergeticEffects;
+    public static boolean enableEnergeticEntityZap;
+    public static boolean enableEnergeticLightningRod;
     public static double energeticZapRadius;
     public static double energeticLightningRadius;
     public static double energeticZapDamage;
@@ -852,6 +897,8 @@ public class Config {
     
     // Echoing Shadow
     public static boolean enableShadowEffects;
+    public static boolean enableShadowLightAbsorption;
+    public static boolean enableShadowMobSpawn;
     public static double shadowEffectRadius;
     public static double shadowLightAbsorption;
     public static double shadowMobSpawnBoost;
@@ -859,6 +906,8 @@ public class Config {
     
     // Thoughtwell
     public static boolean enableThoughtwellEffects;
+    public static boolean enableThoughtwellPlayerNausea;
+    public static boolean enableThoughtwellMobDisguise;
     public static double thoughtwellEffectRadius;
     public static int thoughtwellConfusionDuration;
     public static int thoughtwellResearchPoints;
@@ -917,6 +966,7 @@ public class Config {
     public static int hoverboardCost;
     public static double hoverboardMaxSpeed;
     public static double hoverboardAcceleration;
+    public static boolean hideRecipesInRecipeViewers;
     
     // Graviton Hammer
     public static int gravitonHammerChargeLevel1Time;
@@ -1013,6 +1063,8 @@ public class Config {
         
         // Temporal Bloom
         enableTemporalEffects = ENABLE_TEMPORAL_EFFECTS.get();
+        enableTemporalCropEffects = ENABLE_TEMPORAL_CROP_EFFECTS.get();
+        enableTemporalMobTransformation = ENABLE_TEMPORAL_MOB_TRANSFORMATION.get();
         temporalEffectRadius = TEMPORAL_EFFECT_RADIUS.get();
         temporalCropGrowthStages = TEMPORAL_CROP_GROWTH_STAGES.get();
         temporalCropCooldown = TEMPORAL_CROP_COOLDOWN.get();
@@ -1021,6 +1073,8 @@ public class Config {
         
         // Energetic Rift
         enableEnergeticEffects = ENABLE_ENERGETIC_EFFECTS.get();
+        enableEnergeticEntityZap = ENABLE_ENERGETIC_ENTITY_ZAP.get();
+        enableEnergeticLightningRod = ENABLE_ENERGETIC_LIGHTNING_ROD.get();
         energeticZapRadius = ENERGETIC_ZAP_RADIUS.get();
         energeticLightningRadius = ENERGETIC_LIGHTNING_RADIUS.get();
         energeticZapDamage = ENERGETIC_ZAP_DAMAGE.get();
@@ -1036,6 +1090,8 @@ public class Config {
         
         // Echoing Shadow
         enableShadowEffects = ENABLE_SHADOW_EFFECTS.get();
+        enableShadowLightAbsorption = ENABLE_SHADOW_LIGHT_ABSORPTION.get();
+        enableShadowMobSpawn = ENABLE_SHADOW_MOB_SPAWN.get();
         shadowEffectRadius = SHADOW_EFFECT_RADIUS.get();
         shadowLightAbsorption = SHADOW_LIGHT_ABSORPTION.get();
         shadowMobSpawnBoost = SHADOW_MOB_SPAWN_BOOST.get();
@@ -1043,6 +1099,8 @@ public class Config {
         
         // Thoughtwell
         enableThoughtwellEffects = ENABLE_THOUGHTWELL_EFFECTS.get();
+        enableThoughtwellPlayerNausea = ENABLE_THOUGHTWELL_PLAYER_NAUSEA.get();
+        enableThoughtwellMobDisguise = ENABLE_THOUGHTWELL_MOB_DISGUISE.get();
         thoughtwellEffectRadius = THOUGHTWELL_EFFECT_RADIUS.get();
         thoughtwellConfusionDuration = THOUGHTWELL_CONFUSION_DURATION.get();
         thoughtwellResearchPoints = THOUGHTWELL_RESEARCH_POINTS.get();
@@ -1101,6 +1159,7 @@ public class Config {
         hoverboardCost = HOVERBOARD_COST.get();
         hoverboardMaxSpeed = HOVERBOARD_MAX_SPEED.get();
         hoverboardAcceleration = HOVERBOARD_ACCELERATION.get();
+        hideRecipesInRecipeViewers = HIDE_RECIPES_IN_RECIPE_VIEWERS.get();
         
         // Graviton Hammer
         gravitonHammerChargeLevel1Time = GRAVITON_HAMMER_CHARGE_LEVEL_1_TIME.get();

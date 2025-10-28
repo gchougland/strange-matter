@@ -22,6 +22,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.util.Mth;
 
 public class HoverboardEntity extends Entity {
     
@@ -29,6 +30,7 @@ public class HoverboardEntity extends Entity {
     private static final EntityDataAccessor<Float> BOARD_ROTATION = SynchedEntityData.defineId(HoverboardEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> FORWARD_MOMENTUM = SynchedEntityData.defineId(HoverboardEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Boolean> IS_BOOSTING = SynchedEntityData.defineId(HoverboardEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> IS_JUMPING = SynchedEntityData.defineId(HoverboardEntity.class, EntityDataSerializers.BOOLEAN);
     
     // Movement constants (configurable via Config class)
     private static final float FRICTION = 0.85f;
@@ -45,6 +47,19 @@ public class HoverboardEntity extends Entity {
     private static final float MAX_HOVER_SCAN_DISTANCE = 10.0f;
     private static final float CLIMB_BOOST = 0.25f; // Extra boost when detecting obstacle ahead
     
+    // Jump constants (per guide)
+    private static final float JUMP_VELOCITY = 0.4f;
+    private static final int JUMP_COOLDOWN_TICKS = 10;
+    
+    // Jump state tracking (per guide)
+    private boolean isJumping = false;
+    private int jumpTicks = 0;
+    private int jumpCooldown = 0;
+    
+    // Sound tracking
+    private int loopSoundCooldown = 0;
+    private static final int LOOP_SOUND_INTERVAL = 40; // Play loop sound every 2 seconds (40 ticks)
+    
     public HoverboardEntity(EntityType<?> entityType, Level level) {
         super(entityType, level);
         this.setNoGravity(true); // Hoverboards don't fall
@@ -56,6 +71,7 @@ public class HoverboardEntity extends Entity {
         builder.define(BOARD_ROTATION, 0.0f);
         builder.define(FORWARD_MOMENTUM, 0.0f);
         builder.define(IS_BOOSTING, false);
+        builder.define(IS_JUMPING, false);
     }
     
     @Override
@@ -78,39 +94,52 @@ public class HoverboardEntity extends Entity {
         }
     }
     
+    @Override
+    public void lerpTo(double x, double y, double z, float yRot, float xRot, int steps) {
+        // Store old positions for interpolation (like 1.20.1 version)
+        this.xo = this.getX();
+        this.yo = this.getY();
+        this.zo = this.getZ();
+        this.xRotO = this.getXRot();
+        this.yRotO = this.getYRot();
+        
+        if (steps <= 0) {
+            // Immediate positioning
+            this.setPos(x, y, z);
+            this.setRot(yRot, xRot);
+        } else {
+            // Enhanced smoothing for jumps - use much stronger Y-axis smoothing during jumps
+            double smoothingFactor = 1.0 / Math.max(steps, 1.0);
+            
+            // Detect if we're likely jumping (large Y difference)
+            double yDiff = Math.abs(y - this.getY());
+            boolean isLikelyJumping = yDiff > 0.3 || this.entityData.get(IS_JUMPING);
+            
+            // Use stronger smoothing for Y axis during jumps (matches 1.20.1)
+            double ySmoothingFactor = isLikelyJumping ? smoothingFactor * 0.5 : smoothingFactor * 0.8;
+            
+            double deltaX = (x - this.getX()) * smoothingFactor;
+            double deltaY = (y - this.getY()) * ySmoothingFactor;
+            double deltaZ = (z - this.getZ()) * smoothingFactor;
+            
+            // Apply smooth exponential interpolation
+            this.setPos(
+                this.getX() + deltaX,
+                this.getY() + deltaY,
+                this.getZ() + deltaZ
+            );
+            
+            // Smooth rotation too
+            float deltaYaw = (float)(Mth.wrapDegrees(yRot - this.getYRot()) * smoothingFactor);
+            float deltaPitch = (float)((xRot - this.getXRot()) * smoothingFactor);
+            this.setRot(this.getYRot() + deltaYaw, this.getXRot() + deltaPitch);
+        }
+    }
+    
+    
     // ========== OPTIONAL OVERRIDES (FOR FUNCTIONALITY) ==========
     // These have default implementations but we override for specific behavior
     
-    
-    @Override
-    public void tick() {
-        super.tick();
-        
-        // Handle dismount when player sneaks
-        handleDismount();
-        
-        if (this.isVehicle()) {
-            // Maintain hover height
-            maintainHoverHeight();
-            
-            // Handle movement input
-            handleMovement();
-            
-            // Ensure smooth following of the player
-            ensureSmoothFollowing();
-            
-            // Prevent fall damage for riders
-            preventFallDamageForRiders();
-        } else {
-            // No rider - apply friction and fall slowly
-            applyFriction();
-            Vec3 currentVelocity = this.getDeltaMovement();
-            this.setDeltaMovement(currentVelocity.x, currentVelocity.y - 0.02, currentVelocity.z);
-        }
-        
-        // Move the entity
-        this.move(MoverType.SELF, this.getDeltaMovement());
-    }
     
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
@@ -174,10 +203,13 @@ public class HoverboardEntity extends Entity {
                 // Aggressively reset fall distance to prevent fall damage
                 player.fallDistance = 0.0f;
                 
-                // Also reset the player's vertical velocity if they're falling too fast
-                Vec3 playerVelocity = player.getDeltaMovement();
-                if (playerVelocity.y < -0.5) { // If falling faster than 0.5 blocks/tick
-                    player.setDeltaMovement(playerVelocity.x, -0.1, playerVelocity.z); // Slow down the fall
+                // During jump, don't interfere with player velocity
+                if (!isJumping) {
+                    // Only slow down very fast falls when not jumping
+                    Vec3 playerVelocity = player.getDeltaMovement();
+                    if (playerVelocity.y < -0.5) { // If falling faster than 0.5 blocks/tick
+                        player.setDeltaMovement(playerVelocity.x, -0.1, playerVelocity.z); // Slow down the fall
+                    }
                 }
             }
         }
@@ -216,6 +248,63 @@ public class HoverboardEntity extends Entity {
                 // No input - apply friction
                 applyFriction();
             }
+        }
+    }
+    
+    /**
+     * Handle jump request from server (called by packet handler)
+     * Per guide: validates jump conditions and applies jump velocity
+     */
+    public void handleJumpRequest() {
+        if (!this.isVehicle()) return;
+        
+        // Validation per guide
+        if (jumpCooldown > 0) return;
+        if (isJumping) return;
+        
+        Vec3 currentVelocity = this.getDeltaMovement();
+        if (currentVelocity.y >= 0.1) return; // Already moving up fast
+        
+        // Check height proximity (within 1.5 blocks of target hover height)
+        BlockPos groundPos = findGroundBelow();
+        if (groundPos != null) {
+            double targetY = groundPos.getY() + 1.0 + TARGET_HOVER_HEIGHT + 0.5;
+            double currentY = this.getY();
+            if (Math.abs(currentY - targetY) > 1.5) return;
+        }
+        
+        // Apply jump velocity (per guide)
+        Vec3 newVelocity = currentVelocity.add(0, JUMP_VELOCITY, 0);
+        this.setDeltaMovement(newVelocity.x, newVelocity.y, newVelocity.z);
+        
+        // Set jump state (per guide)
+        isJumping = true;
+        jumpTicks = 0;
+        jumpCooldown = JUMP_COOLDOWN_TICKS;
+        this.entityData.set(IS_JUMPING, true);
+        
+        // Play jump sound
+        if (!this.level().isClientSide) {
+            this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                com.hexvane.strangematter.sound.StrangeMatterSounds.HOVERBOARD_JUMP.get(), SoundSource.PLAYERS, 0.7f, 1.2f);
+        }
+    }
+    
+    
+    /**
+     * Handle loop sound playback while player is riding
+     */
+    private void handleLoopSound() {
+        if (this.level().isClientSide) return;
+        
+        // Check if player is riding (not just moving)
+        if (this.isVehicle() && loopSoundCooldown <= 0) {
+            // Play loop sound
+            this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                com.hexvane.strangematter.sound.StrangeMatterSounds.HOVERBOARD_LOOP.get(), SoundSource.PLAYERS, 0.4f, 1.0f);
+            
+            // Reset cooldown - play sound again after interval
+            loopSoundCooldown = LOOP_SOUND_INTERVAL;
         }
     }
     
@@ -270,7 +359,7 @@ public class HoverboardEntity extends Entity {
         // Get current velocity
         Vec3 currentVelocity = this.getDeltaMovement();
         
-        // Add acceleration
+        // Add acceleration (preserve Y velocity - don't touch vertical movement during jumps)
         Vec3 newVelocity = currentVelocity.add(moveX, 0, moveZ);
         
         // Limit maximum speed
@@ -353,11 +442,30 @@ public class HoverboardEntity extends Entity {
             Vec3 currentVelocity = this.getDeltaMovement();
             double verticalAdjustment = heightDifference * HOVER_ADJUSTMENT_SPEED;
             
-            // Clamp the adjustment to prevent excessive movement
-            verticalAdjustment = Math.max(-0.3, Math.min(0.4, verticalAdjustment));
+            // Clamp the adjustment to prevent excessive movement - reduce aggressiveness for smoother motion
+            verticalAdjustment = Math.max(-0.25, Math.min(0.3, verticalAdjustment));
             
-            // Set new velocity with hover adjustment
-            this.setDeltaMovement(currentVelocity.x, verticalAdjustment, currentVelocity.z);
+            // Smooth jump handling - allow jump to complete, then smoothly transition back to hover (matches 1.20.1)
+            if (isJumping && currentVelocity.y > 0.05 && jumpTicks < 12) {
+                // During first part of jump, let it go up naturally with NO interference
+                // Don't modify velocity at all - let jump complete naturally for smoothness
+                return; // Don't apply hover adjustment during active jump
+            } else if (isJumping && jumpTicks < 18) {
+                // Later in jump - start applying gentle downward force if above target
+                if (heightDifference < -0.3) {
+                    // Above target height - apply very gentle downward adjustment
+                    double newY = Math.max(currentVelocity.y - 0.015, -0.10); // Even gentler deceleration
+                    this.setDeltaMovement(currentVelocity.x, newY, currentVelocity.z);
+                } else {
+                    // Let it continue with minimal damping for smoother motion
+                    this.setDeltaMovement(currentVelocity.x, currentVelocity.y * 0.98, currentVelocity.z);
+                }
+            } else {
+                // Normal hover adjustment - use smoother interpolation
+                // Blend current velocity with target adjustment for smoother movement (matches 1.20.1)
+                double smoothedY = currentVelocity.y * 0.8 + verticalAdjustment * 0.2;
+                this.setDeltaMovement(currentVelocity.x, smoothedY, currentVelocity.z);
+            }
         } else {
             // No ground found, apply gravity slowly
             Vec3 currentVelocity = this.getDeltaMovement();
@@ -466,7 +574,62 @@ public class HoverboardEntity extends Entity {
 
     @Override
     protected Vec3 getPassengerAttachmentPoint(Entity passenger, EntityDimensions dimensions, float scale) {
-        return new Vec3(0.0, 0.5, 0.0); // Height offset for rider - lower so player stands on the board
+        // Position passenger slightly above the board to prevent clipping during jumps
+        // 0.5 blocks above board center (board is ~0.25 blocks tall, player needs ~0.25 above)
+        return new Vec3(0.0, 0.5, 0.0);
+    }
+    
+    @Override
+    public void tick() {
+        super.tick();
+        
+        // Update jump cooldown
+        if (jumpCooldown > 0) jumpCooldown--;
+        
+        // Update jump state tracking (per guide)
+        if (isJumping) {
+            jumpTicks++;
+            Vec3 velocity = this.getDeltaMovement();
+            // Reset jump state when falling or after max ticks (per guide)
+            if (velocity.y < 0.05 || jumpTicks > 15) {
+                isJumping = false;
+                jumpTicks = 0;
+                this.entityData.set(IS_JUMPING, false);
+            }
+        }
+        
+        // Update loop sound cooldown
+        if (loopSoundCooldown > 0) {
+            loopSoundCooldown--;
+        }
+        
+        // Handle dismount when player sneaks
+        handleDismount();
+        
+        if (this.isVehicle()) {
+            // Play loop sound if riding
+            handleLoopSound();
+            
+            // Handle movement input
+            handleMovement();
+            
+            // Maintain hover height (with jump handling per guide)
+            maintainHoverHeight();
+            
+            // Ensure smooth following
+            ensureSmoothFollowing();
+            
+            // Prevent fall damage for riders
+            preventFallDamageForRiders();
+        } else {
+            // No rider - apply friction and fall slowly
+            applyFriction();
+            Vec3 currentVelocity = this.getDeltaMovement();
+            this.setDeltaMovement(currentVelocity.x, currentVelocity.y - 0.02, currentVelocity.z);
+        }
+        
+        // Move the entity
+        this.move(MoverType.SELF, this.getDeltaMovement());
     }
 
     @Override

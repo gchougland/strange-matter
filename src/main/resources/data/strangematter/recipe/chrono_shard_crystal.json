@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SS",
+    "SS"
+  ],
+  "key": {
+    "S": {
+      "item": "strangematter:chrono_shard"
+    }
+  },
+  "result": {
+    "id": "strangematter:chrono_shard_crystal",
+    "count": 1
+  }
+}

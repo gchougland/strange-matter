@@ -23,6 +23,12 @@
     "strangematter:resonite_door",
     "strangematter:resonite_trapdoor",
     "strangematter:resonant_conduit",
-    "strangematter:levitation_pad"
+    "strangematter:levitation_pad",
+    "strangematter:shade_shard_crystal",
+    "strangematter:gravitic_shard_crystal",
+    "strangematter:energetic_shard_crystal",
+    "strangematter:insight_shard_crystal",
+    "strangematter:chrono_shard_crystal",
+    "strangematter:spatial_shard_crystal"
   ]
 }

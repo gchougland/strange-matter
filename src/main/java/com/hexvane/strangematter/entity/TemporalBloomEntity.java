@@ -98,12 +98,12 @@ public class TemporalBloomEntity extends BaseAnomalyEntity {
         if (particleBurstCooldown > 0) particleBurstCooldown--;
         
         // Apply crop growth effects
-        if (cropEffectCooldown <= 0) {
+        if (cropEffectCooldown <= 0 && com.hexvane.strangematter.Config.enableTemporalCropEffects) {
             affectNearbyCrops();
         }
         
         // Transform mobs between baby and adult forms
-        if (mobTransformCooldown <= 0) {
+        if (mobTransformCooldown <= 0 && com.hexvane.strangematter.Config.enableTemporalMobTransformation) {
             transformNearbyMobs();
         }
         

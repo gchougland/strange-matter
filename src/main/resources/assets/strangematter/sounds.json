@@ -151,5 +151,14 @@
   "graviton_chargeup": {
     "sounds": ["strangematter:graviton_chargeup"],
     "subtitle": "subtitles.strangematter.graviton_chargeup"
+  },
+  "hoverboard_loop": {
+    "sounds": ["strangematter:hoverboard_loop"],
+    "subtitle": "subtitles.strangematter.hoverboard_loop",
+    "stream": true
+  },
+  "hoverboard_jump": {
+    "sounds": ["strangematter:hoverboard_jump"],
+    "subtitle": "subtitles.strangematter.hoverboard_jump"
   }
 }
