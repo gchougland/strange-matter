@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SS",
+    "SS"
+  ],
+  "key": {
+    "S": {
+      "item": "strangematter:gravitic_shard"
+    }
+  },
+  "result": {
+    "item": "strangematter:gravitic_shard_crystal",
+    "count": 1
+  }
+}

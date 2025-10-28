@@ -69,12 +69,15 @@ public class Config {
     
     // Gravity Anomaly
     private static final ForgeConfigSpec.BooleanValue ENABLE_GRAVITY_EFFECTS;
+    private static final ForgeConfigSpec.BooleanValue ENABLE_GRAVITY_LEVITATION;
     private static final ForgeConfigSpec.DoubleValue GRAVITY_LEVITATION_RADIUS;
     private static final ForgeConfigSpec.DoubleValue GRAVITY_LEVITATION_FORCE;
     private static final ForgeConfigSpec.IntValue GRAVITY_RESEARCH_POINTS;
     
     // Temporal Bloom
     private static final ForgeConfigSpec.BooleanValue ENABLE_TEMPORAL_EFFECTS;
+    private static final ForgeConfigSpec.BooleanValue ENABLE_TEMPORAL_CROP_GROWTH;
+    private static final ForgeConfigSpec.BooleanValue ENABLE_TEMPORAL_MOB_TRANSFORM;
     private static final ForgeConfigSpec.DoubleValue TEMPORAL_EFFECT_RADIUS;
     private static final ForgeConfigSpec.IntValue TEMPORAL_CROP_GROWTH_STAGES;
     private static final ForgeConfigSpec.IntValue TEMPORAL_CROP_COOLDOWN;
@@ -83,6 +86,8 @@ public class Config {
     
     // Energetic Rift
     private static final ForgeConfigSpec.BooleanValue ENABLE_ENERGETIC_EFFECTS;
+    private static final ForgeConfigSpec.BooleanValue ENABLE_ENERGETIC_ZAP;
+    private static final ForgeConfigSpec.BooleanValue ENABLE_ENERGETIC_LIGHTNING;
     private static final ForgeConfigSpec.DoubleValue ENERGETIC_ZAP_RADIUS;
     private static final ForgeConfigSpec.DoubleValue ENERGETIC_LIGHTNING_RADIUS;
     private static final ForgeConfigSpec.DoubleValue ENERGETIC_ZAP_DAMAGE;
@@ -92,12 +97,15 @@ public class Config {
     
     // Warp Gate
     private static final ForgeConfigSpec.BooleanValue ENABLE_WARP_EFFECTS;
+    private static final ForgeConfigSpec.BooleanValue ENABLE_WARP_TELEPORT;
     private static final ForgeConfigSpec.DoubleValue WARP_TELEPORT_RADIUS;
     private static final ForgeConfigSpec.IntValue WARP_TELEPORT_COOLDOWN;
     private static final ForgeConfigSpec.IntValue WARP_RESEARCH_POINTS;
     
     // Echoing Shadow
     private static final ForgeConfigSpec.BooleanValue ENABLE_SHADOW_EFFECTS;
+    private static final ForgeConfigSpec.BooleanValue ENABLE_SHADOW_LIGHT_ABSORPTION;
+    private static final ForgeConfigSpec.BooleanValue ENABLE_SHADOW_MOB_SPAWN_BOOST;
     private static final ForgeConfigSpec.DoubleValue SHADOW_EFFECT_RADIUS;
     private static final ForgeConfigSpec.DoubleValue SHADOW_LIGHT_ABSORPTION;
     private static final ForgeConfigSpec.DoubleValue SHADOW_MOB_SPAWN_BOOST;
@@ -105,6 +113,8 @@ public class Config {
     
     // Thoughtwell
     private static final ForgeConfigSpec.BooleanValue ENABLE_THOUGHTWELL_EFFECTS;
+    private static final ForgeConfigSpec.BooleanValue ENABLE_THOUGHTWELL_NAUSEA;
+    private static final ForgeConfigSpec.BooleanValue ENABLE_THOUGHTWELL_MOB_DISGUISE;
     private static final ForgeConfigSpec.DoubleValue THOUGHTWELL_EFFECT_RADIUS;
     private static final ForgeConfigSpec.IntValue THOUGHTWELL_CONFUSION_DURATION;
     private static final ForgeConfigSpec.IntValue THOUGHTWELL_RESEARCH_POINTS;
@@ -146,6 +156,7 @@ public class Config {
     // RESEARCH SYSTEM CONFIG VALUES
     // ========================================
     
+    private static final ForgeConfigSpec.BooleanValue HIDE_RECIPES_IN_RECIPE_VIEWERS;
     private static final ForgeConfigSpec.DoubleValue RESEARCH_COST_MULTIPLIER;
     
     // Individual research node costs
@@ -350,8 +361,11 @@ public class Config {
         // Gravity Anomaly
         BUILDER.comment("Gravity Anomaly Effect Settings").push("gravity_anomaly");
         ENABLE_GRAVITY_EFFECTS = BUILDER
-                .comment("Enable Gravity Anomaly effects (levitation)")
+                .comment("Enable all Gravity Anomaly effects (master toggle)")
                 .define("enableEffects", true);
+        ENABLE_GRAVITY_LEVITATION = BUILDER
+                .comment("Enable levitation effect on nearby entities")
+                .define("enableLevitation", true);
         GRAVITY_LEVITATION_RADIUS = BUILDER
                 .comment("Levitation effect radius in blocks")
                 .defineInRange("levitationRadius", 8.0, 1.0, 32.0);
@@ -366,8 +380,14 @@ public class Config {
         // Temporal Bloom
         BUILDER.comment("Temporal Bloom Effect Settings").push("temporal_bloom");
         ENABLE_TEMPORAL_EFFECTS = BUILDER
-                .comment("Enable Temporal Bloom effects (crop growth/mob transformation)")
+                .comment("Enable all Temporal Bloom effects (master toggle)")
                 .define("enableEffects", true);
+        ENABLE_TEMPORAL_CROP_GROWTH = BUILDER
+                .comment("Enable crop growth/regression effects")
+                .define("enableCropGrowth", true);
+        ENABLE_TEMPORAL_MOB_TRANSFORM = BUILDER
+                .comment("Enable mob transformation (baby/adult) effects")
+                .define("enableMobTransform", true);
         TEMPORAL_EFFECT_RADIUS = BUILDER
                 .comment("Effect radius in blocks")
                 .defineInRange("effectRadius", 8.0, 1.0, 32.0);
@@ -388,8 +408,14 @@ public class Config {
         // Energetic Rift
         BUILDER.comment("Energetic Rift Effect Settings").push("energetic_rift");
         ENABLE_ENERGETIC_EFFECTS = BUILDER
-                .comment("Enable Energetic Rift effects (lightning/zapping)")
+                .comment("Enable all Energetic Rift effects (master toggle)")
                 .define("enableEffects", true);
+        ENABLE_ENERGETIC_ZAP = BUILDER
+                .comment("Enable entity zapping effect")
+                .define("enableZap", true);
+        ENABLE_ENERGETIC_LIGHTNING = BUILDER
+                .comment("Enable lightning rod striking effect")
+                .define("enableLightning", true);
         ENERGETIC_ZAP_RADIUS = BUILDER
                 .comment("Entity zap radius in blocks")
                 .defineInRange("zapRadius", 6.0, 1.0, 32.0);
@@ -413,8 +439,11 @@ public class Config {
         // Warp Gate
         BUILDER.comment("Warp Gate Effect Settings").push("warp_gate");
         ENABLE_WARP_EFFECTS = BUILDER
-                .comment("Enable Warp Gate effects (teleportation)")
+                .comment("Enable all Warp Gate effects (master toggle)")
                 .define("enableEffects", true);
+        ENABLE_WARP_TELEPORT = BUILDER
+                .comment("Enable teleportation effect")
+                .define("enableTeleport", true);
         WARP_TELEPORT_RADIUS = BUILDER
                 .comment("Teleport activation radius in blocks")
                 .defineInRange("teleportRadius", 2.0, 0.5, 16.0);
@@ -429,8 +458,14 @@ public class Config {
         // Echoing Shadow
         BUILDER.comment("Echoing Shadow Effect Settings").push("echoing_shadow");
         ENABLE_SHADOW_EFFECTS = BUILDER
-                .comment("Enable Echoing Shadow effects (light absorption/mob spawning)")
+                .comment("Enable all Echoing Shadow effects (master toggle)")
                 .define("enableEffects", true);
+        ENABLE_SHADOW_LIGHT_ABSORPTION = BUILDER
+                .comment("Enable light absorption effect")
+                .define("enableLightAbsorption", true);
+        ENABLE_SHADOW_MOB_SPAWN_BOOST = BUILDER
+                .comment("Enable mob spawn rate boost effect")
+                .define("enableMobSpawnBoost", true);
         SHADOW_EFFECT_RADIUS = BUILDER
                 .comment("Effect radius in blocks")
                 .defineInRange("effectRadius", 8.0, 1.0, 32.0);
@@ -448,8 +483,14 @@ public class Config {
         // Thoughtwell
         BUILDER.comment("Thoughtwell Effect Settings").push("thoughtwell");
         ENABLE_THOUGHTWELL_EFFECTS = BUILDER
-                .comment("Enable Thoughtwell effects (confusion)")
+                .comment("Enable all Thoughtwell effects (master toggle)")
                 .define("enableEffects", true);
+        ENABLE_THOUGHTWELL_NAUSEA = BUILDER
+                .comment("Enable nausea/confusion effect on nearby players")
+                .define("enableNausea", true);
+        ENABLE_THOUGHTWELL_MOB_DISGUISE = BUILDER
+                .comment("Enable mob disguise effect on nearby mobs")
+                .define("enableMobDisguise", true);
         THOUGHTWELL_EFFECT_RADIUS = BUILDER
                 .comment("Effect radius in blocks")
                 .defineInRange("effectRadius", 6.0, 1.0, 32.0);
@@ -555,6 +596,13 @@ public class Config {
         BUILDER.comment("Research System Configuration",
                 "Control research costs and progression")
                 .push("research");
+        
+        HIDE_RECIPES_IN_RECIPE_VIEWERS = BUILDER
+                .comment("Hide Strange Matter recipes in JEI/REI/EMI recipe viewers",
+                        "When enabled, recipes will only be visible in the Research Tablet.",
+                        "This encourages players to use the research system to discover recipes.",
+                        "Defaults to false (recipes visible in recipe viewers)")
+                .define("hideRecipesInRecipeViewers", false);
         
         RESEARCH_COST_MULTIPLIER = BUILDER
                 .comment("Global multiplier for all research node costs (1.0 = default, 0.5 = half cost, 2.0 = double cost)")
@@ -823,12 +871,15 @@ public class Config {
     // Anomaly effects
     // Gravity Anomaly
     public static boolean enableGravityEffects;
+    public static boolean enableGravityLevitation;
     public static double gravityLevitationRadius;
     public static double gravityLevitationForce;
     public static int gravityResearchPoints;
     
     // Temporal Bloom
     public static boolean enableTemporalEffects;
+    public static boolean enableTemporalCropGrowth;
+    public static boolean enableTemporalMobTransform;
     public static double temporalEffectRadius;
     public static int temporalCropGrowthStages;
     public static int temporalCropCooldown;
@@ -837,6 +888,8 @@ public class Config {
     
     // Energetic Rift
     public static boolean enableEnergeticEffects;
+    public static boolean enableEnergeticZap;
+    public static boolean enableEnergeticLightning;
     public static double energeticZapRadius;
     public static double energeticLightningRadius;
     public static double energeticZapDamage;
@@ -846,12 +899,15 @@ public class Config {
     
     // Warp Gate
     public static boolean enableWarpEffects;
+    public static boolean enableWarpTeleport;
     public static double warpTeleportRadius;
     public static int warpTeleportCooldown;
     public static int warpResearchPoints;
     
     // Echoing Shadow
     public static boolean enableShadowEffects;
+    public static boolean enableShadowLightAbsorption;
+    public static boolean enableShadowMobSpawnBoost;
     public static double shadowEffectRadius;
     public static double shadowLightAbsorption;
     public static double shadowMobSpawnBoost;
@@ -859,6 +915,8 @@ public class Config {
     
     // Thoughtwell
     public static boolean enableThoughtwellEffects;
+    public static boolean enableThoughtwellNausea;
+    public static boolean enableThoughtwellMobDisguise;
     public static double thoughtwellEffectRadius;
     public static int thoughtwellConfusionDuration;
     public static int thoughtwellResearchPoints;
@@ -894,6 +952,7 @@ public class Config {
     public static double resonantConduitDistancePenalty;
     
     // Research system
+    public static boolean hideRecipesInRecipeViewers;
     public static double researchCostMultiplier;
     
     // Individual research node costs
@@ -1006,12 +1065,15 @@ public class Config {
         // Anomaly effects
         // Gravity Anomaly
         enableGravityEffects = ENABLE_GRAVITY_EFFECTS.get();
+        enableGravityLevitation = ENABLE_GRAVITY_LEVITATION.get();
         gravityLevitationRadius = GRAVITY_LEVITATION_RADIUS.get();
         gravityLevitationForce = GRAVITY_LEVITATION_FORCE.get();
         gravityResearchPoints = GRAVITY_RESEARCH_POINTS.get();
         
         // Temporal Bloom
         enableTemporalEffects = ENABLE_TEMPORAL_EFFECTS.get();
+        enableTemporalCropGrowth = ENABLE_TEMPORAL_CROP_GROWTH.get();
+        enableTemporalMobTransform = ENABLE_TEMPORAL_MOB_TRANSFORM.get();
         temporalEffectRadius = TEMPORAL_EFFECT_RADIUS.get();
         temporalCropGrowthStages = TEMPORAL_CROP_GROWTH_STAGES.get();
         temporalCropCooldown = TEMPORAL_CROP_COOLDOWN.get();
@@ -1020,6 +1082,8 @@ public class Config {
         
         // Energetic Rift
         enableEnergeticEffects = ENABLE_ENERGETIC_EFFECTS.get();
+        enableEnergeticZap = ENABLE_ENERGETIC_ZAP.get();
+        enableEnergeticLightning = ENABLE_ENERGETIC_LIGHTNING.get();
         energeticZapRadius = ENERGETIC_ZAP_RADIUS.get();
         energeticLightningRadius = ENERGETIC_LIGHTNING_RADIUS.get();
         energeticZapDamage = ENERGETIC_ZAP_DAMAGE.get();
@@ -1029,12 +1093,15 @@ public class Config {
         
         // Warp Gate
         enableWarpEffects = ENABLE_WARP_EFFECTS.get();
+        enableWarpTeleport = ENABLE_WARP_TELEPORT.get();
         warpTeleportRadius = WARP_TELEPORT_RADIUS.get();
         warpTeleportCooldown = WARP_TELEPORT_COOLDOWN.get();
         warpResearchPoints = WARP_RESEARCH_POINTS.get();
         
         // Echoing Shadow
         enableShadowEffects = ENABLE_SHADOW_EFFECTS.get();
+        enableShadowLightAbsorption = ENABLE_SHADOW_LIGHT_ABSORPTION.get();
+        enableShadowMobSpawnBoost = ENABLE_SHADOW_MOB_SPAWN_BOOST.get();
         shadowEffectRadius = SHADOW_EFFECT_RADIUS.get();
         shadowLightAbsorption = SHADOW_LIGHT_ABSORPTION.get();
         shadowMobSpawnBoost = SHADOW_MOB_SPAWN_BOOST.get();
@@ -1042,6 +1109,8 @@ public class Config {
         
         // Thoughtwell
         enableThoughtwellEffects = ENABLE_THOUGHTWELL_EFFECTS.get();
+        enableThoughtwellNausea = ENABLE_THOUGHTWELL_NAUSEA.get();
+        enableThoughtwellMobDisguise = ENABLE_THOUGHTWELL_MOB_DISGUISE.get();
         thoughtwellEffectRadius = THOUGHTWELL_EFFECT_RADIUS.get();
         thoughtwellConfusionDuration = THOUGHTWELL_CONFUSION_DURATION.get();
         thoughtwellResearchPoints = THOUGHTWELL_RESEARCH_POINTS.get();
@@ -1077,6 +1146,7 @@ public class Config {
         resonantConduitDistancePenalty = RESONANT_CONDUIT_DISTANCE_PENALTY.get();
         
         // Research system
+        hideRecipesInRecipeViewers = HIDE_RECIPES_IN_RECIPE_VIEWERS.get();
         researchCostMultiplier = RESEARCH_COST_MULTIPLIER.get();
         
         // Individual research node costs

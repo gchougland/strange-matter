@@ -87,14 +87,18 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
         }
         
         // Apply light absorption effect
-        applyLightAbsorption();
+        if (com.hexvane.strangematter.Config.enableShadowLightAbsorption) {
+            applyLightAbsorption();
+        }
         
         // Boost mob spawning in the shadow radius
-        if (mobSpawnTimer <= 0) {
-            boostMobSpawning();
-            mobSpawnTimer = MOB_SPAWN_BOOST_TICKS;
-        } else {
-            mobSpawnTimer--;
+        if (com.hexvane.strangematter.Config.enableShadowMobSpawnBoost) {
+            if (mobSpawnTimer <= 0) {
+                boostMobSpawning();
+                mobSpawnTimer = MOB_SPAWN_BOOST_TICKS;
+            } else {
+                mobSpawnTimer--;
+            }
         }
     }
     

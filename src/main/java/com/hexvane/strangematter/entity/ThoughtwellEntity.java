@@ -99,12 +99,12 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
         updateDisguiseDurations();
         
         // Apply nausea effect to nearby players
-        if (nauseaCooldown <= 0) {
+        if (nauseaCooldown <= 0 && com.hexvane.strangematter.Config.enableThoughtwellNausea) {
             affectNearbyPlayers();
         }
         
         // Confuse nearby mobs
-        if (confusionCooldown <= 0) {
+        if (confusionCooldown <= 0 && com.hexvane.strangematter.Config.enableThoughtwellMobDisguise) {
             confuseNearbyMobs();
         }
         

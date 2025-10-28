@@ -151,5 +151,14 @@
   "graviton_chargeup": {
     "sounds": ["strangematter:graviton_chargeup"],
     "subtitle": "Graviton Hammer charging"
+  },
+  "hoverboard_loop": {
+    "sounds": ["strangematter:hoverboard_loop"],
+    "subtitle": "Hoverboard humming",
+    "stream": true
+  },
+  "hoverboard_jump": {
+    "sounds": ["strangematter:hoverboard_jump"],
+    "subtitle": "Hoverboard jumps"
   }
 }

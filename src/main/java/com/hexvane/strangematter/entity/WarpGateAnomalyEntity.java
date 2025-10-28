@@ -128,6 +128,11 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
             return; // Don't apply teleportation if not active, contained, or effects disabled
         }
         
+        // Check if teleportation effect is enabled
+        if (!com.hexvane.strangematter.Config.enableWarpTeleport) {
+            return;
+        }
+        
         float teleportRadius = getTeleportRadius();
         AABB teleportBox = this.getBoundingBox().inflate(teleportRadius);
         List<Entity> entitiesInRange = this.level().getEntities(this, teleportBox);

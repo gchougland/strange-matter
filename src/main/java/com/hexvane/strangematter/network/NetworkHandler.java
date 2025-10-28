@@ -86,5 +86,10 @@ public class NetworkHandler {
             MobDisguiseSyncPacket::encode,
             MobDisguiseSyncPacket::decode,
             MobDisguiseSyncPacket::handle);
+            
+        INSTANCE.registerMessage(packetId++, HoverboardJumpPacket.class,
+            HoverboardJumpPacket::encode,
+            HoverboardJumpPacket::new,
+            HoverboardJumpPacket::handle);
     }
 }

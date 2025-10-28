@@ -19,6 +19,12 @@
   "item.strangematter.shade_shard": "Shade Shard",
   "item.strangematter.insight_shard": "Insight Shard",
   "item.strangematter.energetic_shard": "Energetic Shard",
+  "item.strangematter.shade_shard_crystal": "Shade Shard Crystal",
+  "item.strangematter.gravitic_shard_crystal": "Gravitic Shard Crystal",
+  "item.strangematter.energetic_shard_crystal": "Energetic Shard Crystal",
+  "item.strangematter.insight_shard_crystal": "Insight Shard Crystal",
+  "item.strangematter.chrono_shard_crystal": "Chrono Shard Crystal",
+  "item.strangematter.spatial_shard_crystal": "Spatial Shard Crystal",
   "item.strangematter.warp_gun": "Warp Gun",
   "item.strangematter.warp_gun.tooltip": "Right-click to shoot a projectile that creates temporary mini warp gates.",
   "item.strangematter.gravitic_shard.tooltip": "A crystallized fragment of gravitational anomaly energy. Pulses with strange gravitational forces.",
@@ -75,6 +81,12 @@
   "block.strangematter.shade_shard_ore": "Shade Shard Ore",
   "block.strangematter.insight_shard_ore": "Insight Shard Ore",
   "block.strangematter.energetic_shard_ore": "Energetic Shard Ore",
+  "block.strangematter.shade_shard_crystal": "Shade Shard Crystal",
+  "block.strangematter.gravitic_shard_crystal": "Gravitic Shard Crystal",
+  "block.strangematter.energetic_shard_crystal": "Energetic Shard Crystal",
+  "block.strangematter.insight_shard_crystal": "Insight Shard Crystal",
+  "block.strangematter.chrono_shard_crystal": "Chrono Shard Crystal",
+  "block.strangematter.spatial_shard_crystal": "Spatial Shard Crystal",
   "block.strangematter.research_machine": "Research Machine",
   "block.strangematter.resonance_condenser": "Resonance Condenser",
   "block.strangematter.resonance_condenser.tooltip": "An advanced device that can extract and condense anomaly energy into crystallized shards. Place near anomalies to begin the absorption process.",
@@ -397,5 +409,6 @@
   "jei.strangematter.reality_forge": "Reality Forge",
   "jei.strangematter.resonance_condenser": "Resonance Condenser",
   "jei.strangematter.reality_forge.info": "The Reality Forge is a powerful machine that can craft items using anomaly shards. It requires specific materials and anomaly shards to function. Use it to create advanced Strange Matter items.",
-  "jei.strangematter.resonance_condenser.info": "The Resonance Condenser is a specialized machine that processes anomaly energy. It crystallizes the energy of nearby anomalies into shards."
+  "jei.strangematter.resonance_condenser.info": "The Resonance Condenser is a specialized machine that processes anomaly energy. It crystallizes the energy of nearby anomalies into shards.",
+  "jei.strangematter.research_notes.info": "Research Notes are obtained by completing research projects in the Research Tablet. Right-click with a Research Tablet to open the research interface, accumulate research points by scanning anomalies, then spend those points to unlock technologies and receive Research Notes."
 }

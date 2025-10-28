@@ -141,6 +141,10 @@ public class StrangeMatterMod
             () -> () -> com.hexvane.strangematter.worldgen.ConfiguredCountPlacement.CODEC);
     // Create a Deferred Register to hold StructureTypes
     public static final DeferredRegister<StructureType<?>> STRUCTURE_TYPES = DeferredRegister.create(Registries.STRUCTURE_TYPE, MODID);
+    
+    // Register Structure Types
+    public static final RegistryObject<StructureType<com.hexvane.strangematter.worldgen.WarpGateAnomalyStructure>> WARP_GATE_ANOMALY_STRUCTURE = 
+        STRUCTURE_TYPES.register("warp_gate_anomaly", () -> () -> com.hexvane.strangematter.worldgen.WarpGateAnomalyStructure.CODEC);
     // Create a Deferred Register to hold ParticleTypes
     public static final DeferredRegister<net.minecraft.core.particles.ParticleType<?>> PARTICLE_TYPES = DeferredRegister.create(ForgeRegistries.PARTICLE_TYPES, MODID);
     // Create a Deferred Register to hold MenuTypes
@@ -258,6 +262,20 @@ public class StrangeMatterMod
     public static final RegistryObject<Item> SHADE_SHARD = ITEMS.register("shade_shard", ShadeShardItem::new);
     public static final RegistryObject<Item> INSIGHT_SHARD = ITEMS.register("insight_shard", InsightShardItem::new);
     public static final RegistryObject<Item> ENERGETIC_SHARD = ITEMS.register("energetic_shard", EnergeticShardItem::new);
+    
+    // Shard Crystal Blocks
+    public static final RegistryObject<Block> SHADE_SHARD_CRYSTAL = BLOCKS.register("shade_shard_crystal", com.hexvane.strangematter.block.ShardCrystalBlock::new);
+    public static final RegistryObject<Item> SHADE_SHARD_CRYSTAL_ITEM = ITEMS.register("shade_shard_crystal", () -> new BlockItem(SHADE_SHARD_CRYSTAL.get(), new Item.Properties()));
+    public static final RegistryObject<Block> GRAVITIC_SHARD_CRYSTAL = BLOCKS.register("gravitic_shard_crystal", com.hexvane.strangematter.block.ShardCrystalBlock::new);
+    public static final RegistryObject<Item> GRAVITIC_SHARD_CRYSTAL_ITEM = ITEMS.register("gravitic_shard_crystal", () -> new BlockItem(GRAVITIC_SHARD_CRYSTAL.get(), new Item.Properties()));
+    public static final RegistryObject<Block> ENERGETIC_SHARD_CRYSTAL = BLOCKS.register("energetic_shard_crystal", com.hexvane.strangematter.block.ShardCrystalBlock::new);
+    public static final RegistryObject<Item> ENERGETIC_SHARD_CRYSTAL_ITEM = ITEMS.register("energetic_shard_crystal", () -> new BlockItem(ENERGETIC_SHARD_CRYSTAL.get(), new Item.Properties()));
+    public static final RegistryObject<Block> INSIGHT_SHARD_CRYSTAL = BLOCKS.register("insight_shard_crystal", com.hexvane.strangematter.block.ShardCrystalBlock::new);
+    public static final RegistryObject<Item> INSIGHT_SHARD_CRYSTAL_ITEM = ITEMS.register("insight_shard_crystal", () -> new BlockItem(INSIGHT_SHARD_CRYSTAL.get(), new Item.Properties()));
+    public static final RegistryObject<Block> CHRONO_SHARD_CRYSTAL = BLOCKS.register("chrono_shard_crystal", com.hexvane.strangematter.block.ShardCrystalBlock::new);
+    public static final RegistryObject<Item> CHRONO_SHARD_CRYSTAL_ITEM = ITEMS.register("chrono_shard_crystal", () -> new BlockItem(CHRONO_SHARD_CRYSTAL.get(), new Item.Properties()));
+    public static final RegistryObject<Block> SPATIAL_SHARD_CRYSTAL = BLOCKS.register("spatial_shard_crystal", com.hexvane.strangematter.block.ShardCrystalBlock::new);
+    public static final RegistryObject<Item> SPATIAL_SHARD_CRYSTAL_ITEM = ITEMS.register("spatial_shard_crystal", () -> new BlockItem(SPATIAL_SHARD_CRYSTAL.get(), new Item.Properties()));
 
     // Warp Gun Item
     public static final RegistryObject<Item> WARP_GUN = ITEMS.register("warp_gun", WarpGunItem::new);
@@ -497,10 +515,26 @@ public class StrangeMatterMod
             .title(Component.translatable("itemGroup.strangematter.strange_matter_tab"))
             .icon(() -> FIELD_SCANNER.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
+                // Gadgets
                 output.accept(FIELD_SCANNER.get());
+                output.accept(RESEARCH_TABLET.get());
                 output.accept(ANOMALY_RESONATOR.get());
                 output.accept(ECHOFORM_IMPRINTER.get());
-                output.accept(RESEARCH_TABLET.get());
+                output.accept(WARP_GUN.get());
+                output.accept(ECHO_VACUUM.get());
+                output.accept(GRAVITON_HAMMER.get());
+                output.accept(HOVERBOARD.get());
+                
+                // Containment Capsules
+                output.accept(CONTAINMENT_CAPSULE.get());
+                output.accept(CONTAINMENT_CAPSULE_GRAVITY.get());
+                output.accept(CONTAINMENT_CAPSULE_ENERGETIC.get());
+                output.accept(CONTAINMENT_CAPSULE_ECHOING_SHADOW.get());
+                output.accept(CONTAINMENT_CAPSULE_TEMPORAL_BLOOM.get());
+                output.accept(CONTAINMENT_CAPSULE_THOUGHTWELL.get());
+                output.accept(CONTAINMENT_CAPSULE_WARP_GATE.get());
+                
+                // Machines
                 output.accept(ANOMALOUS_GRASS_ITEM.get());
                 output.accept(RESEARCH_MACHINE_ITEM.get());
                 output.accept(REALITY_FORGE_ITEM.get());
@@ -509,6 +543,10 @@ public class StrangeMatterMod
                 output.accept(PARADOXICAL_ENERGY_CELL_ITEM.get());
                 output.accept(RIFT_STABILIZER_ITEM.get());
                 output.accept(STASIS_PROJECTOR_ITEM.get());
+                output.accept(RESONANT_CONDUIT_ITEM.get());
+                output.accept(LEVITATION_PAD_ITEM.get());
+                
+                // Building Blocks
                 output.accept(RESONITE_ORE_ITEM.get());
                 output.accept(RESONITE_BLOCK_ITEM.get());
                 output.accept(RESONITE_TILE_ITEM.get());
@@ -524,6 +562,8 @@ public class StrangeMatterMod
                 output.accept(SHADE_SHARD_ORE_ITEM.get());
                 output.accept(INSIGHT_SHARD_ORE_ITEM.get());
                 output.accept(ENERGETIC_SHARD_ORE_ITEM.get());
+                
+                // Materials/Resources
                 output.accept(RAW_RESONITE.get());
                 output.accept(RESONITE_INGOT.get());
                 output.accept(RESONITE_NUGGET.get());
@@ -536,19 +576,13 @@ public class StrangeMatterMod
                 output.accept(SHADE_SHARD.get());
                 output.accept(INSIGHT_SHARD.get());
                 output.accept(ENERGETIC_SHARD.get());
-                output.accept(WARP_GUN.get());
-                output.accept(ECHO_VACUUM.get());
-                output.accept(GRAVITON_HAMMER.get());
-                output.accept(CONTAINMENT_CAPSULE.get());
-                output.accept(CONTAINMENT_CAPSULE_GRAVITY.get());
-                output.accept(CONTAINMENT_CAPSULE_ENERGETIC.get());
-                output.accept(CONTAINMENT_CAPSULE_ECHOING_SHADOW.get());
-                output.accept(CONTAINMENT_CAPSULE_TEMPORAL_BLOOM.get());
-                output.accept(CONTAINMENT_CAPSULE_THOUGHTWELL.get());
-                output.accept(CONTAINMENT_CAPSULE_WARP_GATE.get());
-                output.accept(RESONANT_CONDUIT_ITEM.get());
-                output.accept(LEVITATION_PAD_ITEM.get());
-                output.accept(HOVERBOARD.get());
+                output.accept(SHADE_SHARD_CRYSTAL_ITEM.get());
+                output.accept(GRAVITIC_SHARD_CRYSTAL_ITEM.get());
+                output.accept(ENERGETIC_SHARD_CRYSTAL_ITEM.get());
+                output.accept(INSIGHT_SHARD_CRYSTAL_ITEM.get());
+                output.accept(CHRONO_SHARD_CRYSTAL_ITEM.get());
+                output.accept(SPATIAL_SHARD_CRYSTAL_ITEM.get());
+                output.accept(RESEARCH_NOTES.get());
             }).build());
 
     public StrangeMatterMod()

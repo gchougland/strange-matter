@@ -70,6 +70,10 @@ public class StrangeMatterSounds {
     // Graviton Hammer sounds
     public static final RegistryObject<SoundEvent> GRAVITON_CHARGEUP = registerSoundEvent("graviton_chargeup");
 
+    // Hoverboard sounds
+    public static final RegistryObject<SoundEvent> HOVERBOARD_LOOP = registerSoundEvent("hoverboard_loop");
+    public static final RegistryObject<SoundEvent> HOVERBOARD_JUMP = registerSoundEvent("hoverboard_jump");
+
     private static RegistryObject<SoundEvent> registerSoundEvent(String name) {
         return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(StrangeMatterMod.MODID, name)));
     }

@@ -80,6 +80,11 @@ public class GravityAnomalyEntity extends BaseAnomalyEntity {
             return; // Don't apply levitation if not active, contained, or effects disabled
         }
         
+        // Check if levitation effect is enabled
+        if (!com.hexvane.strangematter.Config.enableGravityLevitation) {
+            return;
+        }
+        
         float levitationRadius = getLevitationRadius();
         AABB levitationBox = this.getBoundingBox().inflate(levitationRadius);
         List<Entity> entitiesInRange = this.level().getEntities(this, levitationBox);

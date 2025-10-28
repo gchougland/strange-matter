@@ -2,11 +2,16 @@
 
 All notable changes to Strange Matter will be documented in this file.
 
-## [0.2.6] - Unreleased
+## [0.2.6] - 2025-10-28
 
 ### Added
 - **Dimension Config**: Added configurable list of dimensions for anomalies to spawn in.
 - **Dyeable Stasis Projector**: Added the ability to right click the stasis projector with dyes to color the field.
+- **Research Tablet Recipe Cycling**: Added recipe cycling in the tablet when there is more than one recipe for an item.
+- **Option to hide recipes**: Added config option to hide recipes in recipe viewer mods.
+- **Granular options for Anomaly Effects**: Added options to disable specific effects for anomalies.
+- **Hoverboard Jump**: Added ability to jump on the hoverboard.
+- **Placeable Shard Blocks**: Added shard crystal blocks for decoration.
 
 ### Fixed
 - **Warp Gate Entity Language Entry**: Added missing language entry for Warp Gate Entity
@@ -14,6 +19,8 @@ All notable changes to Strange Matter will be documented in this file.
 - **Improved slider responsiveness**: Improved the responsiveness of the gravity minigames slider.
 - **More Aggressive Stasis Projector**: Improved stasis projector to better counteract gravity from other mods.
 - **Optimized World Gen**: Removed logging and improved peformance of anomaly world gen.
+- **Organized Creative Menu**: Organized the items in the creative menu by type.
+- **Research Tablet Recipe Lookup**: Changed the recipe view in the tablet to lookup recipes by item rather than recipe ID.
 
 
 ## [0.2.5] - 2025-10-20

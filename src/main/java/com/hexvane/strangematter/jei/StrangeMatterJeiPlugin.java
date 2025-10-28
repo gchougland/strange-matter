@@ -34,6 +34,13 @@ public class StrangeMatterJeiPlugin implements IModPlugin {
             return;
         }
         
+        // Check if recipes should be hidden in recipe viewers
+        if (com.hexvane.strangematter.Config.hideRecipesInRecipeViewers) {
+            // Recipes are hidden in JEI - only show info pages
+            addInfoPages(registration);
+            return;
+        }
+        
         // Register Reality Forge recipes
         java.util.List<com.hexvane.strangematter.jei.recipes.RealityForgeRecipe> recipes = loadRealityForgeRecipes(registration);
         if (!recipes.isEmpty()) {
@@ -123,6 +130,13 @@ public class StrangeMatterJeiPlugin implements IModPlugin {
             new net.minecraft.world.item.ItemStack(StrangeMatterMod.RESONANCE_CONDENSER_ITEM.get()),
             mezz.jei.api.constants.VanillaTypes.ITEM_STACK,
             net.minecraft.network.chat.Component.translatable("jei.strangematter.resonance_condenser.info")
+        );
+        
+        // Research Notes info page
+        registration.addIngredientInfo(
+            new net.minecraft.world.item.ItemStack(StrangeMatterMod.RESEARCH_NOTES.get()),
+            mezz.jei.api.constants.VanillaTypes.ITEM_STACK,
+            net.minecraft.network.chat.Component.translatable("jei.strangematter.research_notes.info")
         );
     }
 }
