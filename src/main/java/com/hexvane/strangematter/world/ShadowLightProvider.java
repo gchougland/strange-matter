@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * Custom light provider that modifies light levels around Echoing Shadow anomalies
@@ -20,7 +21,7 @@ public class ShadowLightProvider {
     
     private static final Map<ServerLevel, ShadowLightProvider> INSTANCES = new ConcurrentHashMap<>();
     private final ServerLevel level;
-    private final Set<EchoingShadowEntity> shadowAnomalies = new HashSet<>();
+    private final Set<EchoingShadowEntity> shadowAnomalies = new CopyOnWriteArraySet<>();
     private final Map<BlockPos, Integer> shadowLightLevels = new ConcurrentHashMap<>();
     
     private ShadowLightProvider(ServerLevel level) {
@@ -49,14 +50,17 @@ public class ShadowLightProvider {
      * Update shadow light levels for all affected positions
      */
     public void updateShadowLightLevels() {
+        // Create a snapshot of the current anomalies to avoid concurrent modification
+        Set<EchoingShadowEntity> currentAnomalies = new HashSet<>(shadowAnomalies);
+        
         shadowLightLevels.clear();
         
-        if (shadowAnomalies.isEmpty()) {
+        if (currentAnomalies.isEmpty()) {
             return;
         }
         
         // Calculate shadow effects for all affected positions
-        for (EchoingShadowEntity anomaly : shadowAnomalies) {
+        for (EchoingShadowEntity anomaly : currentAnomalies) {
             if (anomaly != null && !anomaly.isRemoved()) {
                 calculateShadowEffect(anomaly);
             }
@@ -102,8 +106,11 @@ public class ShadowLightProvider {
      * Get the modified light level at a position, accounting for shadow anomalies
      */
     public int getModifiedLightLevel(BlockPos pos, LightLayer lightLayer, int originalLight) {
+        // Create a snapshot of the current anomalies to avoid concurrent modification
+        Set<EchoingShadowEntity> currentAnomalies = new HashSet<>(shadowAnomalies);
+        
         // Check if this position is affected by any shadow anomaly
-        for (EchoingShadowEntity anomaly : shadowAnomalies) {
+        for (EchoingShadowEntity anomaly : currentAnomalies) {
             if (anomaly != null && !anomaly.isRemoved()) {
                 double distance = anomaly.position().distanceTo(new net.minecraft.world.phys.Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5));
                 

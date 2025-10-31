@@ -2,6 +2,11 @@
 
 All notable changes to Strange Matter will be documented in this file.
 
+## [0.2.7] - Unreleased
+
+### Fixed
+- **ShadowLightProvider Concurrent Modification**: Added possible fix for Concurrent Modification Exception happening in ShadowLightProvider.
+
 ## [0.2.6] - 2025-10-28
 
 ### Added
