@@ -82,7 +82,6 @@ public class ThrowableContainmentCapsuleEntity extends ThrowableItemProjectile {
                 GravityAnomalyEntity gravityAnomaly = StrangeMatterMod.GRAVITY_ANOMALY.get().create(level);
                 if (gravityAnomaly != null) {
                     gravityAnomaly.setPos(spawnPos.getX() + 0.5, spawnPos.getY() + 1.0, spawnPos.getZ() + 0.5);
-                    gravityAnomaly.setTerrainModificationEnabled(false);
                     gravityAnomaly.setSpawnedFromCapsule(true);
                     level.addFreshEntity(gravityAnomaly);
                 }
@@ -92,7 +91,6 @@ public class ThrowableContainmentCapsuleEntity extends ThrowableItemProjectile {
                 EnergeticRiftEntity energeticRift = StrangeMatterMod.ENERGETIC_RIFT.get().create(level);
                 if (energeticRift != null) {
                     energeticRift.setPos(spawnPos.getX() + 0.5, spawnPos.getY() + 1.0, spawnPos.getZ() + 0.5);
-                    energeticRift.setTerrainModificationEnabled(false);
                     energeticRift.setSpawnedFromCapsule(true);
                     level.addFreshEntity(energeticRift);
                 }
@@ -102,7 +100,6 @@ public class ThrowableContainmentCapsuleEntity extends ThrowableItemProjectile {
                 EchoingShadowEntity echoingShadow = StrangeMatterMod.ECHOING_SHADOW.get().create(level);
                 if (echoingShadow != null) {
                     echoingShadow.setPos(spawnPos.getX() + 0.5, spawnPos.getY() + 1.0, spawnPos.getZ() + 0.5);
-                    echoingShadow.setTerrainModificationEnabled(false);
                     echoingShadow.setSpawnedFromCapsule(true);
                     level.addFreshEntity(echoingShadow);
                 }
@@ -112,7 +109,6 @@ public class ThrowableContainmentCapsuleEntity extends ThrowableItemProjectile {
                 TemporalBloomEntity temporalBloom = StrangeMatterMod.TEMPORAL_BLOOM.get().create(level);
                 if (temporalBloom != null) {
                     temporalBloom.setPos(spawnPos.getX() + 0.5, spawnPos.getY() + 1.0, spawnPos.getZ() + 0.5);
-                    temporalBloom.setTerrainModificationEnabled(false);
                     temporalBloom.setSpawnedFromCapsule(true);
                     level.addFreshEntity(temporalBloom);
                 }
@@ -122,7 +118,6 @@ public class ThrowableContainmentCapsuleEntity extends ThrowableItemProjectile {
                 ThoughtwellEntity thoughtwell = StrangeMatterMod.THOUGHTWELL.get().create(level);
                 if (thoughtwell != null) {
                     thoughtwell.setPos(spawnPos.getX() + 0.5, spawnPos.getY() + 1.0, spawnPos.getZ() + 0.5);
-                    thoughtwell.setTerrainModificationEnabled(false);
                     thoughtwell.setSpawnedFromCapsule(true);
                     level.addFreshEntity(thoughtwell);
                 }
@@ -133,7 +128,6 @@ public class ThrowableContainmentCapsuleEntity extends ThrowableItemProjectile {
                 if (warpGate != null) {
                     warpGate.setPos(spawnPos.getX() + 0.5, spawnPos.getY() + 2.0, spawnPos.getZ() + 0.5);
                     warpGate.setActive(true);
-                    warpGate.setTerrainModificationEnabled(false);
                     warpGate.setSpawnedFromCapsule(true);
                     level.addFreshEntity(warpGate);
                 }

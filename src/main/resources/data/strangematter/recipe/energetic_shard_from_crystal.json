@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "strangematter:energetic_shard_crystal"
+    }
+  ],
+  "result": {
+    "id": "strangematter:energetic_shard",
+    "count": 4
+  }
+}
+

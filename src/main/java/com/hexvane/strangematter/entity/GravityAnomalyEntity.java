@@ -283,11 +283,6 @@ public class GravityAnomalyEntity extends BaseAnomalyEntity {
         return "Gravity";
     }
     
-    @Override
-    protected DeferredHolder<Block, Block> getShardOreBlock() {
-        return StrangeMatterMod.GRAVITIC_SHARD_ORE_BLOCK;
-    }
-    
     public float getAuraRadius() {
         return AURA_RADIUS;
     }

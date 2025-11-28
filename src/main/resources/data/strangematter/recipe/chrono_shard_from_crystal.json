@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "strangematter:chrono_shard_crystal"
+    }
+  ],
+  "result": {
+    "id": "strangematter:chrono_shard",
+    "count": 4
+  }
+}
+

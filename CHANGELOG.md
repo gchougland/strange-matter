@@ -2,6 +2,28 @@
 
 All notable changes to Strange Matter will be documented in this file.
 
+## [0.2.7] - 2025-11-28
+
+### Added
+- **Per-Dimension Anomaly Rarity**: Added Per-Dimension Anomaly Rarity config options.
+- **Shard Lamps**: Anomaly Shard colored lamps (6 types: Shade, Gravitic, Energetic, Insight, Chrono, Spatial).
+- **Shard Lanterns**: Anomaly Shard colored lanterns (6 types: Shade, Gravitic, Energetic, Insight, Chrono, Spatial).
+- **Shard Crystal Unpacking**: Recipe to craft crystals back into shards (1 crystal = 4 shards).
+
+### Changed
+- **Anomaly World Gen**: Modified ore/grass generation to spawn more consistently and performantly.
+- **Improved FPS**: Optimized world generation and terrain modification to improve performance.
+- **Default Ore Spawn Chances**: Reduced default resonite ore spawn chance from 0.5 to 0.25, and shard ore spawn chance from 0.2 to 0.1.
+
+### Fixed
+- **Echo Vacuum Duplication Bug**: Fixed issue where anomalies could appear to duplicate when collected with the echo vacuum, allowing them to be scanned for research points multiple times.
+- **Research Tablet Adding**: Fixed issue where research tablets would be given every time on player login by using advancement system instead of persistent data tags.
+- **Field Scanner Becoming Unusable**: Fixed issue where field scanner would become unusable due to corrupted NBT data by adding validation and cleanup logic.
+- **Resonite Nugget Recipe**: Recipe was incorrectly giving only 1 nugget for an ingot, fixed to give 9.
+
+### Removed
+- **Echoing Shadow Light Absorption**: Removed light absorption feature from Echoing Shadow anomalies as it caused performance issues and lag.
+
 ## [0.2.6] - 2025-10-28
 
 ### Added

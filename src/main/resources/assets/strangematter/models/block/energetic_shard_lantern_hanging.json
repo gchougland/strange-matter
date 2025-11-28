@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/template_hanging_lantern",
+  "textures": {
+    "lantern": "strangematter:block/energetic_shard_lantern"
+  }
+}
+

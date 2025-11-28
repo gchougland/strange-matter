@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "strangematter:spatial_shard_crystal"
+    }
+  ],
+  "result": {
+    "id": "strangematter:spatial_shard",
+    "count": 4
+  }
+}
+

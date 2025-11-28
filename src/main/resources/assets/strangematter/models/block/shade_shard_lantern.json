@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/template_lantern",
+  "textures": {
+    "lantern": "strangematter:block/shade_shard_lantern"
+  }
+}
+

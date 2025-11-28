@@ -1,33 +1,19 @@
 package com.hexvane.strangematter.worldgen;
 
 import com.hexvane.strangematter.StrangeMatterMod;
-import com.hexvane.strangematter.entity.WarpGateAnomalyEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
-import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.minecraft.world.level.block.Block;
 import javax.annotation.Nonnull;
 
-public class WarpGateAnomalyConfiguredFeature extends Feature<NoneFeatureConfiguration> {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger("StrangeMatter:WarpGateAnomalyFeature");
-    private static int callCount = 0;
-    
-    public WarpGateAnomalyConfiguredFeature() {
-        super(NoneFeatureConfiguration.CODEC);
-    }
-    
-    public static int getCallCount() {
-        return callCount;
-    }
+public class WarpGateAnomalyConfiguredFeature extends BaseAnomalyConfiguredFeature {
     
     @Override
     public boolean place(@Nonnull FeaturePlaceContext<NoneFeatureConfiguration> context) {
-        callCount++;
         WorldGenLevel level = context.level();
         RandomSource random = context.random();
         BlockPos origin = context.origin();
@@ -47,51 +33,37 @@ public class WarpGateAnomalyConfiguredFeature extends Feature<NoneFeatureConfigu
             return false; // Skip placement if area is not clear of trees
         }
         
-        // Place anomalous grass in a patchy circle following terrain contour
-        // Reduced radius from 5 to 3 for better performance while maintaining visual impact
-        int radius = 3;
-        for (int x = -radius; x <= radius; x++) {
-            for (int z = -radius; z <= radius; z++) {
-                double distance = Math.sqrt(x * x + z * z);
-                
-                // Only place grass within the circle and with some randomness for patchiness
-                if (distance <= radius && random.nextFloat() < 0.8f) { // 80% chance for patchiness
-                    // Use optimized ground detection for each position
-                    WorldGenUtils.SurfaceInfo offsetSurfaceInfo = WorldGenUtils.findSurfaceAndGround(level, 
-                        origin.getX() + x, origin.getZ() + z);
-                    
-                    if (offsetSurfaceInfo != null) {
-                        BlockPos grassPos = offsetSurfaceInfo.groundPos;
-                        // Use more efficient block state check
-                        if (WorldGenUtils.isSolidGround(level.getBlockState(grassPos))) {
-                            level.setBlock(grassPos, StrangeMatterMod.ANOMALOUS_GRASS_BLOCK.get().defaultBlockState(), 2);
-                        }
-                    }
-                }
-            }
+        // Place terrain modification (grass and ores) using base class
+        // Use surfacePos instead of origin to ensure terrain modification happens at the correct height
+        BlockPos surfacePos = new BlockPos(origin.getX(), surfaceInfo.surfacePos.getY(), origin.getZ());
+        placeAnomalousGrass(level, surfacePos, random);
+        placeOres(level, surfacePos, random);
+        
+        // Place a marker block that will spawn the entity on the next server tick
+        // This defers entity spawning from the world generation thread to the main server thread
+        level.setBlock(anomalyPos, StrangeMatterMod.ANOMALY_SPAWN_MARKER_BLOCK.get().defaultBlockState(), 3);
+        var blockEntity = level.getBlockEntity(anomalyPos);
+        if (blockEntity instanceof com.hexvane.strangematter.block.AnomalySpawnMarkerBlockEntity marker) {
+            marker.entityTypeLocation = net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "warp_gate_anomaly");
+            marker.spawnPosition = new net.minecraft.world.phys.Vec3(anomalyPos.getX() + 0.5, anomalyPos.getY(), anomalyPos.getZ() + 0.5);
+            marker.setChanged();
         }
         
-        // Place resonite ore in a small area underneath the anomalous grass
-        for (int x = -2; x <= 2; x++) {
-            for (int z = -2; z <= 2; z++) {
-                for (int y = -4; y <= -1; y++) {
-                    BlockPos orePos = origin.offset(x, y, z);
-                    
-                    // Small chance to place ore
-                    if (random.nextFloat() < 0.2f) {
-                        if (level.getBlockState(orePos).is(net.minecraft.world.level.block.Blocks.STONE)) {
-                            level.setBlock(orePos, StrangeMatterMod.RESONITE_ORE_BLOCK.get().defaultBlockState(), 2);
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Spawn the warp gate anomaly entity above the surface
-        WarpGateAnomalyEntity anomaly = new WarpGateAnomalyEntity(StrangeMatterMod.WARP_GATE_ANOMALY_ENTITY.get(), level.getLevel());
-        anomaly.moveTo(anomalyPos.getX() + 0.5, anomalyPos.getY(), anomalyPos.getZ() + 0.5, 0.0f, 0.0f);
-        anomaly.setActive(true); // Make sure it's active
-        
-        return level.getLevel().addFreshEntity(anomaly);
+        return true;
+    }
+    
+    @Override
+    protected DeferredHolder<Block, ? extends Block> getShardOreBlock() {
+        return StrangeMatterMod.SPATIAL_SHARD_ORE_BLOCK;
+    }
+    
+    @Override
+    protected int getTerrainModificationRadius() {
+        return 5; // Warp gates use radius 5
+    }
+    
+    @Override
+    protected float getGrassPlacementChance() {
+        return 0.8f; // 80% chance for patchiness
     }
 }

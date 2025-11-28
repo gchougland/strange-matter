@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " N ",
+    " S ",
+    " N "
+  ],
+  "key": {
+    "S": {
+      "item": "strangematter:energetic_shard"
+    },
+    "N": {
+      "item": "strangematter:resonite_nugget"
+    }
+  },
+  "result": {
+    "id": "strangematter:energetic_shard_lantern",
+    "count": 1
+  }
+}
+

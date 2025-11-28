@@ -38,17 +38,17 @@ public class WarpGateAnomalyFeature extends Feature<NoneFeatureConfiguration> {
         if (existingGates.isEmpty()) {
             System.out.println("WarpGate Feature: No existing WarpGateAnomalyEntity found, spawning one at " + surfacePos);
 
-            WarpGateAnomalyEntity newWarpGate = new WarpGateAnomalyEntity(
-                StrangeMatterMod.WARP_GATE_ANOMALY_ENTITY.get(),
-                serverLevel
-            );
-            newWarpGate.setPos(surfacePos.getX() + 0.5, surfacePos.getY() + 2, surfacePos.getZ() + 0.5);
-            newWarpGate.setActive(true);
-            serverLevel.addFreshEntity(newWarpGate);
+            // Place spawn marker block instead of directly spawning entity
+            int markerY = surfacePos.getY() + 2;
+            BlockPos markerPos = new BlockPos(surfacePos.getX(), markerY, surfacePos.getZ());
+            level.setBlock(markerPos, StrangeMatterMod.ANOMALY_SPAWN_MARKER_BLOCK.get().defaultBlockState(), 2);
+            if (level.getBlockEntity(markerPos) instanceof com.hexvane.strangematter.block.AnomalySpawnMarkerBlockEntity marker) {
+                marker.entityTypeLocation = net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "warp_gate_anomaly");
+                marker.spawnPosition = new net.minecraft.world.phys.Vec3(markerPos.getX() + 0.5, markerPos.getY(), markerPos.getZ() + 0.5);
+                marker.setChanged();
+            }
 
-            // Terrain generation will be handled by WarpGateSpawnEventHandler
-
-            System.out.println("WarpGate Feature: Successfully spawned WarpGateAnomalyEntity at " + surfacePos);
+            System.out.println("WarpGate Feature: Successfully placed spawn marker at " + markerPos);
             return true;
         } else {
             System.out.println("WarpGate Feature: WarpGateAnomalyEntity already exists at " + surfacePos + ", skipping spawn.");

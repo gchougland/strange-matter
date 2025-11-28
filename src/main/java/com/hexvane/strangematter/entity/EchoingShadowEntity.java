@@ -499,11 +499,6 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    protected DeferredHolder<Block, Block> getShardOreBlock() {
-        return StrangeMatterMod.SHADE_SHARD_ORE_BLOCK;
-    }
-    
-    @Override
     protected void readAdditionalSaveData(CompoundTag compound) {
         super.readAdditionalSaveData(compound);
         if (compound.contains("MobSpawnTimer")) {

@@ -311,11 +311,6 @@ public class EnergeticRiftEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    protected DeferredHolder<Block, Block> getShardOreBlock() {
-        return StrangeMatterMod.ENERGETIC_SHARD_ORE_BLOCK;
-    }
-    
-    @Override
     public Component getDisplayName() {
         return Component.translatable("entity.strangematter.energetic_rift");
     }

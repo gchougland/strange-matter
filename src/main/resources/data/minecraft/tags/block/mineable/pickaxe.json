@@ -29,6 +29,18 @@
     "strangematter:energetic_shard_crystal",
     "strangematter:insight_shard_crystal",
     "strangematter:chrono_shard_crystal",
-    "strangematter:spatial_shard_crystal"
+    "strangematter:spatial_shard_crystal",
+    "strangematter:shade_shard_lamp",
+    "strangematter:gravitic_shard_lamp",
+    "strangematter:energetic_shard_lamp",
+    "strangematter:insight_shard_lamp",
+    "strangematter:chrono_shard_lamp",
+    "strangematter:spatial_shard_lamp",
+    "strangematter:shade_shard_lantern",
+    "strangematter:gravitic_shard_lantern",
+    "strangematter:energetic_shard_lantern",
+    "strangematter:insight_shard_lantern",
+    "strangematter:chrono_shard_lantern",
+    "strangematter:spatial_shard_lantern"
   ]
 }

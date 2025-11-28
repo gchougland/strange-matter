@@ -327,11 +327,6 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    protected DeferredHolder<Block, Block> getShardOreBlock() {
-        return StrangeMatterMod.INSIGHT_SHARD_ORE_BLOCK;
-    }
-    
-    @Override
     public Component getDisplayName() {
         return Component.translatable("entity.strangematter.thoughtwell");
     }

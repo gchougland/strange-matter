@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "strangematter:insight_shard_crystal"
+    }
+  ],
+  "result": {
+    "id": "strangematter:insight_shard",
+    "count": 4
+  }
+}
+
