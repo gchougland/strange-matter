@@ -93,6 +93,7 @@ public class EchoVacuumItem extends Item {
                 // Anomaly was removed or is in different level, clean up tracking
                 posIter.remove();
                 originalScales.remove(anomaly);
+                targetedAnomalies.remove(anomaly);
                 continue;
             }
             
@@ -292,6 +293,10 @@ public class EchoVacuumItem extends Item {
             
             // Remove anomaly
             anomaly.remove(Entity.RemovalReason.DISCARDED);
+            
+            // Clean up tracking maps to prevent issues with removed entities
+            originalPositions.remove(anomaly);
+            originalScales.remove(anomaly);
             
             // Play containment sound
             level.playSound(null, player.getX(), player.getY(), player.getZ(), 

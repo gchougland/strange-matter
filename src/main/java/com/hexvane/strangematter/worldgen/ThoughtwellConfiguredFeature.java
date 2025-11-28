@@ -1,20 +1,16 @@
 package com.hexvane.strangematter.worldgen;
 
 import com.hexvane.strangematter.StrangeMatterMod;
-import com.hexvane.strangematter.entity.ThoughtwellEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
-import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
+import net.minecraftforge.registries.RegistryObject;
 import javax.annotation.Nonnull;
 
-public class ThoughtwellConfiguredFeature extends Feature<NoneFeatureConfiguration> {
-    
-    public ThoughtwellConfiguredFeature() {
-        super(NoneFeatureConfiguration.CODEC);
-    }
+public class ThoughtwellConfiguredFeature extends BaseAnomalyConfiguredFeature {
     
     @Override
     public boolean place(@Nonnull FeaturePlaceContext<NoneFeatureConfiguration> context) {
@@ -32,55 +28,72 @@ public class ThoughtwellConfiguredFeature extends Feature<NoneFeatureConfigurati
         int anomalyY = surfaceInfo.surfacePos.getY() + 2 + random.nextInt(3); // 2-4 blocks above surface
         BlockPos anomalyPos = new BlockPos(origin.getX(), anomalyY, origin.getZ());
         
-        // Place cognitive-themed terrain
-        placeCognitiveTerrain(level, origin, random, 3, 0.6f);
+        // Place terrain modification (grass and ores) using base class
+        placeAnomalousGrass(level, origin, random);
+        placeOres(level, origin, random);
         
-        // Spawn the thoughtwell entity above the surface
-        ThoughtwellEntity anomaly = new ThoughtwellEntity(StrangeMatterMod.THOUGHTWELL.get(), level.getLevel());
-        anomaly.moveTo(anomalyPos.getX() + 0.5, anomalyPos.getY(), anomalyPos.getZ() + 0.5, 0.0f, 0.0f);
+        // Place cognitive-themed terrain (bookshelves, lecterns) - special terrain for thoughtwell
+        placeCognitiveTerrain(level, origin, random);
         
-        return level.getLevel().addFreshEntity(anomaly);
+        // Place a marker block that will spawn the entity on the next server tick
+        // This defers entity spawning from the world generation thread to the main server thread
+        level.setBlock(anomalyPos, StrangeMatterMod.ANOMALY_SPAWNER_MARKER_BLOCK.get().defaultBlockState(), 3);
+        var blockEntity = level.getBlockEntity(anomalyPos);
+        if (blockEntity instanceof com.hexvane.strangematter.block.AnomalySpawnerMarkerBlockEntity marker) {
+            marker.setEntityData("strangematter:thoughtwell", 
+                anomalyPos.getX() + 0.5, anomalyPos.getY(), anomalyPos.getZ() + 0.5, 0.0f, 0.0f);
+        }
+        
+        return true;
     }
     
     /**
      * Places cognitive-themed terrain (bookshelves, lecterns) around the origin position.
-     * Uses WorldGenUtils for efficient ground detection.
+     * This is special terrain modification specific to thoughtwells.
+     * Places cognitive blocks directly on the surface.
      */
-    private void placeCognitiveTerrain(WorldGenLevel level, BlockPos origin, RandomSource random, int radius, float chance) {
+    private void placeCognitiveTerrain(WorldGenLevel level, BlockPos origin, RandomSource random) {
+        int radius = getTerrainModificationRadius();
+        float chance = getGrassPlacementChance();
+        
         for (int x = -radius; x <= radius; x++) {
             for (int z = -radius; z <= radius; z++) {
                 double distance = Math.sqrt(x * x + z * z);
                 
+                // Only place within the circle and with some randomness for patchiness
                 if (distance <= radius && random.nextFloat() < chance) {
-                    BlockPos grassPos = WorldGenUtils.findAnomalousGrassPosition(level, 
+                    // Find suitable surface position for cognitive blocks
+                    BlockPos surfacePos = WorldGenUtils.findAnomalousGrassPosition(level, 
                         origin.getX() + x, origin.getZ() + z);
                     
-                    if (grassPos != null) {
-                        // Place anomalous grass at the suitable position
-                        level.setBlock(grassPos, StrangeMatterMod.ANOMALOUS_GRASS_BLOCK.get().defaultBlockState(), 3);
+                    if (surfacePos != null) {
+                        net.minecraft.world.level.block.state.BlockState currentState = level.getBlockState(surfacePos);
                         
-                        // Occasionally place some cognitive-themed blocks above the grass
-                        if (random.nextFloat() < 0.4f) { // 40% chance for cognitive features
-                            BlockPos abovePos = grassPos.above();
-                            if (level.getBlockState(abovePos).isAir()) {
-                                // Place some books or other cognitive-themed blocks
-                                if (random.nextFloat() < 0.5f) {
-                                    level.setBlock(abovePos, net.minecraft.world.level.block.Blocks.BOOKSHELF.defaultBlockState(), 3);
-                                } else if (random.nextFloat() < 0.3f) {
-                                    // Calculate direction from lectern to center of anomaly
-                                    int deltaX = origin.getX() - abovePos.getX();
-                                    int deltaZ = origin.getZ() - abovePos.getZ();
-                                    
-                                    // Determine the facing direction (lectern faces the opposite direction it's placed)
-                                    net.minecraft.core.Direction facing;
-                                    if (Math.abs(deltaX) > Math.abs(deltaZ)) {
-                                        facing = deltaX > 0 ? net.minecraft.core.Direction.WEST : net.minecraft.core.Direction.EAST;
-                                    } else {
-                                        facing = deltaZ > 0 ? net.minecraft.core.Direction.NORTH : net.minecraft.core.Direction.SOUTH;
+                        // Check if we have solid ground to place blocks on
+                        if (WorldGenUtils.isActualGround(currentState)) {
+                            // Occasionally place some cognitive-themed blocks above the ground
+                            if (random.nextFloat() < 0.4f) { // 40% chance for cognitive features
+                                BlockPos abovePos = surfacePos.above();
+                                if (level.getBlockState(abovePos).isAir()) {
+                                    // Place some books or other cognitive-themed blocks
+                                    if (random.nextFloat() < 0.5f) {
+                                        level.setBlock(abovePos, net.minecraft.world.level.block.Blocks.BOOKSHELF.defaultBlockState(), 3);
+                                    } else if (random.nextFloat() < 0.3f) {
+                                        // Calculate direction from lectern to center of anomaly
+                                        int deltaX = origin.getX() - abovePos.getX();
+                                        int deltaZ = origin.getZ() - abovePos.getZ();
+                                        
+                                        // Determine the facing direction (lectern faces the opposite direction it's placed)
+                                        net.minecraft.core.Direction facing;
+                                        if (Math.abs(deltaX) > Math.abs(deltaZ)) {
+                                            facing = deltaX > 0 ? net.minecraft.core.Direction.WEST : net.minecraft.core.Direction.EAST;
+                                        } else {
+                                            facing = deltaZ > 0 ? net.minecraft.core.Direction.NORTH : net.minecraft.core.Direction.SOUTH;
+                                        }
+                                        
+                                        level.setBlock(abovePos, net.minecraft.world.level.block.Blocks.LECTERN.defaultBlockState()
+                                            .setValue(net.minecraft.world.level.block.LecternBlock.FACING, facing), 3);
                                     }
-                                    
-                                    level.setBlock(abovePos, net.minecraft.world.level.block.Blocks.LECTERN.defaultBlockState()
-                                        .setValue(net.minecraft.world.level.block.LecternBlock.FACING, facing), 3);
                                 }
                             }
                         }
@@ -90,4 +103,8 @@ public class ThoughtwellConfiguredFeature extends Feature<NoneFeatureConfigurati
         }
     }
     
+    @Override
+    protected RegistryObject<Block> getShardOreBlock() {
+        return StrangeMatterMod.INSIGHT_SHARD_ORE_BLOCK;
+    }
 }

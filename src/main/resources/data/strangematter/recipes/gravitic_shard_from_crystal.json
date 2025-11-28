@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "strangematter:gravitic_shard_crystal"
+    }
+  ],
+  "result": {
+    "item": "strangematter:gravitic_shard",
+    "count": 4
+  }
+}

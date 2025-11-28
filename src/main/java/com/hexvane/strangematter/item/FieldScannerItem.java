@@ -23,9 +23,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.HitResult;
 
 import java.util.Optional;
 
@@ -49,6 +46,9 @@ public class FieldScannerItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         
+        // Validate and clean up any corrupted scanning state
+        validateAndCleanScanningState(stack);
+        
         // Check if already scanning
         if (isScanning(stack)) {
             return InteractionResultHolder.pass(stack);
@@ -64,6 +64,9 @@ public class FieldScannerItem extends Item {
         if (player.level().isClientSide) {
             return;
         }
+        
+        // Validate and clean up any corrupted scanning state before attempting a new scan
+        validateAndCleanScanningState(stack);
         
         if (ScannableObjectRegistry.isEntityScannable(entity)) {
             // Check if this is an anomaly spawned from a capsule
@@ -108,6 +111,9 @@ public class FieldScannerItem extends Item {
             return;
         }
         
+        // Validate and clean up any corrupted scanning state before attempting a new scan
+        validateAndCleanScanningState(stack);
+        
         String objectId = scannable.generateObjectId(pos);
         ResearchData researchData = ResearchData.get(player);
         
@@ -137,7 +143,9 @@ public class FieldScannerItem extends Item {
             return;
         }
         
-        if (!isScanning(stack)) {
+        // Validate scanning state - if corrupted, stop the scan
+        if (!isScanning(stack) || !isValidScanningState(stack)) {
+            stopScanning(stack);
             return;
         }
         
@@ -168,6 +176,9 @@ public class FieldScannerItem extends Item {
             // Cancel scan if player releases early
             stopScanning(stack);
             player.sendSystemMessage(Component.literal("§cScan cancelled."));
+        } else {
+            // Clean up any stale scanning tags even if not actively scanning
+            validateAndCleanScanningState(stack);
         }
     }
     
@@ -178,6 +189,13 @@ public class FieldScannerItem extends Item {
     
     @Override
     public boolean canContinueUsing(ItemStack oldStack, ItemStack newStack) {
+        // If the stack changed and scanning state is invalid, clean it up
+        if (!oldStack.equals(newStack) && isScanning(newStack)) {
+            if (!isValidScanningState(newStack)) {
+                stopScanning(newStack);
+                return false;
+            }
+        }
         return isScanning(oldStack) && isScanning(newStack);
     }
     
@@ -225,53 +243,123 @@ public class FieldScannerItem extends Item {
     
     private void completeScan(Level level, Player player, ItemStack stack) {
         CompoundTag tag = stack.getTag();
-        if (tag == null) return;
-        
-        String objectId = tag.getString(SCAN_TARGET_TAG);
-        ResearchType researchType = ResearchType.fromName(tag.getString("scan_type"));
-        int amount = tag.getInt("scan_amount");
-        
-        if (researchType != null) {
-            // Add research points
-            ResearchData researchData = ResearchData.get(player);
-            researchData.addResearchPoints(researchType, amount);
-            researchData.markAsScanned(objectId);
-            
-            // Sync to client
-            if (player instanceof ServerPlayer serverPlayer) {
-                researchData.syncToClient(serverPlayer);
-                NetworkHandler.INSTANCE.send(
-                    net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> serverPlayer), 
-                    new ResearchGainPacket(researchType, amount)
-                );
-                
-                // Trigger advancement for scanning anomaly
-                String entityType = tag.getString(SCAN_ENTITY_TAG);
-                if (!entityType.isEmpty()) {
-                    // Find the entity by type to trigger the advancement
-                    level.getEntitiesOfClass(Entity.class, player.getBoundingBox().inflate(10.0))
-                        .stream()
-                        .filter(entity -> entity.getType().toString().equals(entityType))
-                        .findFirst()
-                        .ifPresent(entity -> {
-                            StrangeMatterMod.SCAN_ANOMALY_TRIGGER.trigger(serverPlayer, entity);
-                        });
-                }
-            }
-            
-            // Play success sound
-            level.playSound(null, player.getX(), player.getY(), player.getZ(), 
-                SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 1.0f, 1.5f);
-            
-            // Research points are displayed via the overlay, not chat
+        if (tag == null) {
+            // Ensure cleanup even if tag is null
+            stopScanning(stack);
+            return;
         }
         
-        stopScanning(stack);
+        try {
+            String objectId = tag.getString(SCAN_TARGET_TAG);
+            ResearchType researchType = ResearchType.fromName(tag.getString("scan_type"));
+            int amount = tag.getInt("scan_amount");
+            
+            if (researchType != null && !objectId.isEmpty()) {
+                // Add research points
+                ResearchData researchData = ResearchData.get(player);
+                researchData.addResearchPoints(researchType, amount);
+                researchData.markAsScanned(objectId);
+                
+                // Sync to client
+                if (player instanceof ServerPlayer serverPlayer) {
+                    researchData.syncToClient(serverPlayer);
+                    NetworkHandler.INSTANCE.send(
+                        net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> serverPlayer), 
+                        new ResearchGainPacket(researchType, amount)
+                    );
+                    
+                    // Trigger advancement for scanning anomaly
+                    String entityType = tag.getString(SCAN_ENTITY_TAG);
+                    if (!entityType.isEmpty()) {
+                        // Find the entity by type to trigger the advancement
+                        level.getEntitiesOfClass(Entity.class, player.getBoundingBox().inflate(10.0))
+                            .stream()
+                            .filter(entity -> entity.getType().toString().equals(entityType))
+                            .findFirst()
+                            .ifPresent(entity -> {
+                                StrangeMatterMod.SCAN_ANOMALY_TRIGGER.trigger(serverPlayer, entity);
+                            });
+                    }
+                }
+                
+                // Play success sound
+                level.playSound(null, player.getX(), player.getY(), player.getZ(), 
+                    SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 1.0f, 1.5f);
+                
+                // Research points are displayed via the overlay, not chat
+            }
+        } catch (Exception e) {
+            // Log error but ensure cleanup happens
+            StrangeMatterMod.LOGGER.error("Error completing scan: ", e);
+        } finally {
+            // Always clean up scanning state, even if an error occurred
+            stopScanning(stack);
+        }
     }
     
     public boolean isScanning(ItemStack stack) {
         CompoundTag tag = stack.getTag();
-        return tag != null && tag.getBoolean(SCANNING_TAG);
+        if (tag == null) return false;
+        
+        boolean scanning = tag.getBoolean(SCANNING_TAG);
+        // If scanning flag is true but state is invalid, auto-clean it
+        if (scanning && !isValidScanningState(stack)) {
+            stopScanning(stack);
+            return false;
+        }
+        return scanning;
+    }
+    
+    /**
+     * Validates that the scanning state is complete and valid.
+     * A valid scanning state must have all required tags present.
+     */
+    private boolean isValidScanningState(ItemStack stack) {
+        CompoundTag tag = stack.getTag();
+        if (tag == null) return false;
+        
+        // Must have scanning flag and required tags
+        if (!tag.contains(SCAN_TARGET_TAG) || tag.getString(SCAN_TARGET_TAG).isEmpty()) {
+            return false;
+        }
+        if (!tag.contains("scan_type") || tag.getString("scan_type").isEmpty()) {
+            return false;
+        }
+        if (!tag.contains("scan_amount")) {
+            return false;
+        }
+        if (!tag.contains(SCAN_PROGRESS_TAG)) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Validates and cleans up corrupted scanning state.
+     * This prevents the scanner from getting stuck in a scanning state.
+     */
+    private void validateAndCleanScanningState(ItemStack stack) {
+        CompoundTag tag = stack.getTag();
+        if (tag == null) return;
+        
+        // If scanning flag is set but state is invalid, clean it up
+        if (tag.getBoolean(SCANNING_TAG)) {
+            if (!isValidScanningState(stack)) {
+                stopScanning(stack);
+            }
+        } else {
+            // If scanning flag is false but scanning tags remain, remove them
+            if (tag.contains(SCAN_TARGET_TAG) || tag.contains("scan_type") || 
+                tag.contains("scan_amount") || tag.contains(SCAN_PROGRESS_TAG) || 
+                tag.contains(SCAN_ENTITY_TAG)) {
+                tag.remove(SCAN_TARGET_TAG);
+                tag.remove("scan_type");
+                tag.remove("scan_amount");
+                tag.remove(SCAN_PROGRESS_TAG);
+                tag.remove(SCAN_ENTITY_TAG);
+            }
+        }
     }
     
     public boolean isOnCooldown(ItemStack stack) {

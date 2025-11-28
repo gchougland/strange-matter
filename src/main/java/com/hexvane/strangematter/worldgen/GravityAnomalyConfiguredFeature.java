@@ -1,20 +1,16 @@
 package com.hexvane.strangematter.worldgen;
 
 import com.hexvane.strangematter.StrangeMatterMod;
-import com.hexvane.strangematter.entity.GravityAnomalyEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
-import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
+import net.minecraftforge.registries.RegistryObject;
 import javax.annotation.Nonnull;
 
-public class GravityAnomalyConfiguredFeature extends Feature<NoneFeatureConfiguration> {
-    
-    public GravityAnomalyConfiguredFeature() {
-        super(NoneFeatureConfiguration.CODEC);
-    }
+public class GravityAnomalyConfiguredFeature extends BaseAnomalyConfiguredFeature {
     
     @Override
     public boolean place(@Nonnull FeaturePlaceContext<NoneFeatureConfiguration> context) {
@@ -32,35 +28,24 @@ public class GravityAnomalyConfiguredFeature extends Feature<NoneFeatureConfigur
         int anomalyY = surfaceInfo.surfacePos.getY() + 2 + random.nextInt(3); // 2-4 blocks above surface
         BlockPos anomalyPos = new BlockPos(origin.getX(), anomalyY, origin.getZ());
         
-        // Place anomalous grass in a patchy circle following terrain contour
-        placeAnomalousGrass(level, origin, random, 3, 0.7f);
+        // Place terrain modification (grass and ores) using base class
+        placeAnomalousGrass(level, origin, random);
+        placeOres(level, origin, random);
         
-        // Spawn the gravity anomaly entity above the surface
-        GravityAnomalyEntity anomaly = new GravityAnomalyEntity(StrangeMatterMod.GRAVITY_ANOMALY.get(), level.getLevel());
-        anomaly.moveTo(anomalyPos.getX() + 0.5, anomalyPos.getY(), anomalyPos.getZ() + 0.5, 0.0f, 0.0f);
+        // Place a marker block that will spawn the entity on the next server tick
+        // This defers entity spawning from the world generation thread to the main server thread
+        level.setBlock(anomalyPos, StrangeMatterMod.ANOMALY_SPAWNER_MARKER_BLOCK.get().defaultBlockState(), 3);
+        var blockEntity = level.getBlockEntity(anomalyPos);
+        if (blockEntity instanceof com.hexvane.strangematter.block.AnomalySpawnerMarkerBlockEntity marker) {
+            marker.setEntityData("strangematter:gravity_anomaly", 
+                anomalyPos.getX() + 0.5, anomalyPos.getY(), anomalyPos.getZ() + 0.5, 0.0f, 0.0f);
+        }
         
-        return level.getLevel().addFreshEntity(anomaly);
+        return true;
     }
     
-    /**
-     * Places anomalous grass in a patchy circle around the origin position.
-     * Uses WorldGenUtils for efficient ground detection.
-     */
-    private void placeAnomalousGrass(WorldGenLevel level, BlockPos origin, RandomSource random, int radius, float chance) {
-        for (int x = -radius; x <= radius; x++) {
-            for (int z = -radius; z <= radius; z++) {
-                double distance = Math.sqrt(x * x + z * z);
-                
-                // Only place grass within the circle and with some randomness for patchiness
-                if (distance <= radius && random.nextFloat() < chance) {
-                    BlockPos grassPos = WorldGenUtils.findAnomalousGrassPosition(level, 
-                        origin.getX() + x, origin.getZ() + z);
-                    
-                    if (grassPos != null) {
-                        level.setBlock(grassPos, StrangeMatterMod.ANOMALOUS_GRASS_BLOCK.get().defaultBlockState(), 3);
-                    }
-                }
-            }
-        }
+    @Override
+    protected RegistryObject<Block> getShardOreBlock() {
+        return StrangeMatterMod.GRAVITIC_SHARD_ORE_BLOCK;
     }
 }

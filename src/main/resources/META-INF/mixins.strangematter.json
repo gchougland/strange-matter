@@ -5,11 +5,8 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "strangematter.refmap.json",
   "mixins": [
-    "LevelLightEngineMixin",
-    "ServerLevelMixin"
   ],
   "client": [
-    "LightTextureMixin",
     "EntityRendererMixin",
     "PlayerRendererMixin"
   ],

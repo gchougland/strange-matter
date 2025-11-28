@@ -1,6 +1,9 @@
 package com.hexvane.strangematter.event;
 
 import com.hexvane.strangematter.StrangeMatterMod;
+import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementProgress;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
@@ -11,7 +14,7 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(modid = StrangeMatterMod.MODID)
 public class PlayerSpawnEventHandler {
     
-    private static final String RECEIVED_TABLET_TAG = "strangematter.received_research_tablet";
+    private static final ResourceLocation ROOT_ADVANCEMENT = ResourceLocation.fromNamespaceAndPath("strangematter", "root");
     
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
@@ -25,9 +28,23 @@ public class PlayerSpawnEventHandler {
             return;
         }
         
-        // Check if player has already received the research tablet
-        if (serverPlayer.getPersistentData().getBoolean(RECEIVED_TABLET_TAG)) {
-            return;
+        // Find the root advancement by iterating through all advancements
+        Advancement rootAdvancement = null;
+        for (Advancement advancement : serverPlayer.server.getAdvancements().getAllAdvancements()) {
+            if (advancement.getId().equals(ROOT_ADVANCEMENT)) {
+                rootAdvancement = advancement;
+                break;
+            }
+        }
+        
+        if (rootAdvancement == null) {
+            return; // Advancement not found, skip
+        }
+        
+        // Check if player already has the root advancement
+        AdvancementProgress advancementProgress = serverPlayer.getAdvancements().getOrStartProgress(rootAdvancement);
+        if (advancementProgress.isDone()) {
+            return; // Player already has the advancement, don't give tablet again
         }
         
         // Give the player a research tablet
@@ -38,8 +55,13 @@ public class PlayerSpawnEventHandler {
             serverPlayer.drop(researchTablet, false);
         }
         
-        // Mark that the player has received the research tablet
-        serverPlayer.getPersistentData().putBoolean(RECEIVED_TABLET_TAG, true);
+        // Grant the root advancement when giving the tablet
+        // The root advancement uses an "impossible" trigger, so we need to grant it manually
+        if (!advancementProgress.isDone()) {
+            for (String criterion : advancementProgress.getRemainingCriteria()) {
+                advancementProgress.grantProgress(criterion);
+            }
+        }
     }
 }
 

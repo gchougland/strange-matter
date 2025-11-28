@@ -1,6 +1,10 @@
 package com.hexvane.strangematter.worldgen;
 
+import com.hexvane.strangematter.Config;
+import com.hexvane.strangematter.StrangeMatterMod;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -21,52 +25,52 @@ public class WorldGenUtils {
         if (!state.canOcclude() || state.isAir()) {
             return false;
         }
-        
+        return true;
         // Exclude all tree-related blocks (logs, leaves, etc.)
-        return !state.is(Blocks.OAK_LEAVES) && 
-               !state.is(Blocks.ACACIA_LEAVES) &&
-               !state.is(Blocks.BIRCH_LEAVES) &&
-               !state.is(Blocks.DARK_OAK_LEAVES) &&
-               !state.is(Blocks.JUNGLE_LEAVES) &&
-               !state.is(Blocks.SPRUCE_LEAVES) &&
-               !state.is(Blocks.CHERRY_LEAVES) &&
-               !state.is(Blocks.MANGROVE_LEAVES) &&
-               // Exclude all log types
-               !state.is(Blocks.OAK_LOG) &&
-               !state.is(Blocks.ACACIA_LOG) &&
-               !state.is(Blocks.BIRCH_LOG) &&
-               !state.is(Blocks.DARK_OAK_LOG) &&
-               !state.is(Blocks.JUNGLE_LOG) &&
-               !state.is(Blocks.SPRUCE_LOG) &&
-               !state.is(Blocks.CHERRY_LOG) &&
-               !state.is(Blocks.MANGROVE_LOG) &&
-               // Exclude stripped logs
-               !state.is(Blocks.STRIPPED_OAK_LOG) &&
-               !state.is(Blocks.STRIPPED_ACACIA_LOG) &&
-               !state.is(Blocks.STRIPPED_BIRCH_LOG) &&
-               !state.is(Blocks.STRIPPED_DARK_OAK_LOG) &&
-               !state.is(Blocks.STRIPPED_JUNGLE_LOG) &&
-               !state.is(Blocks.STRIPPED_SPRUCE_LOG) &&
-               !state.is(Blocks.STRIPPED_CHERRY_LOG) &&
-               !state.is(Blocks.STRIPPED_MANGROVE_LOG) &&
-               // Exclude wood blocks
-               !state.is(Blocks.OAK_WOOD) &&
-               !state.is(Blocks.ACACIA_WOOD) &&
-               !state.is(Blocks.BIRCH_WOOD) &&
-               !state.is(Blocks.DARK_OAK_WOOD) &&
-               !state.is(Blocks.JUNGLE_WOOD) &&
-               !state.is(Blocks.SPRUCE_WOOD) &&
-               !state.is(Blocks.CHERRY_WOOD) &&
-               !state.is(Blocks.MANGROVE_WOOD) &&
-               // Exclude stripped wood
-               !state.is(Blocks.STRIPPED_OAK_WOOD) &&
-               !state.is(Blocks.STRIPPED_ACACIA_WOOD) &&
-               !state.is(Blocks.STRIPPED_BIRCH_WOOD) &&
-               !state.is(Blocks.STRIPPED_DARK_OAK_WOOD) &&
-               !state.is(Blocks.STRIPPED_JUNGLE_WOOD) &&
-               !state.is(Blocks.STRIPPED_SPRUCE_WOOD) &&
-               !state.is(Blocks.STRIPPED_CHERRY_WOOD) &&
-               !state.is(Blocks.STRIPPED_MANGROVE_WOOD);
+        //return !state.is(Blocks.OAK_LEAVES) && 
+        //       !state.is(Blocks.ACACIA_LEAVES) &&
+        //       !state.is(Blocks.BIRCH_LEAVES) &&
+        //       !state.is(Blocks.DARK_OAK_LEAVES) &&
+        //       !state.is(Blocks.JUNGLE_LEAVES) &&
+        //       !state.is(Blocks.SPRUCE_LEAVES) &&
+        //       !state.is(Blocks.CHERRY_LEAVES) &&
+        //       !state.is(Blocks.MANGROVE_LEAVES) &&
+        //       // Exclude all log types
+        //       !state.is(Blocks.OAK_LOG) &&
+        //       !state.is(Blocks.ACACIA_LOG) &&
+        //       !state.is(Blocks.BIRCH_LOG) &&
+        //       !state.is(Blocks.DARK_OAK_LOG) &&
+        //       !state.is(Blocks.JUNGLE_LOG) &&
+        //       !state.is(Blocks.SPRUCE_LOG) &&
+        //       !state.is(Blocks.CHERRY_LOG) &&
+        //       !state.is(Blocks.MANGROVE_LOG) &&
+        //       // Exclude stripped logs
+        //       !state.is(Blocks.STRIPPED_OAK_LOG) &&
+        //       !state.is(Blocks.STRIPPED_ACACIA_LOG) &&
+        //       !state.is(Blocks.STRIPPED_BIRCH_LOG) &&
+        //       !state.is(Blocks.STRIPPED_DARK_OAK_LOG) &&
+        //       !state.is(Blocks.STRIPPED_JUNGLE_LOG) &&
+        //       !state.is(Blocks.STRIPPED_SPRUCE_LOG) &&
+        //       !state.is(Blocks.STRIPPED_CHERRY_LOG) &&
+        //       !state.is(Blocks.STRIPPED_MANGROVE_LOG) &&
+        //       // Exclude wood blocks
+        //       !state.is(Blocks.OAK_WOOD) &&
+        //       !state.is(Blocks.ACACIA_WOOD) &&
+        //       !state.is(Blocks.BIRCH_WOOD) &&
+        //       !state.is(Blocks.DARK_OAK_WOOD) &&
+        //       !state.is(Blocks.JUNGLE_WOOD) &&
+        //       !state.is(Blocks.SPRUCE_WOOD) &&
+        //       !state.is(Blocks.CHERRY_WOOD) &&
+        //       !state.is(Blocks.MANGROVE_WOOD) &&
+        //       // Exclude stripped wood
+        //       !state.is(Blocks.STRIPPED_OAK_WOOD) &&
+        //       !state.is(Blocks.STRIPPED_ACACIA_WOOD) &&
+        //       !state.is(Blocks.STRIPPED_BIRCH_WOOD) &&
+        //       !state.is(Blocks.STRIPPED_DARK_OAK_WOOD) &&
+        //       !state.is(Blocks.STRIPPED_JUNGLE_WOOD) &&
+        //       !state.is(Blocks.STRIPPED_SPRUCE_WOOD) &&
+        //       !state.is(Blocks.STRIPPED_CHERRY_WOOD) &&
+        //       !state.is(Blocks.STRIPPED_MANGROVE_WOOD);
     }
     
     /**
@@ -75,7 +79,6 @@ public class WorldGenUtils {
      */
     public static boolean isSurfaceBlock(BlockState state) {
         return state.is(Blocks.SNOW) ||
-               state.is(Blocks.SNOW_BLOCK) ||
                state.is(Blocks.OAK_LEAVES) ||
                state.is(Blocks.ACACIA_LEAVES) ||
                state.is(Blocks.BIRCH_LEAVES) ||
@@ -91,7 +94,7 @@ public class WorldGenUtils {
      * Returns true if the block is solid ground and not a surface block that should be preserved.
      */
     public static boolean isSuitableForAnomalousGrass(BlockState state) {
-        return isSolidGround(state) && !isSurfaceBlock(state);
+        return true;//isSolidGround(state) && !isSurfaceBlock(state);
     }
     
     /**
@@ -107,41 +110,8 @@ public class WorldGenUtils {
         if (isSurfaceBlock(state)) {
             return false;
         }
-        
-        // Then check if it's a tree block that should be excluded
-        if (isTreeBlock(state)) {
-            return false;
-        }
-        
-        // Include common ground blocks
-        return state.is(Blocks.GRASS_BLOCK) ||
-               state.is(Blocks.DIRT) ||
-               state.is(Blocks.COARSE_DIRT) ||
-               state.is(Blocks.PODZOL) ||
-               state.is(Blocks.MYCELIUM) ||
-               state.is(Blocks.STONE) ||
-               state.is(Blocks.COBBLESTONE) ||
-               state.is(Blocks.SAND) ||
-               state.is(Blocks.RED_SAND) ||
-               state.is(Blocks.GRAVEL) ||
-               state.is(Blocks.CLAY) ||
-               state.is(Blocks.TERRACOTTA) ||
-               state.is(Blocks.WHITE_TERRACOTTA) ||
-               state.is(Blocks.ORANGE_TERRACOTTA) ||
-               state.is(Blocks.MAGENTA_TERRACOTTA) ||
-               state.is(Blocks.LIGHT_BLUE_TERRACOTTA) ||
-               state.is(Blocks.YELLOW_TERRACOTTA) ||
-               state.is(Blocks.LIME_TERRACOTTA) ||
-               state.is(Blocks.PINK_TERRACOTTA) ||
-               state.is(Blocks.GRAY_TERRACOTTA) ||
-               state.is(Blocks.LIGHT_GRAY_TERRACOTTA) ||
-               state.is(Blocks.CYAN_TERRACOTTA) ||
-               state.is(Blocks.PURPLE_TERRACOTTA) ||
-               state.is(Blocks.BLUE_TERRACOTTA) ||
-               state.is(Blocks.BROWN_TERRACOTTA) ||
-               state.is(Blocks.GREEN_TERRACOTTA) ||
-               state.is(Blocks.RED_TERRACOTTA) ||
-               state.is(Blocks.BLACK_TERRACOTTA);
+
+        return true;
     }
     
     /**
@@ -224,80 +194,145 @@ public class WorldGenUtils {
     }
     
     /**
-     * Checks if a position and surrounding area is clear of trees for anomaly spawning.
-     * This prevents anomalies from spawning inside tree trunks or dense foliage.
+     * Places anomalous grass in a patchy circle around the origin position.
+     * Uses config values and the provided parameters for terrain modification.
      * 
      * @param level The world generation level
-     * @param pos The position to check
-     * @param radius The radius to check around the position
-     * @return true if the area is clear of trees, false otherwise
+     * @param origin The center position for grass placement
+     * @param radius The radius of the circle
+     * @param chance The chance (0.0-1.0) for each block to have grass placed
+     * @param random The random source for patchiness
      */
-    public static boolean isAreaClearOfTrees(WorldGenLevel level, BlockPos pos, int radius) {
+    public static void placeAnomalousGrassPatch(WorldGenLevel level, BlockPos origin, int radius, float chance, RandomSource random) {
+        if (!Config.enableAnomalousGrass) {
+            return;
+        }
+        
         for (int x = -radius; x <= radius; x++) {
             for (int z = -radius; z <= radius; z++) {
-                for (int y = -2; y <= 3; y++) { // Check from 2 blocks below to 3 blocks above
-                    BlockPos checkPos = pos.offset(x, y, z);
-                    BlockState state = level.getBlockState(checkPos);
+                double distance = Math.sqrt(x * x + z * z);
+                
+                // Only place grass within the circle and with some randomness for patchiness
+                if (distance <= radius && random.nextFloat() < chance) {
+                    BlockPos grassPos = findAnomalousGrassPosition(level, 
+                        origin.getX() + x, origin.getZ() + z);
                     
-                    // If any block in the area is tree-related, the area is not clear
-                    if (isTreeBlock(state)) {
-                        return false;
+                    if (grassPos != null) {
+                        level.setBlock(grassPos, StrangeMatterMod.ANOMALOUS_GRASS_BLOCK.get().defaultBlockState(), 3);
                     }
                 }
             }
         }
-        return true;
     }
     
     /**
-     * Checks if a block state is tree-related (logs, leaves, wood, etc.)
+     * Places resonite ore and shard ore underneath the anomaly.
+     * Uses config values for ore spawn chances and replacement blocks.
+     * 
+     * @param level The world generation level
+     * @param origin The center position for ore placement
+     * @param radius The radius of the circle
+     * @param random The random source for ore placement
+     * @param shardOreBlock The shard ore block type to place
      */
-    public static boolean isTreeBlock(BlockState state) {
-        if (!state.canOcclude() || state.isAir()) {
-            return false;
+    public static void placeAnomalyOres(WorldGenLevel level, BlockPos origin, int radius, RandomSource random, Block shardOreBlock) {
+        for (int x = -radius; x <= radius; x++) {
+            for (int z = -radius; z <= radius; z++) {
+                double distance = Math.sqrt(x * x + z * z);
+                
+                if (distance <= radius) {
+                    BlockPos columnStart = origin.offset(x, -1, z);
+                    
+                    // Place resonite ore
+                    placeOreColumn(level, columnStart, random, 
+                        StrangeMatterMod.RESONITE_ORE_BLOCK.get().defaultBlockState(), 
+                        Config.resoniteOreSpawnChanceNearAnomaly);
+                    
+                    // Place shard ore
+                    placeOreColumn(level, columnStart, random, 
+                        shardOreBlock.defaultBlockState(), 
+                        Config.shardOreSpawnChanceNearAnomaly);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Places an ore column starting from a base position.
+     * Finds the first replaceable block and places ore downward with a chance.
+     */
+    private static void placeOreColumn(WorldGenLevel level, BlockPos startPos, RandomSource random, 
+                                      BlockState oreState, double chance) {
+        if (startPos == null || oreState == null || chance <= 0.0) {
+            return;
         }
         
-        // Check for all tree-related blocks
-        return state.is(Blocks.OAK_LEAVES) ||
-               state.is(Blocks.ACACIA_LEAVES) ||
-               state.is(Blocks.BIRCH_LEAVES) ||
-               state.is(Blocks.DARK_OAK_LEAVES) ||
-               state.is(Blocks.JUNGLE_LEAVES) ||
-               state.is(Blocks.SPRUCE_LEAVES) ||
-               state.is(Blocks.CHERRY_LEAVES) ||
-               state.is(Blocks.MANGROVE_LEAVES) ||
-               state.is(Blocks.OAK_LOG) ||
-               state.is(Blocks.ACACIA_LOG) ||
-               state.is(Blocks.BIRCH_LOG) ||
-               state.is(Blocks.DARK_OAK_LOG) ||
-               state.is(Blocks.JUNGLE_LOG) ||
-               state.is(Blocks.SPRUCE_LOG) ||
-               state.is(Blocks.CHERRY_LOG) ||
-               state.is(Blocks.MANGROVE_LOG) ||
-               state.is(Blocks.STRIPPED_OAK_LOG) ||
-               state.is(Blocks.STRIPPED_ACACIA_LOG) ||
-               state.is(Blocks.STRIPPED_BIRCH_LOG) ||
-               state.is(Blocks.STRIPPED_DARK_OAK_LOG) ||
-               state.is(Blocks.STRIPPED_JUNGLE_LOG) ||
-               state.is(Blocks.STRIPPED_SPRUCE_LOG) ||
-               state.is(Blocks.STRIPPED_CHERRY_LOG) ||
-               state.is(Blocks.STRIPPED_MANGROVE_LOG) ||
-               state.is(Blocks.OAK_WOOD) ||
-               state.is(Blocks.ACACIA_WOOD) ||
-               state.is(Blocks.BIRCH_WOOD) ||
-               state.is(Blocks.DARK_OAK_WOOD) ||
-               state.is(Blocks.JUNGLE_WOOD) ||
-               state.is(Blocks.SPRUCE_WOOD) ||
-               state.is(Blocks.CHERRY_WOOD) ||
-               state.is(Blocks.MANGROVE_WOOD) ||
-               state.is(Blocks.STRIPPED_OAK_WOOD) ||
-               state.is(Blocks.STRIPPED_ACACIA_WOOD) ||
-               state.is(Blocks.STRIPPED_BIRCH_WOOD) ||
-               state.is(Blocks.STRIPPED_DARK_OAK_WOOD) ||
-               state.is(Blocks.STRIPPED_JUNGLE_WOOD) ||
-               state.is(Blocks.STRIPPED_SPRUCE_WOOD) ||
-               state.is(Blocks.STRIPPED_CHERRY_WOOD) ||
-               state.is(Blocks.STRIPPED_MANGROVE_WOOD);
+        if (random.nextDouble() >= chance) {
+            return;
+        }
+        
+        // Find the first replaceable block
+        BlockPos basePos = findFirstReplaceableOreBlock(level, startPos);
+        if (basePos == null) {
+            return;
+        }
+        
+        int minY = level.getMinBuildHeight();
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos(basePos.getX(), basePos.getY(), basePos.getZ());
+        int columnLength = 1 + random.nextInt(3); // 1-3 blocks per column
+        
+        for (int placed = 0; placed < columnLength && mutable.getY() >= minY; ) {
+            BlockState state = level.getBlockState(mutable);
+            
+            if (!canReplaceWithOre(state)) {
+                // If we haven't placed anything yet, keep searching downward for a valid starting block
+                if (placed == 0) {
+                    mutable.move(0, -1, 0);
+                    continue;
+                }
+                break;
+            }
+            
+            BlockPos placePos = mutable.immutable();
+            level.setBlock(placePos, oreState, 3);
+            placed++;
+            
+            mutable.move(0, -1, 0);
+        }
+    }
+    
+    /**
+     * Find the first replaceable block for ore placement.
+     */
+    private static BlockPos findFirstReplaceableOreBlock(WorldGenLevel level, BlockPos startPos) {
+        if (startPos == null || level == null) {
+            return null;
+        }
+        
+        int minY = level.getMinBuildHeight();
+        int maxY = Math.min(startPos.getY(), level.getMaxBuildHeight() - 1);
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos(startPos.getX(), maxY, startPos.getZ());
+        
+        for (int y = maxY; y >= minY; y--) {
+            mutable.set(startPos.getX(), y, startPos.getZ());
+            BlockState state = level.getBlockState(mutable);
+            if (state.isAir()) {
+                continue;
+            }
+            
+            if (canReplaceWithOre(state)) {
+                return mutable.immutable();
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Check if a block can be replaced with ore.
+     */
+    private static boolean canReplaceWithOre(BlockState state) {
+        return Config.anomalyOreReplacementBlocks.contains(state.getBlock());
     }
     
     /**

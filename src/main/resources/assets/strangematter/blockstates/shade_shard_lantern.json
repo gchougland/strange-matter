@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "hanging=false": {
+      "model": "strangematter:block/shade_shard_lantern"
+    },
+    "hanging=true": {
+      "model": "strangematter:block/shade_shard_lantern_hanging"
+    }
+  }
+}

@@ -35,6 +35,14 @@ public class ShardCrystalColorHandler {
         registerCrystalColor(blockColors, StrangeMatterMod.INSIGHT_SHARD_CRYSTAL, INSIGHT_COLOR);
         registerCrystalColor(blockColors, StrangeMatterMod.CHRONO_SHARD_CRYSTAL, CHRONO_COLOR);
         registerCrystalColor(blockColors, StrangeMatterMod.SPATIAL_SHARD_CRYSTAL, SPATIAL_COLOR);
+        
+        // Register color handler for each shard lamp block
+        registerCrystalColor(blockColors, StrangeMatterMod.SHADE_SHARD_LAMP, SHADE_COLOR);
+        registerCrystalColor(blockColors, StrangeMatterMod.GRAVITIC_SHARD_LAMP, GRAVITIC_COLOR);
+        registerCrystalColor(blockColors, StrangeMatterMod.ENERGETIC_SHARD_LAMP, ENERGETIC_COLOR);
+        registerCrystalColor(blockColors, StrangeMatterMod.INSIGHT_SHARD_LAMP, INSIGHT_COLOR);
+        registerCrystalColor(blockColors, StrangeMatterMod.CHRONO_SHARD_LAMP, CHRONO_COLOR);
+        registerCrystalColor(blockColors, StrangeMatterMod.SPATIAL_SHARD_LAMP, SPATIAL_COLOR);
     }
     
     private static void registerCrystalColor(BlockColors blockColors, RegistryObject<Block> block, int color) {
@@ -65,6 +73,18 @@ public class ShardCrystalColorHandler {
                 return (0xFF << 24) | ((CHRONO_COLOR >> 16) & 0xFF) << 16 | ((CHRONO_COLOR >> 8) & 0xFF) << 8 | (CHRONO_COLOR & 0xFF);
             } else if (block == StrangeMatterMod.SPATIAL_SHARD_CRYSTAL.get()) {
                 return (0xFF << 24) | ((SPATIAL_COLOR >> 16) & 0xFF) << 16 | ((SPATIAL_COLOR >> 8) & 0xFF) << 8 | (SPATIAL_COLOR & 0xFF);
+            } else if (block == StrangeMatterMod.SHADE_SHARD_LAMP.get()) {
+                return (0xFF << 24) | ((SHADE_COLOR >> 16) & 0xFF) << 16 | ((SHADE_COLOR >> 8) & 0xFF) << 8 | (SHADE_COLOR & 0xFF);
+            } else if (block == StrangeMatterMod.GRAVITIC_SHARD_LAMP.get()) {
+                return (0xFF << 24) | ((GRAVITIC_COLOR >> 16) & 0xFF) << 16 | ((GRAVITIC_COLOR >> 8) & 0xFF) << 8 | (GRAVITIC_COLOR & 0xFF);
+            } else if (block == StrangeMatterMod.ENERGETIC_SHARD_LAMP.get()) {
+                return (0xFF << 24) | ((ENERGETIC_COLOR >> 16) & 0xFF) << 16 | ((ENERGETIC_COLOR >> 8) & 0xFF) << 8 | (ENERGETIC_COLOR & 0xFF);
+            } else if (block == StrangeMatterMod.INSIGHT_SHARD_LAMP.get()) {
+                return (0xFF << 24) | ((INSIGHT_COLOR >> 16) & 0xFF) << 16 | ((INSIGHT_COLOR >> 8) & 0xFF) << 8 | (INSIGHT_COLOR & 0xFF);
+            } else if (block == StrangeMatterMod.CHRONO_SHARD_LAMP.get()) {
+                return (0xFF << 24) | ((CHRONO_COLOR >> 16) & 0xFF) << 16 | ((CHRONO_COLOR >> 8) & 0xFF) << 8 | (CHRONO_COLOR & 0xFF);
+            } else if (block == StrangeMatterMod.SPATIAL_SHARD_LAMP.get()) {
+                return (0xFF << 24) | ((SPATIAL_COLOR >> 16) & 0xFF) << 16 | ((SPATIAL_COLOR >> 8) & 0xFF) << 8 | (SPATIAL_COLOR & 0xFF);
             }
             return 0xFFFFFFFF; // White/default color
         },
@@ -73,7 +93,13 @@ public class ShardCrystalColorHandler {
         StrangeMatterMod.ENERGETIC_SHARD_CRYSTAL_ITEM.get(),
         StrangeMatterMod.INSIGHT_SHARD_CRYSTAL_ITEM.get(),
         StrangeMatterMod.CHRONO_SHARD_CRYSTAL_ITEM.get(),
-        StrangeMatterMod.SPATIAL_SHARD_CRYSTAL_ITEM.get()
+        StrangeMatterMod.SPATIAL_SHARD_CRYSTAL_ITEM.get(),
+        StrangeMatterMod.SHADE_SHARD_LAMP_ITEM.get(),
+        StrangeMatterMod.GRAVITIC_SHARD_LAMP_ITEM.get(),
+        StrangeMatterMod.ENERGETIC_SHARD_LAMP_ITEM.get(),
+        StrangeMatterMod.INSIGHT_SHARD_LAMP_ITEM.get(),
+        StrangeMatterMod.CHRONO_SHARD_LAMP_ITEM.get(),
+        StrangeMatterMod.SPATIAL_SHARD_LAMP_ITEM.get()
         );
     }
 }

@@ -17,7 +17,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import com.hexvane.strangematter.StrangeMatterMod;
 import com.hexvane.strangematter.research.ResearchType;
-import com.hexvane.strangematter.world.ShadowLightProvider;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.registries.RegistryObject;
 
@@ -40,24 +39,16 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
         return getShadowEffectRadius();
     }
     
-    
-    private double getLightAbsorption() {
-        return com.hexvane.strangematter.Config.shadowLightAbsorption;
-    }
-    
     private double getMobSpawnBoost() {
         return com.hexvane.strangematter.Config.shadowMobSpawnBoost;
     }
     
-    private static final int LIGHT_LEVEL_REDUCTION = 8; // Reduce light level by this amount
     private static final int MOB_SPAWN_BOOST_TICKS = 20; // Boost mob spawning every 20 ticks
     private static final int MAX_SPAWNED_MOBS = 6;
     
     // Track mobs spawned by this anomaly
     private final Set<java.util.UUID> spawnedMobs = new HashSet<>();
     
-    // Track affected light positions for custom light modification
-    private Set<BlockPos> affectedLightPositions = new HashSet<>();
     private int mobSpawnTimer = 0;
     
     public EchoingShadowEntity(EntityType<?> entityType, Level level) {
@@ -71,24 +62,9 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    public void onAddedToWorld() {
-        super.onAddedToWorld();
-        // Register with shadow light provider when added to world
-        if (!this.level().isClientSide && this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-            System.out.println("EchoingShadowEntity: Registering with ShadowLightProvider at " + this.blockPosition());
-            ShadowLightProvider.getInstance(serverLevel).registerShadowAnomaly(this);
-        }
-    }
-    
-    @Override
     protected void applyAnomalyEffects() {
         if (!this.isActive() || this.isContained() || !com.hexvane.strangematter.Config.enableShadowEffects) {
             return; // Don't apply effects if not active, contained, or effects disabled
-        }
-        
-        // Apply light absorption effect
-        if (com.hexvane.strangematter.Config.enableShadowLightAbsorption) {
-            applyLightAbsorption();
         }
         
         // Boost mob spawning in the shadow radius
@@ -99,127 +75,6 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
             } else {
                 mobSpawnTimer--;
             }
-        }
-    }
-    
-    private void applyLightAbsorption() {
-        if (this.level().isClientSide) {
-            return; // Only run on server side
-        }
-        
-        BlockPos centerPos = this.blockPosition();
-        float effectRadius = getShadowEffectRadius();
-        int radius = (int) effectRadius;
-        
-        // Clear previously affected positions
-        affectedLightPositions.clear();
-        
-        // Create a sphere of reduced light around the anomaly
-        for (int x = -radius; x <= radius; x++) {
-            for (int y = -radius; y <= radius; y++) {
-                for (int z = -radius; z <= radius; z++) {
-                    double distance = Math.sqrt(x * x + y * y + z * z);
-                    
-                    if (distance <= effectRadius) {
-                        BlockPos pos = centerPos.offset(x, y, z);
-                        
-                        // Calculate shadow intensity based on distance (stronger at center)
-                        double shadowFactor = (1.0 - (distance / effectRadius)) * getLightAbsorption();
-                        int lightReduction = (int) (LIGHT_LEVEL_REDUCTION * shadowFactor);
-                        
-                        if (lightReduction > 0) {
-                            // Mark this position as affected by shadow
-                            affectedLightPositions.add(pos);
-                            
-                            // Create shadow particles to indicate the light absorption
-                            if (this.level().getRandom().nextFloat() < 0.01f) { // Very low frequency
-                                spawnShadowParticle(pos);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Force a lighting update for the entire area
-        if (this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-            // Update lighting for multiple sections around the anomaly
-            for (int x = -1; x <= 1; x++) {
-                for (int z = -1; z <= 1; z++) {
-                    BlockPos sectionPos = centerPos.offset(x * 16, 0, z * 16);
-                    serverLevel.getChunkSource().getLightEngine().updateSectionStatus(
-                        net.minecraft.core.SectionPos.of(sectionPos), true
-                    );
-                }
-            }
-            
-            // Try to directly modify light levels using the light engine
-            net.minecraft.world.level.lighting.LevelLightEngine lightEngine = serverLevel.getChunkSource().getLightEngine();
-            
-            // Force lighting recalculation for affected positions
-            for (BlockPos pos : affectedLightPositions) {
-                // Mark the position for lighting update
-                lightEngine.updateSectionStatus(net.minecraft.core.SectionPos.of(pos), true);
-                
-                // Try to set light level directly (this might not work in all cases)
-                try {
-                    // This is a more aggressive approach - force lighting recalculation
-                    serverLevel.getChunkSource().getLightEngine().checkBlock(pos);
-                } catch (Exception e) {
-                    // Ignore exceptions - this is experimental
-                }
-            }
-        }
-        
-        // Try a different approach - use custom light source
-        tryCustomLightModification();
-    }
-    
-    private void tryCustomLightModification() {
-        if (this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-            // Try a more direct approach - modify light levels in the world
-            BlockPos centerPos = this.blockPosition();
-            
-            // Test with a few positions around the anomaly
-            for (int x = -5; x <= 5; x++) {
-                for (int z = -5; z <= 5; z++) {
-                    BlockPos testPos = centerPos.offset(x, 0, z);
-                    
-                    // Check if this position is within the shadow radius
-                    if (isInShadowRadius(testPos)) {
-                        // Get current light levels
-                        int currentBlockLight = serverLevel.getBrightness(LightLayer.BLOCK, testPos);
-                        int currentSkyLight = serverLevel.getBrightness(LightLayer.SKY, testPos);
-                        
-                        // Calculate distance-based reduction - make it DRASTIC
-                        double distance = this.position().distanceTo(new Vec3(testPos.getX() + 0.5, testPos.getY() + 0.5, testPos.getZ() + 0.5));
-                        float localEffectRadius = getShadowEffectRadius();
-                        double reductionFactor = 1.0 - (distance / localEffectRadius);
-                        
-                        // Make the reduction much more dramatic - reduce to near 0
-                        int newBlockLight = (int) (currentBlockLight * (1.0 - reductionFactor * 0.9)); // Reduce by 90% at center
-                        int newSkyLight = (int) (currentSkyLight * (1.0 - reductionFactor * 0.8)); // Reduce by 80% at center
-                        
-                        // Ensure minimum values
-                        newBlockLight = Math.max(0, newBlockLight);
-                        newSkyLight = Math.max(0, newSkyLight);
-                    }
-                }
-            }
-        }
-    }
-    
-    private void spawnShadowParticle(BlockPos pos) {
-        // Spawn shadow particles to indicate light absorption
-        if (this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-            // Create a shadow particle effect
-            serverLevel.sendParticles(
-                net.minecraft.core.particles.ParticleTypes.SMOKE,
-                pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
-                1, // count
-                0.1, 0.1, 0.1, // spread
-                0.0 // speed
-            );
         }
     }
     
@@ -354,7 +209,12 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
             }
         }
     }
-    
+
+
+    @Override
+    protected void updateClientEffects() {
+        // No client-side effects for Echoing Shadow
+    }
     
     @Override
     protected void spawnParticles() {
@@ -392,12 +252,6 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
                     0.0, 0.1, 0.0);
             }
         }
-    }
-    
-    @Override
-    protected void updateClientEffects() {
-        // Client-side effects for the echoing shadow
-        // This could include visual effects, screen darkening, etc.
     }
     
     @Override
@@ -493,11 +347,6 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
     }
     
     @Override
-    protected RegistryObject<Block> getShardOreBlock() {
-        return StrangeMatterMod.SHADE_SHARD_ORE_BLOCK;
-    }
-    
-    @Override
     protected void readAdditionalSaveData(CompoundTag compound) {
         super.readAdditionalSaveData(compound);
         if (compound.contains("MobSpawnTimer")) {
@@ -531,69 +380,12 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
         compound.put("SpawnedMobs", mobList);
     }
     
-    @Override
-    public void remove(@org.jetbrains.annotations.NotNull RemovalReason reason) {
-        // Unregister from shadow light provider when removed
-        if (!this.level().isClientSide && this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-            ShadowLightProvider.getInstance(serverLevel).unregisterShadowAnomaly(this);
-        }
-        affectedLightPositions.clear();
-        super.remove(reason);
-    }
-    
-    /**
-     * Get the current light level at a position, accounting for shadow absorption
-     */
-    public int getEffectiveLightLevel(BlockPos pos) {
-        double distance = this.position().distanceTo(new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5));
-        
-        float effectRadius = getShadowEffectRadius();
-        if (distance <= effectRadius) {
-            double reductionFactor = 1.0 - (distance / effectRadius);
-            int lightReduction = (int) (LIGHT_LEVEL_REDUCTION * reductionFactor);
-            
-            // Get both block and sky light levels
-            int blockLight = this.level().getBrightness(LightLayer.BLOCK, pos);
-            int skyLight = this.level().getBrightness(LightLayer.SKY, pos);
-            
-            // Apply shadow reduction to both light types
-            int effectiveBlockLight = Math.max(0, blockLight - lightReduction);
-            int effectiveSkyLight = Math.max(0, skyLight - lightReduction);
-            
-            // Return the maximum of the two (Minecraft uses the higher value)
-            return Math.max(effectiveBlockLight, effectiveSkyLight);
-        }
-        
-        return this.level().getBrightness(LightLayer.BLOCK, pos);
-    }
-    
-    /**
-     * Check if a position is in complete darkness due to shadow absorption
-     */
-    public boolean isInCompleteDarkness(BlockPos pos) {
-        return getEffectiveLightLevel(pos) <= 0;
-    }
-    
     /**
      * Check if a position is within the shadow radius
      */
     public boolean isInShadowRadius(BlockPos pos) {
         double distance = this.position().distanceTo(new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5));
         return distance <= getShadowEffectRadius();
-    }
-    
-    /**
-     * Get the light absorption radius for the custom light engine
-     */
-    public float getLightAbsorptionRadius() {
-        return getShadowEffectRadius();
-    }
-    
-    /**
-     * Get the light level reduction amount for the custom light engine
-     */
-    public int getLightLevelReduction() {
-        return LIGHT_LEVEL_REDUCTION;
     }
     
     public boolean isActive() {

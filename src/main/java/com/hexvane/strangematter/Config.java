@@ -1,9 +1,13 @@
 package com.hexvane.strangematter;
 
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.minecraftforge.registries.ForgeRegistries;
 
 /**
  * Configuration file for Strange Matter mod.
@@ -20,26 +24,32 @@ public class Config {
     private static final ForgeConfigSpec.BooleanValue ENABLE_GRAVITY_ANOMALY;
     private static final ForgeConfigSpec.IntValue GRAVITY_ANOMALY_RARITY;
     private static final ForgeConfigSpec.ConfigValue<java.util.List<String>> GRAVITY_ANOMALY_DIMENSIONS;
+    private static final ForgeConfigSpec.ConfigValue<java.util.List<? extends String>> GRAVITY_ANOMALY_DIMENSION_RARITY_OVERRIDES;
     
     private static final ForgeConfigSpec.BooleanValue ENABLE_TEMPORAL_BLOOM;
     private static final ForgeConfigSpec.IntValue TEMPORAL_BLOOM_RARITY;
     private static final ForgeConfigSpec.ConfigValue<java.util.List<String>> TEMPORAL_BLOOM_DIMENSIONS;
+    private static final ForgeConfigSpec.ConfigValue<java.util.List<? extends String>> TEMPORAL_BLOOM_DIMENSION_RARITY_OVERRIDES;
     
     private static final ForgeConfigSpec.BooleanValue ENABLE_WARP_GATE;
     private static final ForgeConfigSpec.IntValue WARP_GATE_RARITY;
     private static final ForgeConfigSpec.ConfigValue<java.util.List<String>> WARP_GATE_DIMENSIONS;
+    private static final ForgeConfigSpec.ConfigValue<java.util.List<? extends String>> WARP_GATE_DIMENSION_RARITY_OVERRIDES;
     
     private static final ForgeConfigSpec.BooleanValue ENABLE_ENERGETIC_RIFT;
     private static final ForgeConfigSpec.IntValue ENERGETIC_RIFT_RARITY;
     private static final ForgeConfigSpec.ConfigValue<java.util.List<String>> ENERGETIC_RIFT_DIMENSIONS;
+    private static final ForgeConfigSpec.ConfigValue<java.util.List<? extends String>> ENERGETIC_RIFT_DIMENSION_RARITY_OVERRIDES;
     
     private static final ForgeConfigSpec.BooleanValue ENABLE_ECHOING_SHADOW;
     private static final ForgeConfigSpec.IntValue ECHOING_SHADOW_RARITY;
     private static final ForgeConfigSpec.ConfigValue<java.util.List<String>> ECHOING_SHADOW_DIMENSIONS;
+    private static final ForgeConfigSpec.ConfigValue<java.util.List<? extends String>> ECHOING_SHADOW_DIMENSION_RARITY_OVERRIDES;
     
     private static final ForgeConfigSpec.BooleanValue ENABLE_THOUGHTWELL;
     private static final ForgeConfigSpec.IntValue THOUGHTWELL_RARITY;
     private static final ForgeConfigSpec.ConfigValue<java.util.List<String>> THOUGHTWELL_DIMENSIONS;
+    private static final ForgeConfigSpec.ConfigValue<java.util.List<? extends String>> THOUGHTWELL_DIMENSION_RARITY_OVERRIDES;
 
     // ========================================
     // WORLD GENERATION - ORE GENERATION
@@ -55,6 +65,7 @@ public class Config {
     private static final ForgeConfigSpec.BooleanValue ENABLE_ANOMALOUS_GRASS;
     private static final ForgeConfigSpec.DoubleValue RESONITE_ORE_SPAWN_CHANCE_NEAR_ANOMALY;
     private static final ForgeConfigSpec.DoubleValue SHARD_ORE_SPAWN_CHANCE_NEAR_ANOMALY;
+    private static final ForgeConfigSpec.ConfigValue<java.util.List<? extends String>> ANOMALY_ORE_REPLACEMENT_BLOCKS;
 
     // ========================================
     // WORLD GENERATION - VILLAGER STRUCTURES
@@ -232,6 +243,41 @@ public class Config {
     private static final ForgeConfigSpec.IntValue COGNITION_MATCH_DURATION;
     private static final ForgeConfigSpec.IntValue COGNITION_DIFFICULTY;
 
+    private static java.util.List<String> createDefaultRarityOverrideList(int defaultRarity) {
+        java.util.List<String> overrides = new java.util.ArrayList<>();
+        overrides.add("minecraft:overworld=" + defaultRarity);
+        return overrides;
+    }
+
+    private static java.util.List<String> createDefaultOreReplacementList() {
+        return new java.util.ArrayList<>(java.util.Arrays.asList(
+                "minecraft:stone",
+                "minecraft:deepslate",
+                "minecraft:andesite",
+                "minecraft:granite",
+                "minecraft:diorite",
+                "minecraft:sandstone",
+                "minecraft:red_sandstone",
+                "minecraft:terracotta",
+                "minecraft:white_terracotta",
+                "minecraft:orange_terracotta",
+                "minecraft:magenta_terracotta",
+                "minecraft:light_blue_terracotta",
+                "minecraft:yellow_terracotta",
+                "minecraft:lime_terracotta",
+                "minecraft:pink_terracotta",
+                "minecraft:gray_terracotta",
+                "minecraft:light_gray_terracotta",
+                "minecraft:cyan_terracotta",
+                "minecraft:purple_terracotta",
+                "minecraft:blue_terracotta",
+                "minecraft:brown_terracotta",
+                "minecraft:green_terracotta",
+                "minecraft:red_terracotta",
+                "minecraft:black_terracotta"
+        ));
+    }
+
     static {
         BUILDER.comment("World Generation Settings").push("worldgen");
         
@@ -251,6 +297,11 @@ public class Config {
         GRAVITY_ANOMALY_DIMENSIONS = BUILDER
                 .comment("Dimensions where Gravity Anomalies can spawn (empty list = all dimensions)")
                 .define("gravityAnomalyDimensions", new java.util.ArrayList<>(java.util.Arrays.asList("minecraft:overworld")));
+        GRAVITY_ANOMALY_DIMENSION_RARITY_OVERRIDES = BUILDER
+                .comment("Per-dimension rarity overrides for Gravity Anomalies (format: namespace:dimension=rarity)",
+                        "Rarity overrides set the 1/N chance separately per dimension.",
+                        "Use a value <= 0 to disable spawning in that dimension.")
+                .define("gravityAnomalyDimensionRarityOverrides", createDefaultRarityOverrideList(500));
         
         ENABLE_TEMPORAL_BLOOM = BUILDER
                 .comment("Enable Temporal Bloom world generation")
@@ -261,6 +312,11 @@ public class Config {
         TEMPORAL_BLOOM_DIMENSIONS = BUILDER
                 .comment("Dimensions where Temporal Blooms can spawn (empty list = all dimensions)")
                 .define("temporalBloomDimensions", new java.util.ArrayList<>(java.util.Arrays.asList("minecraft:overworld")));
+        TEMPORAL_BLOOM_DIMENSION_RARITY_OVERRIDES = BUILDER
+                .comment("Per-dimension rarity overrides for Temporal Blooms (format: namespace:dimension=rarity)",
+                        "Rarity overrides set the 1/N chance separately per dimension.",
+                        "Use a value <= 0 to disable spawning in that dimension.")
+                .define("temporalBloomDimensionRarityOverrides", createDefaultRarityOverrideList(500));
         
         ENABLE_WARP_GATE = BUILDER
                 .comment("Enable Warp Gate world generation")
@@ -271,6 +327,11 @@ public class Config {
         WARP_GATE_DIMENSIONS = BUILDER
                 .comment("Dimensions where Warp Gates can spawn (empty list = all dimensions)")
                 .define("warpGateDimensions", new java.util.ArrayList<>(java.util.Arrays.asList("minecraft:overworld")));
+        WARP_GATE_DIMENSION_RARITY_OVERRIDES = BUILDER
+                .comment("Per-dimension rarity overrides for Warp Gates (format: namespace:dimension=rarity)",
+                        "Rarity overrides set the 1/N chance separately per dimension.",
+                        "Use a value <= 0 to disable spawning in that dimension.")
+                .define("warpGateDimensionRarityOverrides", createDefaultRarityOverrideList(500));
         
         ENABLE_ENERGETIC_RIFT = BUILDER
                 .comment("Enable Energetic Rift world generation")
@@ -281,6 +342,11 @@ public class Config {
         ENERGETIC_RIFT_DIMENSIONS = BUILDER
                 .comment("Dimensions where Energetic Rifts can spawn (empty list = all dimensions)")
                 .define("energeticRiftDimensions", new java.util.ArrayList<>(java.util.Arrays.asList("minecraft:overworld")));
+        ENERGETIC_RIFT_DIMENSION_RARITY_OVERRIDES = BUILDER
+                .comment("Per-dimension rarity overrides for Energetic Rifts (format: namespace:dimension=rarity)",
+                        "Rarity overrides set the 1/N chance separately per dimension.",
+                        "Use a value <= 0 to disable spawning in that dimension.")
+                .define("energeticRiftDimensionRarityOverrides", createDefaultRarityOverrideList(500));
         
         ENABLE_ECHOING_SHADOW = BUILDER
                 .comment("Enable Echoing Shadow world generation")
@@ -291,6 +357,11 @@ public class Config {
         ECHOING_SHADOW_DIMENSIONS = BUILDER
                 .comment("Dimensions where Echoing Shadows can spawn (empty list = all dimensions)")
                 .define("echoingShadowDimensions", new java.util.ArrayList<>(java.util.Arrays.asList("minecraft:overworld")));
+        ECHOING_SHADOW_DIMENSION_RARITY_OVERRIDES = BUILDER
+                .comment("Per-dimension rarity overrides for Echoing Shadows (format: namespace:dimension=rarity)",
+                        "Rarity overrides set the 1/N chance separately per dimension.",
+                        "Use a value <= 0 to disable spawning in that dimension.")
+                .define("echoingShadowDimensionRarityOverrides", createDefaultRarityOverrideList(500));
         
         ENABLE_THOUGHTWELL = BUILDER
                 .comment("Enable Thoughtwell world generation")
@@ -301,6 +372,11 @@ public class Config {
         THOUGHTWELL_DIMENSIONS = BUILDER
                 .comment("Dimensions where Thoughtwells can spawn (empty list = all dimensions)")
                 .define("thoughtwellDimensions", new java.util.ArrayList<>(java.util.Arrays.asList("minecraft:overworld")));
+        THOUGHTWELL_DIMENSION_RARITY_OVERRIDES = BUILDER
+                .comment("Per-dimension rarity overrides for Thoughtwells (format: namespace:dimension=rarity)",
+                        "Rarity overrides set the 1/N chance separately per dimension.",
+                        "Use a value <= 0 to disable spawning in that dimension.")
+                .define("thoughtwellDimensionRarityOverrides", createDefaultRarityOverrideList(500));
         
         BUILDER.pop(); // anomalies
         
@@ -327,10 +403,14 @@ public class Config {
                 .define("enableAnomalousGrass", true);
         RESONITE_ORE_SPAWN_CHANCE_NEAR_ANOMALY = BUILDER
                 .comment("Chance (0.0-1.0) for Resonite Ore to spawn near anomalies")
-                .defineInRange("resoniteOreSpawnChanceNearAnomaly", 0.5, 0.0, 1.0);
+                .defineInRange("resoniteOreSpawnChanceNearAnomaly", 0.25, 0.0, 1.0);
         SHARD_ORE_SPAWN_CHANCE_NEAR_ANOMALY = BUILDER
                 .comment("Chance (0.0-1.0) for Anomaly Shard Ore to spawn near anomalies")
-                .defineInRange("shardOreSpawnChanceNearAnomaly", 0.2, 0.0, 1.0);
+                .defineInRange("shardOreSpawnChanceNearAnomaly", 0.1, 0.0, 1.0);
+        ANOMALY_ORE_REPLACEMENT_BLOCKS = BUILDER
+                .comment("Blocks that anomaly shard ore can replace during terrain modification.",
+                        "Entries must be block IDs like 'minecraft:stone'.")
+                .define("anomalyOreReplacementBlocks", createDefaultOreReplacementList());
         
         BUILDER.pop(); // terrain
         
@@ -836,26 +916,32 @@ public class Config {
     public static boolean enableGravityAnomaly;
     public static int gravityAnomalyRarity;
     public static java.util.List<String> gravityAnomalyDimensions;
+    public static java.util.Map<String, Integer> gravityAnomalyDimensionRarities;
     
     public static boolean enableTemporalBloom;
     public static int temporalBloomRarity;
     public static java.util.List<String> temporalBloomDimensions;
+    public static java.util.Map<String, Integer> temporalBloomDimensionRarities;
     
     public static boolean enableWarpGate;
     public static int warpGateRarity;
     public static java.util.List<String> warpGateDimensions;
+    public static java.util.Map<String, Integer> warpGateDimensionRarities;
     
     public static boolean enableEnergeticRift;
     public static int energeticRiftRarity;
     public static java.util.List<String> energeticRiftDimensions;
+    public static java.util.Map<String, Integer> energeticRiftDimensionRarities;
     
     public static boolean enableEchoingShadow;
     public static int echoingShadowRarity;
     public static java.util.List<String> echoingShadowDimensions;
+    public static java.util.Map<String, Integer> echoingShadowDimensionRarities;
     
     public static boolean enableThoughtwell;
     public static int thoughtwellRarity;
     public static java.util.List<String> thoughtwellDimensions;
+    public static java.util.Map<String, Integer> thoughtwellDimensionRarities;
     
     public static boolean enableResoniteOre;
     public static int resoniteOreVeinsPerChunk;
@@ -863,6 +949,8 @@ public class Config {
     public static boolean enableAnomalousGrass;
     public static double resoniteOreSpawnChanceNearAnomaly;
     public static double shardOreSpawnChanceNearAnomaly;
+    public static java.util.Set<Block> anomalyOreReplacementBlocks = java.util.Collections.emptySet();
+    public static java.util.Map<String, Integer> anomalyOreReplacementBlockRarities;
     
     // Villager structures
     public static boolean enableAnomalyScientistHouse;
@@ -1028,26 +1116,32 @@ public class Config {
         enableGravityAnomaly = ENABLE_GRAVITY_ANOMALY.get();
         gravityAnomalyRarity = GRAVITY_ANOMALY_RARITY.get();
         gravityAnomalyDimensions = GRAVITY_ANOMALY_DIMENSIONS.get();
+        gravityAnomalyDimensionRarities = parseDimensionRarityOverrides(GRAVITY_ANOMALY_DIMENSION_RARITY_OVERRIDES.get());
         
         enableTemporalBloom = ENABLE_TEMPORAL_BLOOM.get();
         temporalBloomRarity = TEMPORAL_BLOOM_RARITY.get();
         temporalBloomDimensions = TEMPORAL_BLOOM_DIMENSIONS.get();
+        temporalBloomDimensionRarities = parseDimensionRarityOverrides(TEMPORAL_BLOOM_DIMENSION_RARITY_OVERRIDES.get());
         
         enableWarpGate = ENABLE_WARP_GATE.get();
         warpGateRarity = WARP_GATE_RARITY.get();
         warpGateDimensions = WARP_GATE_DIMENSIONS.get();
+        warpGateDimensionRarities = parseDimensionRarityOverrides(WARP_GATE_DIMENSION_RARITY_OVERRIDES.get());
         
         enableEnergeticRift = ENABLE_ENERGETIC_RIFT.get();
         energeticRiftRarity = ENERGETIC_RIFT_RARITY.get();
         energeticRiftDimensions = ENERGETIC_RIFT_DIMENSIONS.get();
+        energeticRiftDimensionRarities = parseDimensionRarityOverrides(ENERGETIC_RIFT_DIMENSION_RARITY_OVERRIDES.get());
         
         enableEchoingShadow = ENABLE_ECHOING_SHADOW.get();
         echoingShadowRarity = ECHOING_SHADOW_RARITY.get();
         echoingShadowDimensions = ECHOING_SHADOW_DIMENSIONS.get();
+        echoingShadowDimensionRarities = parseDimensionRarityOverrides(ECHOING_SHADOW_DIMENSION_RARITY_OVERRIDES.get());
         
         enableThoughtwell = ENABLE_THOUGHTWELL.get();
         thoughtwellRarity = THOUGHTWELL_RARITY.get();
         thoughtwellDimensions = THOUGHTWELL_DIMENSIONS.get();
+        thoughtwellDimensionRarities = parseDimensionRarityOverrides(THOUGHTWELL_DIMENSION_RARITY_OVERRIDES.get());
         
         // Ore generation
         enableResoniteOre = ENABLE_RESONITE_ORE.get();
@@ -1057,6 +1151,7 @@ public class Config {
         enableAnomalousGrass = ENABLE_ANOMALOUS_GRASS.get();
         resoniteOreSpawnChanceNearAnomaly = RESONITE_ORE_SPAWN_CHANCE_NEAR_ANOMALY.get();
         shardOreSpawnChanceNearAnomaly = SHARD_ORE_SPAWN_CHANCE_NEAR_ANOMALY.get();
+        anomalyOreReplacementBlocks = parseBlockSet(ANOMALY_ORE_REPLACEMENT_BLOCKS.get());
         
         // Villager structures
         enableAnomalyScientistHouse = ENABLE_ANOMALY_SCIENTIST_HOUSE.get();
@@ -1215,5 +1310,84 @@ public class Config {
         // Cognition Minigame
         cognitionMatchDuration = COGNITION_MATCH_DURATION.get();
         cognitionDifficulty = COGNITION_DIFFICULTY.get();
+    }
+
+    private static java.util.Map<String, Integer> parseDimensionRarityOverrides(java.util.List<? extends String> entries) {
+        if (entries == null || entries.isEmpty()) {
+            return java.util.Collections.emptyMap();
+        }
+
+        java.util.Map<String, Integer> result = new java.util.LinkedHashMap<>();
+
+        for (String entry : entries) {
+            if (entry == null) {
+                continue;
+            }
+
+            String trimmed = entry.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+
+            int separator = trimmed.indexOf('=');
+            if (separator <= 0 || separator == trimmed.length() - 1) {
+                continue;
+            }
+
+            String dimension = trimmed.substring(0, separator).trim();
+            String rarityValue = trimmed.substring(separator + 1).trim();
+
+            if (dimension.isEmpty() || rarityValue.isEmpty()) {
+                continue;
+            }
+
+            try {
+                int rarity = Integer.parseInt(rarityValue);
+                result.put(dimension, rarity);
+            } catch (NumberFormatException ignored) {
+                // Skip invalid rarity values
+            }
+        }
+
+        if (result.isEmpty()) {
+            return java.util.Collections.emptyMap();
+        }
+
+        return java.util.Collections.unmodifiableMap(result);
+    }
+
+    private static java.util.Set<Block> parseBlockSet(java.util.List<? extends String> entries) {
+        if (entries == null || entries.isEmpty()) {
+            return java.util.Collections.emptySet();
+        }
+
+        java.util.Set<Block> blocks = new java.util.LinkedHashSet<>();
+
+        for (String entry : entries) {
+            if (entry == null) {
+                continue;
+            }
+
+            String trimmed = entry.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+
+            ResourceLocation id = ResourceLocation.tryParse(trimmed);
+            if (id == null) {
+                continue;
+            }
+
+            Block block = ForgeRegistries.BLOCKS.getValue(id);
+            if (block != null && block != Blocks.AIR) {
+                blocks.add(block);
+            }
+        }
+
+        if (blocks.isEmpty()) {
+            return java.util.Collections.emptySet();
+        }
+
+        return java.util.Collections.unmodifiableSet(blocks);
     }
 }

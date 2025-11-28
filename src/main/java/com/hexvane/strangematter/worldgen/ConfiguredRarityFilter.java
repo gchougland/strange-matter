@@ -11,6 +11,8 @@ import net.minecraft.world.level.levelgen.placement.PlacementModifier;
 import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
 import javax.annotation.Nonnull;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -32,23 +34,29 @@ public class ConfiguredRarityFilter extends PlacementModifier {
     
     @Override
     public Stream<BlockPos> getPositions(@Nonnull PlacementContext context, @Nonnull RandomSource random, @Nonnull BlockPos pos) {
-        int rarity = getRarityFromConfig();
-        
         // If feature is disabled, return empty stream (no spawns)
         if (!isFeatureEnabled()) {
             return Stream.empty();
         }
-        
-        // Check dimension restrictions
-        if (!isDimensionAllowed(context)) {
+
+        String currentDimension = getDimensionId(context);
+        Integer overrideRarity = currentDimension != null ? getDimensionOverride(currentDimension) : null;
+
+        // Check dimension restrictions, honoring overrides first
+        if (!isDimensionAllowed(currentDimension, overrideRarity)) {
             return Stream.empty();
         }
-        
+
+        int rarity = overrideRarity != null ? overrideRarity : getBaseRarity();
+        if (rarity <= 0) {
+            return Stream.empty();
+        }
+
         // Apply rarity filter: 1/N chance
-        if (rarity > 0 && random.nextInt(rarity) == 0) {
+        if (random.nextInt(rarity) == 0) {
             return Stream.of(pos);
         }
-        
+
         return Stream.empty();
     }
     
@@ -60,7 +68,7 @@ public class ConfiguredRarityFilter extends PlacementModifier {
     /**
      * Get the rarity value from config based on feature type
      */
-    private int getRarityFromConfig() {
+    private int getBaseRarity() {
         try {
             return switch (featureType) {
                 case "gravity_anomaly" -> Config.gravityAnomalyRarity;
@@ -95,23 +103,65 @@ public class ConfiguredRarityFilter extends PlacementModifier {
         }
     }
     
+    private String getDimensionId(PlacementContext context) {
+        try {
+            return context.getLevel().getLevel().dimension().location().toString();
+        } catch (Exception e) {
+            return null; // Safe default if the level isn't fully initialized yet
+        }
+    }
+
     /**
      * Check if the current dimension is allowed for this feature type
      */
-    private boolean isDimensionAllowed(PlacementContext context) {
+    private boolean isDimensionAllowed(String dimensionId, Integer overrideRarity) {
+        if (overrideRarity != null) {
+            return overrideRarity > 0;
+        }
+
+        if (dimensionId == null) {
+            return true;
+        }
+
+        java.util.List<String> allowedDimensions = getDimensionsFromConfig();
+        if (allowedDimensions == null || allowedDimensions.isEmpty()) {
+            return true;
+        }
+
+        return allowedDimensions.contains(dimensionId);
+    }
+
+    private Integer getDimensionOverride(String dimensionId) {
+        if (dimensionId == null || dimensionId.isEmpty()) {
+            return null;
+        }
+
+        Map<String, Integer> overrides = getDimensionRarityOverrides();
+        if (overrides == null || overrides.isEmpty()) {
+            return null;
+        }
+
+        Integer value = overrides.get(dimensionId);
+        if (value != null) {
+            return value;
+        }
+
+        return overrides.get("*");
+    }
+
+    private Map<String, Integer> getDimensionRarityOverrides() {
         try {
-            String currentDimension = context.getLevel().getLevel().dimension().location().toString();
-            java.util.List<String> allowedDimensions = getDimensionsFromConfig();
-            
-            // If no dimensions are specified, allow all dimensions
-            if (allowedDimensions == null || allowedDimensions.isEmpty()) {
-                return true;
-            }
-            
-            // Check if current dimension is in the allowed list
-            return allowedDimensions.contains(currentDimension);
+            return switch (featureType) {
+                case "gravity_anomaly" -> Config.gravityAnomalyDimensionRarities;
+                case "temporal_bloom" -> Config.temporalBloomDimensionRarities;
+                case "warp_gate_anomaly" -> Config.warpGateDimensionRarities;
+                case "energetic_rift" -> Config.energeticRiftDimensionRarities;
+                case "echoing_shadow" -> Config.echoingShadowDimensionRarities;
+                case "thoughtwell" -> Config.thoughtwellDimensionRarities;
+                default -> Collections.emptyMap();
+            };
         } catch (Exception e) {
-            return true; // Safe default if config isn't loaded yet
+            return Collections.emptyMap();
         }
     }
     

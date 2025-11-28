@@ -1,37 +1,23 @@
 package com.hexvane.strangematter.entity;
 
-import com.hexvane.strangematter.Config;
 import com.hexvane.strangematter.StrangeMatterMod;
-import com.hexvane.strangematter.research.ScannableObject;
-import com.hexvane.strangematter.research.ScannableObjectRegistry;
 import com.hexvane.strangematter.research.ResearchType;
-import net.minecraft.world.level.block.Block;
-import net.minecraftforge.registries.RegistryObject;
-import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
-import java.util.Set;
-import java.util.HashSet;
 import java.util.List;
 
 /**
  * Base class for all anomaly entities in the Strange Matter mod.
- * Provides common functionality like resonator detection, research scanning,
- * and terrain modification (anomalous grass and resonite ore spawning).
+ * Provides common functionality like resonator detection and research scanning.
  */
 public abstract class BaseAnomalyEntity extends Entity {
     
@@ -44,7 +30,6 @@ public abstract class BaseAnomalyEntity extends Entity {
     // Constants for anomaly behavior
     protected static final float ROTATION_SPEED = 0.5f;
     protected static final int PARTICLE_SPAWN_RATE = 20; // particles per second
-    protected static final int TERRAIN_MODIFICATION_RADIUS = 5; // Radius for grass/ore spawning
     
     // Animation timers
     protected int tickCount = 0;
@@ -54,11 +39,6 @@ public abstract class BaseAnomalyEntity extends Entity {
     protected static final float MAX_SOUND_DISTANCE = 10.0f;
     protected boolean isSoundActive = false;
     protected float lastCalculatedVolume = 0.0f;
-    
-    // Terrain modification tracking
-    private Set<BlockPos> modifiedBlocks = new HashSet<>();
-    private boolean terrainModified = false;
-    protected boolean terrainModificationEnabled = true;
     
     // Research scanning tracking
     private boolean spawnedFromCapsule = false;
@@ -89,13 +69,6 @@ public abstract class BaseAnomalyEntity extends Entity {
             applyAnomalyEffects();
             checkForFirstContact();
             spawnParticles();
-            
-            
-            // Modify terrain once when first spawned (if enabled)
-            if (!terrainModified && terrainModificationEnabled && tickCount > 20) { // Wait a bit for proper positioning
-                modifyTerrain();
-                terrainModified = true;
-            }
         } else {
             // Client-side logic
             updateClientEffects();
@@ -201,43 +174,6 @@ public abstract class BaseAnomalyEntity extends Entity {
     protected abstract String getAnomalyName();
     
     /**
-     * Get the corresponding shard ore block for this anomaly type
-     */
-    protected abstract RegistryObject<Block> getShardOreBlock();
-    
-    /**
-     * Check if a block can be replaced with ore
-     */
-    private boolean canReplaceWithOre(BlockState state) {
-        return state.is(Blocks.STONE) || state.is(Blocks.DEEPSLATE) || 
-               state.is(Blocks.ANDESITE) || state.is(Blocks.GRANITE) || state.is(Blocks.DIORITE) ||
-               state.is(Blocks.SANDSTONE) || state.is(Blocks.RED_SANDSTONE) ||
-               state.is(Blocks.TERRACOTTA) || state.is(Blocks.WHITE_TERRACOTTA) ||
-               state.is(Blocks.ORANGE_TERRACOTTA) || state.is(Blocks.MAGENTA_TERRACOTTA) ||
-               state.is(Blocks.LIGHT_BLUE_TERRACOTTA) || state.is(Blocks.YELLOW_TERRACOTTA) ||
-               state.is(Blocks.LIME_TERRACOTTA) || state.is(Blocks.PINK_TERRACOTTA) ||
-               state.is(Blocks.GRAY_TERRACOTTA) || state.is(Blocks.LIGHT_GRAY_TERRACOTTA) ||
-               state.is(Blocks.CYAN_TERRACOTTA) || state.is(Blocks.PURPLE_TERRACOTTA) ||
-               state.is(Blocks.BLUE_TERRACOTTA) || state.is(Blocks.BROWN_TERRACOTTA) ||
-               state.is(Blocks.GREEN_TERRACOTTA) || state.is(Blocks.RED_TERRACOTTA) ||
-               state.is(Blocks.BLACK_TERRACOTTA);
-    }
-    
-    /**
-     * Set whether this anomaly should modify terrain when spawned
-     */
-    public void setTerrainModificationEnabled(boolean enabled) {
-        this.terrainModificationEnabled = enabled;
-    }
-    
-    /**
-     * Get whether this anomaly should modify terrain when spawned
-     */
-    public boolean isTerrainModificationEnabled() {
-        return this.terrainModificationEnabled;
-    }
-    
-    /**
      * Set whether this anomaly was spawned from a containment capsule
      */
     public void setSpawnedFromCapsule(boolean spawnedFromCapsule) {
@@ -259,144 +195,6 @@ public abstract class BaseAnomalyEntity extends Entity {
         return true; // Default to active, subclasses can override
     }
     
-    /**
-     * Modify terrain around the anomaly - spawn anomalous grass and resonite ore
-     */
-    public void modifyTerrain() {
-        BlockPos centerPos = this.blockPosition();
-        
-        // Create a patch of anomalous grass and resonite ore underneath
-        for (int x = -TERRAIN_MODIFICATION_RADIUS; x <= TERRAIN_MODIFICATION_RADIUS; x++) {
-            for (int z = -TERRAIN_MODIFICATION_RADIUS; z <= TERRAIN_MODIFICATION_RADIUS; z++) {
-                // Only modify blocks within a circular radius
-                double distance = Math.sqrt(x * x + z * z);
-                if (distance <= TERRAIN_MODIFICATION_RADIUS) {
-                    BlockPos pos = centerPos.offset(x, 0, z);
-                    
-                    // Find the surface block for grass placement
-                    BlockPos surfacePos = findSurfaceBlock(pos);
-                    if (surfacePos != null) {
-                        // Check if we should place anomalous grass
-                        BlockState currentState = this.level().getBlockState(surfacePos);
-                        BlockPos targetPos = surfacePos;
-                        
-                        // If there's snow or vegetation on top, check the block underneath
-                        if (currentState.is(Blocks.SNOW) || currentState.is(Blocks.SNOW_BLOCK) ||
-                            currentState.is(Blocks.TALL_GRASS) || currentState.is(Blocks.FERN) ||
-                            currentState.is(Blocks.LARGE_FERN) || currentState.is(Blocks.DEAD_BUSH) ||
-                            currentState.is(Blocks.SWEET_BERRY_BUSH) || currentState.is(Blocks.GRASS)) {
-                            // Check the block underneath
-                            BlockPos belowPos = surfacePos.below();
-                            BlockState belowState = this.level().getBlockState(belowPos);
-                            if (belowState.is(Blocks.GRASS_BLOCK) || belowState.is(Blocks.DIRT) || 
-                                belowState.is(Blocks.COARSE_DIRT) || belowState.is(Blocks.PODZOL)) {
-                                targetPos = belowPos;
-                                currentState = belowState;
-                            }
-                        }
-                        
-                        // Place anomalous grass on suitable surface blocks (if enabled in config)
-                        if (Config.enableAnomalousGrass) {
-                            // Use WorldGenUtils to find the proper position for anomalous grass
-                            if (this.level() instanceof net.minecraft.world.level.WorldGenLevel worldGenLevel) {
-                                BlockPos grassPos = com.hexvane.strangematter.worldgen.WorldGenUtils.findAnomalousGrassPosition(worldGenLevel, targetPos.getX(), targetPos.getZ());
-                                if (grassPos != null) {
-                                    this.level().setBlock(grassPos, StrangeMatterMod.ANOMALOUS_GRASS_BLOCK.get().defaultBlockState(), 3);
-                                    modifiedBlocks.add(grassPos);
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Place ore underground regardless of grass placement
-                    // Use surface position as reference for ore placement
-                    if (surfacePos != null) {
-                        int surfaceY = surfacePos.getY();
-                        int oreY = surfaceY - (1 + this.level().getRandom().nextInt(5)); // 1-5 blocks below surface
-                        
-                        // Place resonite ore (configurable chance)
-                        if (this.level().getRandom().nextFloat() < Config.resoniteOreSpawnChanceNearAnomaly) {
-                            BlockPos orePos = new BlockPos(pos.getX(), oreY, pos.getZ());
-                            BlockState oreState = this.level().getBlockState(orePos);
-                            if (canReplaceWithOre(oreState)) {
-                                this.level().setBlock(orePos, StrangeMatterMod.RESONITE_ORE_BLOCK.get().defaultBlockState(), 3);
-                                modifiedBlocks.add(orePos);
-                            }
-                        }
-                        
-                        // Place corresponding shard ore (configurable chance)
-                        if (this.level().getRandom().nextFloat() < Config.shardOreSpawnChanceNearAnomaly) {
-                            int shardOreY = surfaceY - (1 + this.level().getRandom().nextInt(5)); // 1-5 blocks below surface
-                            BlockPos shardOrePos = new BlockPos(pos.getX(), shardOreY, pos.getZ());
-                            BlockState shardOreState = this.level().getBlockState(shardOrePos);
-                            if (canReplaceWithOre(shardOreState)) {
-                                this.level().setBlock(shardOrePos, getShardOreBlock().get().defaultBlockState(), 3);
-                                modifiedBlocks.add(shardOrePos);
-                            }
-                        }
-                    } else {
-                        // Fallback: use anomaly position - 5 blocks if no surface found
-                        int anomalyY = centerPos.getY() - 5;
-                        int oreY = anomalyY - (1 + this.level().getRandom().nextInt(5)); // 1-5 blocks below anomaly
-                        
-                        // Place resonite ore (configurable chance)
-                        if (this.level().getRandom().nextFloat() < Config.resoniteOreSpawnChanceNearAnomaly) {
-                            BlockPos orePos = new BlockPos(pos.getX(), oreY, pos.getZ());
-                            BlockState oreState = this.level().getBlockState(orePos);
-                            if (canReplaceWithOre(oreState)) {
-                                this.level().setBlock(orePos, StrangeMatterMod.RESONITE_ORE_BLOCK.get().defaultBlockState(), 3);
-                                modifiedBlocks.add(orePos);
-                            }
-                        }
-                        
-                        // Place corresponding shard ore (configurable chance)
-                        if (this.level().getRandom().nextFloat() < Config.shardOreSpawnChanceNearAnomaly) {
-                            int shardOreY = anomalyY - (1 + this.level().getRandom().nextInt(5)); // 1-5 blocks below anomaly
-                            BlockPos shardOrePos = new BlockPos(pos.getX(), shardOreY, pos.getZ());
-                            BlockState shardOreState = this.level().getBlockState(shardOrePos);
-                            if (canReplaceWithOre(shardOreState)) {
-                                this.level().setBlock(shardOrePos, getShardOreBlock().get().defaultBlockState(), 3);
-                                modifiedBlocks.add(shardOrePos);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    /**
-     * Find the surface block at the given x,z coordinates
-     */
-    private BlockPos findSurfaceBlock(BlockPos pos) {
-        // Start from a reasonable height and work down
-        int startY = Math.min(this.getBlockY() + 10, this.level().getMaxBuildHeight() - 1);
-        
-        for (int y = startY; y >= this.level().getMinBuildHeight(); y--) {
-            BlockPos checkPos = new BlockPos(pos.getX(), y, pos.getZ());
-            BlockState state = this.level().getBlockState(checkPos);
-            
-            // Look for ground-level blocks (not leaves, logs, etc.)
-            if (state.is(Blocks.GRASS_BLOCK) || state.is(Blocks.DIRT) || 
-                state.is(Blocks.COARSE_DIRT) || state.is(Blocks.PODZOL) ||
-                state.is(Blocks.SAND) || state.is(Blocks.RED_SAND) ||
-                state.is(Blocks.STONE) || state.is(Blocks.SANDSTONE) ||
-                state.is(Blocks.RED_SANDSTONE) || state.is(Blocks.TERRACOTTA) ||
-                state.is(Blocks.WHITE_TERRACOTTA) || state.is(Blocks.ORANGE_TERRACOTTA) ||
-                state.is(Blocks.MAGENTA_TERRACOTTA) || state.is(Blocks.LIGHT_BLUE_TERRACOTTA) ||
-                state.is(Blocks.YELLOW_TERRACOTTA) || state.is(Blocks.LIME_TERRACOTTA) ||
-                state.is(Blocks.PINK_TERRACOTTA) || state.is(Blocks.GRAY_TERRACOTTA) ||
-                state.is(Blocks.LIGHT_GRAY_TERRACOTTA) || state.is(Blocks.CYAN_TERRACOTTA) ||
-                state.is(Blocks.PURPLE_TERRACOTTA) || state.is(Blocks.BLUE_TERRACOTTA) ||
-                state.is(Blocks.BROWN_TERRACOTTA) || state.is(Blocks.GREEN_TERRACOTTA) ||
-                state.is(Blocks.RED_TERRACOTTA) || state.is(Blocks.BLACK_TERRACOTTA) ||
-                state.is(Blocks.SNOW) || state.is(Blocks.SNOW_BLOCK)) {
-                return checkPos;
-            }
-        }
-        
-        return null;
-    }
     
     protected void updateSoundEffects() {
         // Sound effects only run on client side
@@ -511,9 +309,6 @@ public abstract class BaseAnomalyEntity extends Entity {
         if (compound.contains("Scale")) {
             this.entityData.set(SCALE, compound.getFloat("Scale"));
         }
-        if (compound.contains("TerrainModified")) {
-            this.terrainModified = compound.getBoolean("TerrainModified");
-        }
     }
     
     @Override
@@ -522,7 +317,6 @@ public abstract class BaseAnomalyEntity extends Entity {
         compound.putFloat("PulseIntensity", this.entityData.get(PULSE_INTENSITY));
         compound.putBoolean("IsContained", this.entityData.get(IS_CONTAINED));
         compound.putFloat("Scale", this.entityData.get(SCALE));
-        compound.putBoolean("TerrainModified", this.terrainModified);
     }
     
     @Override

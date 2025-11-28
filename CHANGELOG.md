@@ -2,10 +2,25 @@
 
 All notable changes to Strange Matter will be documented in this file.
 
-## [0.2.7] - Unreleased
+## [0.2.7] - 11/2/2025
+
+### Added
+- **Per-Dimension Anomaly Rarity**: Added Per-Dimension Anomaly Rarity config options.
+- **Shard Lamps**: Anomaly Shard colored lamps.
+- **Shard Lanterns**: Anomaly Shard colored lanterns.
+- **Shard Crystal Unpacking**: Recipe to craft crystals back into shards.
+
+### Changed
+- **Anomaly World Gen**: Modified ore/grass generation to spawn more consistently and performantly.
+- **Improved FPS**: Optimized a bunch of stuff to improve performance.
 
 ### Fixed
-- **ShadowLightProvider Concurrent Modification**: Added possible fix for Concurrent Modification Exception happening in ShadowLightProvider.
+- **Echo Vacuum Duplication Bug**: Fixed issue where anomalies could appear to duplicate when collected with the echo vacuum, allowing them to be scanned for research points multiple times.
+- **Research Tablet Adding**: Hopefully fixed issue where research tablets would be given every time on player login.
+- **Field Scanner Becoming Unusable**: Hopefully fixed issue where field scanner would become unusable.
+
+### Removed
+- **Echoing Shadow Light Absorption**: Doesn't work correctly and causes too much lag.
 
 ## [0.2.6] - 2025-10-28
 

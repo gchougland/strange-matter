@@ -276,6 +276,34 @@ public class StrangeMatterMod
     public static final RegistryObject<Item> CHRONO_SHARD_CRYSTAL_ITEM = ITEMS.register("chrono_shard_crystal", () -> new BlockItem(CHRONO_SHARD_CRYSTAL.get(), new Item.Properties()));
     public static final RegistryObject<Block> SPATIAL_SHARD_CRYSTAL = BLOCKS.register("spatial_shard_crystal", com.hexvane.strangematter.block.ShardCrystalBlock::new);
     public static final RegistryObject<Item> SPATIAL_SHARD_CRYSTAL_ITEM = ITEMS.register("spatial_shard_crystal", () -> new BlockItem(SPATIAL_SHARD_CRYSTAL.get(), new Item.Properties()));
+    
+    // Shard Lamp Blocks
+    public static final RegistryObject<Block> SHADE_SHARD_LAMP = BLOCKS.register("shade_shard_lamp", com.hexvane.strangematter.block.ShardLampBlock::new);
+    public static final RegistryObject<Item> SHADE_SHARD_LAMP_ITEM = ITEMS.register("shade_shard_lamp", () -> new BlockItem(SHADE_SHARD_LAMP.get(), new Item.Properties()));
+    public static final RegistryObject<Block> GRAVITIC_SHARD_LAMP = BLOCKS.register("gravitic_shard_lamp", com.hexvane.strangematter.block.ShardLampBlock::new);
+    public static final RegistryObject<Item> GRAVITIC_SHARD_LAMP_ITEM = ITEMS.register("gravitic_shard_lamp", () -> new BlockItem(GRAVITIC_SHARD_LAMP.get(), new Item.Properties()));
+    public static final RegistryObject<Block> ENERGETIC_SHARD_LAMP = BLOCKS.register("energetic_shard_lamp", com.hexvane.strangematter.block.ShardLampBlock::new);
+    public static final RegistryObject<Item> ENERGETIC_SHARD_LAMP_ITEM = ITEMS.register("energetic_shard_lamp", () -> new BlockItem(ENERGETIC_SHARD_LAMP.get(), new Item.Properties()));
+    public static final RegistryObject<Block> INSIGHT_SHARD_LAMP = BLOCKS.register("insight_shard_lamp", com.hexvane.strangematter.block.ShardLampBlock::new);
+    public static final RegistryObject<Item> INSIGHT_SHARD_LAMP_ITEM = ITEMS.register("insight_shard_lamp", () -> new BlockItem(INSIGHT_SHARD_LAMP.get(), new Item.Properties()));
+    public static final RegistryObject<Block> CHRONO_SHARD_LAMP = BLOCKS.register("chrono_shard_lamp", com.hexvane.strangematter.block.ShardLampBlock::new);
+    public static final RegistryObject<Item> CHRONO_SHARD_LAMP_ITEM = ITEMS.register("chrono_shard_lamp", () -> new BlockItem(CHRONO_SHARD_LAMP.get(), new Item.Properties()));
+    public static final RegistryObject<Block> SPATIAL_SHARD_LAMP = BLOCKS.register("spatial_shard_lamp", com.hexvane.strangematter.block.ShardLampBlock::new);
+    public static final RegistryObject<Item> SPATIAL_SHARD_LAMP_ITEM = ITEMS.register("spatial_shard_lamp", () -> new BlockItem(SPATIAL_SHARD_LAMP.get(), new Item.Properties()));
+    
+    // Shard Lantern Blocks
+    public static final RegistryObject<Block> SHADE_SHARD_LANTERN = BLOCKS.register("shade_shard_lantern", com.hexvane.strangematter.block.ShardLanternBlock::new);
+    public static final RegistryObject<Item> SHADE_SHARD_LANTERN_ITEM = ITEMS.register("shade_shard_lantern", () -> new BlockItem(SHADE_SHARD_LANTERN.get(), new Item.Properties()));
+    public static final RegistryObject<Block> GRAVITIC_SHARD_LANTERN = BLOCKS.register("gravitic_shard_lantern", com.hexvane.strangematter.block.ShardLanternBlock::new);
+    public static final RegistryObject<Item> GRAVITIC_SHARD_LANTERN_ITEM = ITEMS.register("gravitic_shard_lantern", () -> new BlockItem(GRAVITIC_SHARD_LANTERN.get(), new Item.Properties()));
+    public static final RegistryObject<Block> ENERGETIC_SHARD_LANTERN = BLOCKS.register("energetic_shard_lantern", com.hexvane.strangematter.block.ShardLanternBlock::new);
+    public static final RegistryObject<Item> ENERGETIC_SHARD_LANTERN_ITEM = ITEMS.register("energetic_shard_lantern", () -> new BlockItem(ENERGETIC_SHARD_LANTERN.get(), new Item.Properties()));
+    public static final RegistryObject<Block> INSIGHT_SHARD_LANTERN = BLOCKS.register("insight_shard_lantern", com.hexvane.strangematter.block.ShardLanternBlock::new);
+    public static final RegistryObject<Item> INSIGHT_SHARD_LANTERN_ITEM = ITEMS.register("insight_shard_lantern", () -> new BlockItem(INSIGHT_SHARD_LANTERN.get(), new Item.Properties()));
+    public static final RegistryObject<Block> CHRONO_SHARD_LANTERN = BLOCKS.register("chrono_shard_lantern", com.hexvane.strangematter.block.ShardLanternBlock::new);
+    public static final RegistryObject<Item> CHRONO_SHARD_LANTERN_ITEM = ITEMS.register("chrono_shard_lantern", () -> new BlockItem(CHRONO_SHARD_LANTERN.get(), new Item.Properties()));
+    public static final RegistryObject<Block> SPATIAL_SHARD_LANTERN = BLOCKS.register("spatial_shard_lantern", com.hexvane.strangematter.block.ShardLanternBlock::new);
+    public static final RegistryObject<Item> SPATIAL_SHARD_LANTERN_ITEM = ITEMS.register("spatial_shard_lantern", () -> new BlockItem(SPATIAL_SHARD_LANTERN.get(), new Item.Properties()));
 
     // Warp Gun Item
     public static final RegistryObject<Item> WARP_GUN = ITEMS.register("warp_gun", WarpGunItem::new);
@@ -353,6 +381,11 @@ public class StrangeMatterMod
     public static final RegistryObject<Item> LEVITATION_PAD_ITEM = ITEMS.register("levitation_pad", () -> new BlockItem(LEVITATION_PAD_BLOCK.get(), new Item.Properties()));
     public static final RegistryObject<BlockEntityType<LevitationPadBlockEntity>> LEVITATION_PAD_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("levitation_pad", 
         () -> BlockEntityType.Builder.of((pos, state) -> new LevitationPadBlockEntity(pos, state), LEVITATION_PAD_BLOCK.get()).build(null));
+
+    // Anomaly Spawner Marker Block (used for world generation entity spawning)
+    public static final RegistryObject<Block> ANOMALY_SPAWNER_MARKER_BLOCK = BLOCKS.register("anomaly_spawner_marker", com.hexvane.strangematter.block.AnomalySpawnerMarkerBlock::new);
+    public static final RegistryObject<BlockEntityType<com.hexvane.strangematter.block.AnomalySpawnerMarkerBlockEntity>> ANOMALY_SPAWNER_MARKER_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("anomaly_spawner_marker", 
+        () -> BlockEntityType.Builder.of((pos, state) -> new com.hexvane.strangematter.block.AnomalySpawnerMarkerBlockEntity(pos, state), ANOMALY_SPAWNER_MARKER_BLOCK.get()).build(null));
 
     // Register POI Type for Research Machine (villager job site)
     // We'll use a lazy supplier to get block states when they're actually available
@@ -562,6 +595,24 @@ public class StrangeMatterMod
                 output.accept(SHADE_SHARD_ORE_ITEM.get());
                 output.accept(INSIGHT_SHARD_ORE_ITEM.get());
                 output.accept(ENERGETIC_SHARD_ORE_ITEM.get());
+                output.accept(SHADE_SHARD_LAMP_ITEM.get());
+                output.accept(GRAVITIC_SHARD_LAMP_ITEM.get());
+                output.accept(ENERGETIC_SHARD_LAMP_ITEM.get());
+                output.accept(INSIGHT_SHARD_LAMP_ITEM.get());
+                output.accept(CHRONO_SHARD_LAMP_ITEM.get());
+                output.accept(SPATIAL_SHARD_LAMP_ITEM.get());
+                output.accept(SHADE_SHARD_LAMP_ITEM.get());
+                output.accept(GRAVITIC_SHARD_LAMP_ITEM.get());
+                output.accept(ENERGETIC_SHARD_LAMP_ITEM.get());
+                output.accept(INSIGHT_SHARD_LAMP_ITEM.get());
+                output.accept(CHRONO_SHARD_LAMP_ITEM.get());
+                output.accept(SPATIAL_SHARD_LAMP_ITEM.get());
+                output.accept(SHADE_SHARD_LANTERN_ITEM.get());
+                output.accept(GRAVITIC_SHARD_LANTERN_ITEM.get());
+                output.accept(ENERGETIC_SHARD_LANTERN_ITEM.get());
+                output.accept(INSIGHT_SHARD_LANTERN_ITEM.get());
+                output.accept(CHRONO_SHARD_LANTERN_ITEM.get());
+                output.accept(SPATIAL_SHARD_LANTERN_ITEM.get());
                 
                 // Materials/Resources
                 output.accept(RAW_RESONITE.get());
