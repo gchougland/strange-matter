@@ -62,6 +62,11 @@ public class NetworkHandler {
             GravitySyncPacket::new,
             GravitySyncPacket::handle);
             
+        INSTANCE.registerMessage(packetId++, TimeDilationSyncPacket.class,
+            TimeDilationSyncPacket::encode,
+            TimeDilationSyncPacket::new,
+            TimeDilationSyncPacket::handle);
+        
         INSTANCE.registerMessage(packetId++, WarpGunShootPacket.class,
             WarpGunShootPacket::encode,
             WarpGunShootPacket::new,

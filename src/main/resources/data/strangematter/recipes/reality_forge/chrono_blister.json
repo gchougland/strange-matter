@@ -1,0 +1,28 @@
+{
+  "type": "strangematter:reality_forge",
+  "pattern": [
+    "   ",
+    "RCR",
+    "  P"
+  ],
+  "key": {
+    "R": {
+      "item": "strangematter:resonite_ingot"
+    },
+    "C": {
+      "item": "strangematter:chrono_shard"
+    },
+    "P": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "shards": {
+    "chrono": 3,
+    "energetic": 1
+  },
+  "required_research": "chrono_blister",
+  "result": {
+    "item": "strangematter:chrono_blister"
+  }
+}
+

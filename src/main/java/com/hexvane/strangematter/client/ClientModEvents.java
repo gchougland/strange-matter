@@ -31,6 +31,7 @@ public class ClientModEvents {
             net.minecraft.client.renderer.entity.EntityRenderers.register(StrangeMatterMod.TEMPORAL_BLOOM.get(), TemporalBloomRenderer::new);
             net.minecraft.client.renderer.entity.EntityRenderers.register(StrangeMatterMod.THOUGHTWELL.get(), ThoughtwellRenderer::new);
             net.minecraft.client.renderer.entity.EntityRenderers.register(StrangeMatterMod.WARP_PROJECTILE_ENTITY.get(), WarpProjectileRenderer::new);
+            net.minecraft.client.renderer.entity.EntityRenderers.register(StrangeMatterMod.CHRONO_BLISTER_PROJECTILE_ENTITY.get(), ChronoBlisterProjectileRenderer::new);
             net.minecraft.client.renderer.entity.EntityRenderers.register(StrangeMatterMod.MINI_WARP_GATE_ENTITY.get(), MiniWarpGateRenderer::new);
             net.minecraft.client.renderer.entity.EntityRenderers.register(StrangeMatterMod.THROWABLE_CONTAINMENT_CAPSULE.get(), com.hexvane.strangematter.client.renderer.ThrowableContainmentCapsuleRenderer::new);
             net.minecraft.client.renderer.entity.EntityRenderers.register(StrangeMatterMod.HOVERBOARD_ENTITY.get(), HoverboardRenderer::new);
@@ -51,6 +52,9 @@ public class ClientModEvents {
             net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(StrangeMatterMod.INSIGHT_SHARD_CRYSTAL.get(), net.minecraft.client.renderer.RenderType.translucent());
             net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(StrangeMatterMod.CHRONO_SHARD_CRYSTAL.get(), net.minecraft.client.renderer.RenderType.translucent());
             net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(StrangeMatterMod.SPATIAL_SHARD_CRYSTAL.get(), net.minecraft.client.renderer.RenderType.translucent());
+            
+            // Set render layer for time dilation block (semi-transparent amber)
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(StrangeMatterMod.TIME_DILATION_BLOCK.get(), net.minecraft.client.renderer.RenderType.translucent());
             
             // Set render layers for shard lantern blocks (cutout transparency)
             net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(StrangeMatterMod.SHADE_SHARD_LANTERN.get(), net.minecraft.client.renderer.RenderType.cutout());

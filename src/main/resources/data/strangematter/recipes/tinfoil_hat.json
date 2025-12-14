@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "I I"
+  ],
+  "key": {
+    "I": {
+      "item": "strangematter:resonite_ingot"
+    }
+  },
+  "result": {
+    "item": "strangematter:tinfoil_hat"
+  }
+}

@@ -50,11 +50,16 @@ import com.hexvane.strangematter.item.WarpGunItem;
 import com.hexvane.strangematter.item.EchoVacuumItem;
 import com.hexvane.strangematter.item.ContainmentCapsuleItem;
 import com.hexvane.strangematter.item.GravitonHammerItem;
+import com.hexvane.strangematter.item.ChronoBlisterItem;
+import com.hexvane.strangematter.item.TinfoilHatItem;
 import com.hexvane.strangematter.block.LevitationPadBlock;
 import com.hexvane.strangematter.block.LevitationPadBlockEntity;
+import com.hexvane.strangematter.block.TimeDilationBlock;
+import com.hexvane.strangematter.block.TimeDilationBlockEntity;
 import com.hexvane.strangematter.network.EchoVacuumBeamPacket;
 import com.hexvane.strangematter.entity.WarpProjectileEntity;
 import com.hexvane.strangematter.entity.MiniWarpGateEntity;
+import com.hexvane.strangematter.entity.ChronoBlisterProjectileEntity;
 import com.hexvane.strangematter.item.HoverboardItem;
 import com.hexvane.strangematter.entity.HoverboardEntity;
 import com.hexvane.strangematter.client.HoverboardRenderer;
@@ -308,11 +313,17 @@ public class StrangeMatterMod
     // Warp Gun Item
     public static final RegistryObject<Item> WARP_GUN = ITEMS.register("warp_gun", WarpGunItem::new);
 
+    // Chrono Blister Item
+    public static final RegistryObject<Item> CHRONO_BLISTER = ITEMS.register("chrono_blister", ChronoBlisterItem::new);
+
     // Echo Vacuum Item
     public static final RegistryObject<Item> ECHO_VACUUM = ITEMS.register("echo_vacuum", EchoVacuumItem::new);
 
     // Graviton Hammer Item
     public static final RegistryObject<Item> GRAVITON_HAMMER = ITEMS.register("graviton_hammer", GravitonHammerItem::new);
+
+    // Tinfoil Hat Item
+    public static final RegistryObject<Item> TINFOIL_HAT = ITEMS.register("tinfoil_hat", TinfoilHatItem::new);
 
     // Containment Capsule Items
     public static final RegistryObject<Item> CONTAINMENT_CAPSULE = ITEMS.register("containment_capsule", () -> new ContainmentCapsuleItem(ContainmentCapsuleItem.AnomalyType.NONE));
@@ -381,6 +392,12 @@ public class StrangeMatterMod
     public static final RegistryObject<Item> LEVITATION_PAD_ITEM = ITEMS.register("levitation_pad", () -> new BlockItem(LEVITATION_PAD_BLOCK.get(), new Item.Properties()));
     public static final RegistryObject<BlockEntityType<LevitationPadBlockEntity>> LEVITATION_PAD_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("levitation_pad", 
         () -> BlockEntityType.Builder.of((pos, state) -> new LevitationPadBlockEntity(pos, state), LEVITATION_PAD_BLOCK.get()).build(null));
+
+    // Time Dilation Block
+    public static final RegistryObject<Block> TIME_DILATION_BLOCK = BLOCKS.register("time_dilation_block", TimeDilationBlock::new);
+    public static final RegistryObject<Item> TIME_DILATION_BLOCK_ITEM = ITEMS.register("time_dilation_block", () -> new BlockItem(TIME_DILATION_BLOCK.get(), new Item.Properties()));
+    public static final RegistryObject<BlockEntityType<TimeDilationBlockEntity>> TIME_DILATION_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("time_dilation_block", 
+        () -> BlockEntityType.Builder.of((pos, state) -> new TimeDilationBlockEntity(pos, state), TIME_DILATION_BLOCK.get()).build(null));
 
     // Anomaly Spawner Marker Block (used for world generation entity spawning)
     public static final RegistryObject<Block> ANOMALY_SPAWNER_MARKER_BLOCK = BLOCKS.register("anomaly_spawner_marker", com.hexvane.strangematter.block.AnomalySpawnerMarkerBlock::new);
@@ -502,6 +519,12 @@ public class StrangeMatterMod
             .sized(0.25f, 0.25f) // Small projectile
             .build("warp_projectile"));
 
+    // Chrono Blister Projectile Entity
+    public static final RegistryObject<EntityType<ChronoBlisterProjectileEntity>> CHRONO_BLISTER_PROJECTILE_ENTITY = ENTITY_TYPES.register("chrono_blister_projectile", 
+        () -> EntityType.Builder.<ChronoBlisterProjectileEntity>of(ChronoBlisterProjectileEntity::new, MobCategory.MISC)
+            .sized(0.25f, 0.25f) // Small projectile
+            .build("chrono_blister_projectile"));
+
     // Mini Warp Gate Entity
     public static final RegistryObject<EntityType<MiniWarpGateEntity>> MINI_WARP_GATE_ENTITY = ENTITY_TYPES.register("mini_warp_gate", 
         () -> EntityType.Builder.<MiniWarpGateEntity>of(MiniWarpGateEntity::new, MobCategory.MISC)
@@ -554,8 +577,10 @@ public class StrangeMatterMod
                 output.accept(ANOMALY_RESONATOR.get());
                 output.accept(ECHOFORM_IMPRINTER.get());
                 output.accept(WARP_GUN.get());
+                output.accept(CHRONO_BLISTER.get());
                 output.accept(ECHO_VACUUM.get());
                 output.accept(GRAVITON_HAMMER.get());
+                output.accept(TINFOIL_HAT.get());
                 output.accept(HOVERBOARD.get());
                 
                 // Containment Capsules
@@ -578,6 +603,7 @@ public class StrangeMatterMod
                 output.accept(STASIS_PROJECTOR_ITEM.get());
                 output.accept(RESONANT_CONDUIT_ITEM.get());
                 output.accept(LEVITATION_PAD_ITEM.get());
+                output.accept(TIME_DILATION_BLOCK_ITEM.get());
                 
                 // Building Blocks
                 output.accept(RESONITE_ORE_ITEM.get());

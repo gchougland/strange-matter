@@ -18,6 +18,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -139,9 +140,19 @@ public class EnergeticRiftEntity extends BaseAnomalyEntity {
     }
     
     private void zapEntity(LivingEntity entity) {
-        // Deal electric damage
-        DamageSource electricDamage = this.damageSources().lightningBolt();
-        entity.hurt(electricDamage, getZapDamage());
+        // Check if entity is a player wearing tinfoil hat
+        boolean isProtected = false;
+        if (entity instanceof Player player) {
+            if (player.getItemBySlot(EquipmentSlot.HEAD).getItem() == StrangeMatterMod.TINFOIL_HAT.get()) {
+                isProtected = true;
+            }
+        }
+        
+        // Deal electric damage (unless protected by tinfoil hat)
+        if (!isProtected) {
+            DamageSource electricDamage = this.damageSources().lightningBolt();
+            entity.hurt(electricDamage, getZapDamage());
+        }
         
         // Create targeting spark for visual effect
         createTargetingSpark(entity);

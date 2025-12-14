@@ -171,6 +171,18 @@ public class ResearchNodeRegistry {
             List.of("research") // Requires main research
         ));
         
+        // Tinfoil Hat protective armor (locked) - Connected to resonite
+        register(new ResearchNode(
+            "tinfoil_hat",
+            "general",
+            -160, 80,
+            applyConfigCosts("tinfoil_hat", Map.of(ResearchType.ENERGY, 10, ResearchType.COGNITION, 10)),
+            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.TINFOIL_HAT.get()),
+            true,
+            List.of("resonite") // Requires resonite research
+        ));
+        
         // Resonant Power description and Resonant Burner power generation (unlocked by default) - BOTTOM RIGHT
         register(new ResearchNode(
             "resonant_energy",
@@ -255,6 +267,18 @@ public class ResearchNodeRegistry {
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.WARP_GUN.get()),
             true,
             List.of("containment_basics") // Requires reality forge
+        ));
+        
+        // Chrono Blister gadget (locked) - Connected to temporal_anomalies
+        register(new ResearchNode(
+            "chrono_blister",
+            "general",
+            80, 320,
+            applyConfigCosts("chrono_blister", Map.of(ResearchType.TIME, 15, ResearchType.ENERGY, 10)),
+            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.CHRONO_BLISTER.get()),
+            true,
+            List.of("temporal_anomalies") // Requires temporal anomalies research
         ));
         
         // Graviton Hammer tool (locked) - Connected to reality_forge

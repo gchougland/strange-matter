@@ -85,6 +85,8 @@ public class ResearchNodeInfoScreen extends Screen {
             initializeEchoformImprinterPages();
         } else if (node.getId().equals("warp_gun")) {
             initializeWarpGunPages();
+        } else if (node.getId().equals("chrono_blister")) {
+            initializeChronoBlisterPages();
         } else if (node.getId().equals("stasis_projector")) {
             initializeStasisProjectorPages();
         } else if (node.getId().equals("rift_stabilizer")) {
@@ -107,6 +109,8 @@ public class ResearchNodeInfoScreen extends Screen {
             initializeShadowAnomaliesPages();
         } else if (node.getId().equals("cognitive_anomalies")) {
             initializeCognitiveAnomaliesPages();
+        } else if (node.getId().equals("tinfoil_hat")) {
+            initializeTinfoilHatPages();
         } else {
             // Check if this node has custom pages from KubeJS
             // If so, skip the default "Overview" page
@@ -573,6 +577,26 @@ public class ResearchNodeInfoScreen extends Screen {
         pages.add(mechanics);
     }
     
+    private void initializeChronoBlisterPages() {
+        // Page 1: Introduction with Recipe
+        InfoPage intro = new InfoPage();
+        intro.title = "research.strangematter.chrono_blister.intro.title";
+        intro.content = "research.strangematter.chrono_blister.intro.content";
+        intro.hasRecipes = true;
+        intro.hasScreenshots = false;
+        intro.recipeName = "strangematter:chrono_blister";
+        intro.isRealityForgeRecipe = true;
+        pages.add(intro);
+
+        // Page 2: Time Dilation Mechanics
+        InfoPage mechanics = new InfoPage();
+        mechanics.title = "research.strangematter.chrono_blister.mechanics.title";
+        mechanics.content = "research.strangematter.chrono_blister.mechanics.content";
+        mechanics.hasRecipes = false;
+        mechanics.hasScreenshots = false;
+        pages.add(mechanics);
+    }
+    
     private void initializeStasisProjectorPages() {
         // Page 1: Introduction with Recipe
         InfoPage intro = new InfoPage();
@@ -733,6 +757,26 @@ public class ResearchNodeInfoScreen extends Screen {
         intro.recipeName = "strangematter:hoverboard";
         intro.isRealityForgeRecipe = true;
         pages.add(intro);
+    }
+    
+    private void initializeTinfoilHatPages() {
+        // Page 1: Introduction explaining protection
+        InfoPage intro = new InfoPage();
+        intro.title = "research.strangematter.tinfoil_hat.intro.title";
+        intro.content = "research.strangematter.tinfoil_hat.intro.content";
+        intro.hasRecipes = false;
+        intro.hasScreenshots = false;
+        pages.add(intro);
+
+        // Page 2: Crafting recipe page
+        InfoPage recipe = new InfoPage();
+        recipe.title = "research.strangematter.tinfoil_hat.recipe.title";
+        recipe.content = "research.strangematter.tinfoil_hat.recipe.content";
+        recipe.hasRecipes = true;
+        recipe.hasScreenshots = false;
+        recipe.recipeName = "strangematter:tinfoil_hat";
+        recipe.isRealityForgeRecipe = false;
+        pages.add(recipe);
     }
     
     private void initializeDefaultPages() {

@@ -23,6 +23,7 @@ public class ShardCrystalColorHandler {
     private static final int INSIGHT_COLOR = 0x54c55b;    // Cognition: #54c55b
     private static final int CHRONO_COLOR = 0xe6b538;     // Time: #e6b538
     private static final int SPATIAL_COLOR = 0x3d88dd;      // Space: #3d88dd
+    private static final int AMBER_COLOR = 0xFFA500;      // Amber: #FFA500 (orange/amber for time dilation)
     
     @SubscribeEvent
     public static void registerBlockColors(RegisterColorHandlersEvent.Block event) {
@@ -43,6 +44,9 @@ public class ShardCrystalColorHandler {
         registerCrystalColor(blockColors, StrangeMatterMod.INSIGHT_SHARD_LAMP, INSIGHT_COLOR);
         registerCrystalColor(blockColors, StrangeMatterMod.CHRONO_SHARD_LAMP, CHRONO_COLOR);
         registerCrystalColor(blockColors, StrangeMatterMod.SPATIAL_SHARD_LAMP, SPATIAL_COLOR);
+        
+        // Register amber color for time dilation block
+        registerCrystalColor(blockColors, StrangeMatterMod.TIME_DILATION_BLOCK, AMBER_COLOR);
     }
     
     private static void registerCrystalColor(BlockColors blockColors, RegistryObject<Block> block, int color) {
@@ -85,6 +89,8 @@ public class ShardCrystalColorHandler {
                 return (0xFF << 24) | ((CHRONO_COLOR >> 16) & 0xFF) << 16 | ((CHRONO_COLOR >> 8) & 0xFF) << 8 | (CHRONO_COLOR & 0xFF);
             } else if (block == StrangeMatterMod.SPATIAL_SHARD_LAMP.get()) {
                 return (0xFF << 24) | ((SPATIAL_COLOR >> 16) & 0xFF) << 16 | ((SPATIAL_COLOR >> 8) & 0xFF) << 8 | (SPATIAL_COLOR & 0xFF);
+            } else if (block == StrangeMatterMod.TIME_DILATION_BLOCK.get()) {
+                return (0xFF << 24) | ((AMBER_COLOR >> 16) & 0xFF) << 16 | ((AMBER_COLOR >> 8) & 0xFF) << 8 | (AMBER_COLOR & 0xFF);
             }
             return 0xFFFFFFFF; // White/default color
         },
@@ -99,7 +105,8 @@ public class ShardCrystalColorHandler {
         StrangeMatterMod.ENERGETIC_SHARD_LAMP_ITEM.get(),
         StrangeMatterMod.INSIGHT_SHARD_LAMP_ITEM.get(),
         StrangeMatterMod.CHRONO_SHARD_LAMP_ITEM.get(),
-        StrangeMatterMod.SPATIAL_SHARD_LAMP_ITEM.get()
+        StrangeMatterMod.SPATIAL_SHARD_LAMP_ITEM.get(),
+        StrangeMatterMod.TIME_DILATION_BLOCK_ITEM.get()
         );
     }
 }

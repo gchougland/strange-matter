@@ -53,6 +53,10 @@ public class StrangeMatterSounds {
     // Warp Gun sounds
     public static final RegistryObject<SoundEvent> WARP_GUN_SHOOT = registerSoundEvent("warp_gun_shoot");
     
+    // Chrono Blister sounds
+    public static final RegistryObject<SoundEvent> CHRONO_BLISTER_CHARGE = registerSoundEvent("chronoblister_charge");
+    public static final RegistryObject<SoundEvent> CHRONO_BLISTER_FIRE = registerSoundEvent("chronoblister_fire");
+    
     // Echo Vacuum sounds
     public static final RegistryObject<SoundEvent> ECHO_VACUUM_CHARGE_UP = registerSoundEvent("echo_vacuum_charge_up");
     public static final RegistryObject<SoundEvent> ECHO_VACUUM_FIRE_LOOP = registerSoundEvent("echo_vacuum_fire_loop");

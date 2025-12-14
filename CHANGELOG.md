@@ -2,6 +2,12 @@
 
 All notable changes to Strange Matter will be documented in this file.
 
+## [0.3.0] - Unreleased
+
+### Added
+- **Chrono Blister**: A gadget that shoots a bubble of time blocks that slow down mobs.
+- **Tinfoil Hat**: A helmet that protects the player from certain anomaly effects.
+
 ## [0.2.7] - 11/2/2025
 
 ### Added

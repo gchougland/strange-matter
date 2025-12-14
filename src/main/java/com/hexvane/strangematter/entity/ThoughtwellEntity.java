@@ -16,6 +16,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -133,6 +134,12 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
             if (entity instanceof Player player) {
                 double distance = this.distanceTo(player);
                 if (distance <= effectRadius) {
+                    // Check if player is wearing tinfoil hat
+                    if (player.getItemBySlot(EquipmentSlot.HEAD).getItem() == StrangeMatterMod.TINFOIL_HAT.get()) {
+                        // Player is protected, skip applying effect
+                        continue;
+                    }
+                    
                     // Apply slight nausea effect - intensity based on distance
                     float intensity = 1.0f - (float)(distance / effectRadius);
                     int duration = 100 + (int)(intensity * 100); // 5-10 seconds

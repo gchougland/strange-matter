@@ -115,6 +115,14 @@
     "sounds": ["strangematter:warp_gun_shoot"],
     "subtitle": "Warp gun fires"
   },
+  "chronoblister_charge": {
+    "sounds": ["strangematter:chronoblister_charge"],
+    "subtitle": "Chrono Blister charging"
+  },
+  "chronoblister_fire": {
+    "sounds": ["strangematter:chronoblister_fire"],
+    "subtitle": "Chrono Blister fires"
+  },
   "echo_vacuum_charge_up": {
     "sounds": ["strangematter:echo_vacuum_charge_up"],
     "subtitle": "Echo Vacuum charging up"
