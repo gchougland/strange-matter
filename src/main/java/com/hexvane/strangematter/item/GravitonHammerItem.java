@@ -20,8 +20,9 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.server.level.ServerPlayer;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import java.util.List;
 
@@ -29,6 +30,13 @@ public class GravitonHammerItem extends Item {
     private static final String CHARGING_TAG = "charging";
     private static final String CHARGE_LEVEL_TAG = "charge_level";
     private static final String CHARGE_TIME_TAG = "charge_time";
+
+    /**
+     * Reentrancy guard: when we break extra blocks via {@link ServerPlayer} game mode,
+     * Minecraft will call {@link #mineBlock} for each additional block. We must not
+     * trigger AoE/tunnel mining recursively.
+     */
+    private static final ThreadLocal<Boolean> INTERNAL_MINING = ThreadLocal.withInitial(() -> false);
     
     // These will be loaded from config
     private static int getChargeLevel1Time() { return com.hexvane.strangematter.Config.gravitonHammerChargeLevel1Time; }
@@ -117,11 +125,14 @@ public class GravitonHammerItem extends Item {
     @Override
     public boolean mineBlock(@Nonnull ItemStack stack, @Nonnull Level level, @Nonnull BlockState state, @Nonnull BlockPos pos, @Nonnull LivingEntity miningEntity) {
         if (!level.isClientSide && miningEntity instanceof Player player) {
+            // Prevent recursion when breaking extra blocks through the real player break path
+            if (Boolean.TRUE.equals(INTERNAL_MINING.get())) {
+                return true;
+            }
+
             // If crouching, only mine the single block
             if (player.isCrouching()) {
-                if (canMineBlock(state, level, pos, player)) {
-                    level.destroyBlock(pos, true, player);
-                }
+                // Vanilla already mined this single block; do not perform any extra breaking.
             } else {
                 // Perform 3x3 mining on left click when not crouching
                 performAreaMining(level, player, pos, state);
@@ -232,6 +243,7 @@ public class GravitonHammerItem extends Item {
     
     private void performAreaMining(Level level, Player player, BlockPos centerPos, BlockState centerState) {
         if (level.isClientSide) return;
+        if (!(player instanceof ServerPlayer serverPlayer)) return;
         
         // Get the face being mined to determine 3x3 orientation
         HitResult hitResult = player.pick(5.0, 0.0f, false);
@@ -243,17 +255,44 @@ public class GravitonHammerItem extends Item {
         // Calculate the 3x3 area based on the face
         List<BlockPos> blocksToMine = getAreaMiningPositions(centerPos, face);
         
-        // Mine each block
-        for (BlockPos pos : blocksToMine) {
-            BlockState state = level.getBlockState(pos);
-            if (canMineBlock(state, level, pos, player)) {
-                level.destroyBlock(pos, true, player);
+        boolean brokeAny = false;
+        INTERNAL_MINING.set(true);
+        try {
+            // Mine each block. Stop on first denied/unbreakable block.
+            for (BlockPos pos : blocksToMine) {
+                BlockState state = level.getBlockState(pos);
+
+                // Air should not stop the AoE; just skip it.
+                if (state.isAir()) {
+                    continue;
+                }
+
+                if (!canAttemptBreak(state, level, pos, player)) {
+                    // Unbreakable (bedrock/etc) or basic permission denial -> stop immediately.
+                    break;
+                }
+
+                boolean broke = serverPlayer.gameMode.destroyBlock(pos);
+                if (!broke) {
+                    // Protection mods (FTB Chunks) cancel here; stop immediately as requested.
+                    break;
+                }
+                brokeAny = true;
             }
+        } finally {
+            INTERNAL_MINING.set(false);
+        }
+
+        if (brokeAny) {
+            // Optional feedback; keep vanilla-ish and quiet.
+            level.playSound(null, player.getX(), player.getY(), player.getZ(),
+                SoundEvents.STONE_BREAK, SoundSource.PLAYERS, 0.35f, 1.0f);
         }
     }
     
     private void performTunnelMining(Level level, Player player, ItemStack stack, int chargeLevel) {
         if (level.isClientSide) return;
+        if (!(player instanceof ServerPlayer serverPlayer)) return;
         
         // Get the direction the player is looking
         HitResult hitResult = player.pick(5.0, 0.0f, false);
@@ -261,7 +300,7 @@ public class GravitonHammerItem extends Item {
             // If not looking at a block, use player's facing direction
             Direction face = player.getDirection();
             BlockPos startPos = player.blockPosition().relative(face);
-            performSimpleTunnelMining(level, player, startPos, face, chargeLevel);
+            performSimpleTunnelMining(level, serverPlayer, startPos, face, chargeLevel);
             return;
         }
         
@@ -275,47 +314,48 @@ public class GravitonHammerItem extends Item {
         // Start the tunnel from the block we're looking at (not behind it)
         BlockPos startPos = hitBlockPos;
         
-        performSimpleTunnelMining(level, player, startPos, tunnelDirection, chargeLevel);
+        performSimpleTunnelMining(level, serverPlayer, startPos, tunnelDirection, chargeLevel);
     }
     
-    private void performSimpleTunnelMining(Level level, Player player, BlockPos startPos, Direction face, int chargeLevel) {
+    private void performSimpleTunnelMining(Level level, ServerPlayer player, BlockPos startPos, Direction face, int chargeLevel) {
         int tunnelDepth = getTunnelDepth(chargeLevel);
-        
-        // Get all blocks in the tunnel
-        List<BlockPos> allBlocks = new java.util.ArrayList<>();
-        for (int i = 0; i < tunnelDepth; i++) {
-            BlockPos currentPos = startPos.relative(face, i);
-            
-            // Add 3x3 cross-section for each depth level
-            for (int x = -1; x <= 1; x++) {
-                for (int y = -1; y <= 1; y++) {
-                    for (int z = -1; z <= 1; z++) {
-                        if (face.getAxis() == Direction.Axis.X) {
-                            // Tunnel along X axis, so 3x3 in YZ plane
-                            allBlocks.add(currentPos.offset(0, y, z));
-                        } else if (face.getAxis() == Direction.Axis.Y) {
-                            // Tunnel along Y axis, so 3x3 in XZ plane
-                            allBlocks.add(currentPos.offset(x, 0, z));
-                        } else {
-                            // Tunnel along Z axis, so 3x3 in XY plane
-                            allBlocks.add(currentPos.offset(x, y, 0));
-                        }
+
+        boolean brokeAny = false;
+        INTERNAL_MINING.set(true);
+        try {
+            // Mine layer-by-layer; stop the tunnel on first denied/unbreakable block.
+            for (int i = 0; i < tunnelDepth; i++) {
+                BlockPos layerOrigin = startPos.relative(face, i);
+                List<BlockPos> layerPositions = getTunnelLayerPositions(layerOrigin, face.getAxis());
+
+                for (BlockPos pos : layerPositions) {
+                    BlockState state = level.getBlockState(pos);
+
+                    // Air should not stop the tunnel; just skip it.
+                    if (state.isAir()) {
+                        continue;
                     }
+
+                    if (!canAttemptBreak(state, level, pos, player)) {
+                        return; // stop tunnel immediately
+                    }
+
+                    boolean broke = player.gameMode.destroyBlock(pos);
+                    if (!broke) {
+                        return; // stop tunnel immediately (claims/protection/etc)
+                    }
+                    brokeAny = true;
                 }
             }
+        } finally {
+            INTERNAL_MINING.set(false);
         }
-        
-        // Mine all blocks at once
-        for (BlockPos pos : allBlocks) {
-            BlockState state = level.getBlockState(pos);
-            if (canMineBlock(state, level, pos, player)) {
-                level.destroyBlock(pos, true, player);
-            }
+
+        if (brokeAny) {
+            // Play mining sound
+            level.playSound(null, player.getX(), player.getY(), player.getZ(),
+                StrangeMatterSounds.GRAVITON_CHARGEUP.get(), SoundSource.PLAYERS, 1.0f, 0.8f);
         }
-        
-        // Play mining sound
-        level.playSound(null, player.getX(), player.getY(), player.getZ(), 
-            StrangeMatterSounds.GRAVITON_CHARGEUP.get(), SoundSource.PLAYERS, 1.0f, 0.8f);
     }
     
     
@@ -351,41 +391,6 @@ public class GravitonHammerItem extends Item {
         return positions;
     }
     
-    private List<List<BlockPos>> getTunnelPositionsByLayer(BlockPos start, Direction direction, int depth) {
-        List<List<BlockPos>> layers = new java.util.ArrayList<>();
-        
-        // Create a 3x3 tunnel extending in the direction, organized by layer
-        for (int i = 0; i < depth; i++) {
-            BlockPos currentPos = start.relative(direction, i);
-            List<BlockPos> currentLayer = new java.util.ArrayList<>();
-            
-            // Add 3x3 cross-section at this depth
-            Direction.Axis axis = direction.getAxis();
-            if (axis == Direction.Axis.Y) {
-                // Vertical tunnel - 3x3 horizontal cross-section
-                for (int x = -1; x <= 1; x++) {
-                    for (int z = -1; z <= 1; z++) {
-                        currentLayer.add(currentPos.offset(x, 0, z));
-                    }
-                }
-            } else {
-                // Horizontal tunnel - 3x3 vertical cross-section perpendicular to direction
-                Direction up = Direction.UP;
-                Direction right = direction.getClockWise();
-                
-                for (int upOffset = -1; upOffset <= 1; upOffset++) {
-                    for (int rightOffset = -1; rightOffset <= 1; rightOffset++) {
-                        currentLayer.add(currentPos.relative(up, upOffset).relative(right, rightOffset));
-                    }
-                }
-            }
-            
-            layers.add(currentLayer);
-        }
-        
-        return layers;
-    }
-    
     private int getTunnelDepth(int chargeLevel) {
         switch (chargeLevel) {
             case 1: return getTunnelDepthLevel1();
@@ -395,23 +400,60 @@ public class GravitonHammerItem extends Item {
         }
     }
     
-    private boolean canMineBlock(BlockState state, Level level, BlockPos pos, Player player) {
-        // Check if the block can be mined with this tool
-        if (!state.requiresCorrectToolForDrops()) {
-            return true; // Can always mine blocks that don't require tools
-        }
-        
-        // Check if this tool can mine the block (diamond pickaxe level)
-        if (!state.is(BlockTags.MINEABLE_WITH_PICKAXE)) {
+    private boolean canAttemptBreak(BlockState state, Level level, BlockPos pos, Player player) {
+        // Never attempt to break air
+        if (state.isAir()) {
             return false;
         }
-        
-        // Check if player can break the block (permissions, etc.)
-        return level.mayInteract(player, pos);
+
+        // Never attempt to break unbreakable blocks (bedrock, barriers, etc.)
+        float destroySpeed = state.getDestroySpeed(level, pos);
+        if (destroySpeed < 0.0f) {
+            return false;
+        }
+
+        // Basic vanilla permission gate (spawn protection, etc.). Claims are handled by the real break path.
+        if (!level.mayInteract(player, pos)) {
+            return false;
+        }
+
+        // If the block requires the correct tool, only allow pickaxe-mineable blocks for this hammer.
+        if (state.requiresCorrectToolForDrops() && !state.is(BlockTags.MINEABLE_WITH_PICKAXE)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private List<BlockPos> getTunnelLayerPositions(BlockPos origin, Direction.Axis axis) {
+        List<BlockPos> positions = new java.util.ArrayList<>(9);
+        if (axis == Direction.Axis.X) {
+            // 3x3 in YZ plane
+            for (int y = -1; y <= 1; y++) {
+                for (int z = -1; z <= 1; z++) {
+                    positions.add(origin.offset(0, y, z));
+                }
+            }
+        } else if (axis == Direction.Axis.Y) {
+            // 3x3 in XZ plane
+            for (int x = -1; x <= 1; x++) {
+                for (int z = -1; z <= 1; z++) {
+                    positions.add(origin.offset(x, 0, z));
+                }
+            }
+        } else {
+            // 3x3 in XY plane
+            for (int x = -1; x <= 1; x++) {
+                for (int y = -1; y <= 1; y++) {
+                    positions.add(origin.offset(x, y, 0));
+                }
+            }
+        }
+        return positions;
     }
     
     @Override
-    public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> consumer) {
+    public void initializeClient(@Nonnull java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> consumer) {
         consumer.accept(new com.hexvane.strangematter.client.GravitonHammerRenderer());
     }
 }

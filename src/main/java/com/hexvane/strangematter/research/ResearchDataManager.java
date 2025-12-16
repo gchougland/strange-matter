@@ -5,6 +5,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.server.level.ServerLevel;
 
+import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -18,7 +19,14 @@ public class ResearchDataManager extends SavedData {
     }
     
     public static ResearchDataManager get(ServerLevel level) {
-        return level.getDataStorage().computeIfAbsent(
+        // IMPORTANT: DimensionDataStorage is per-dimension. Player research should be global per save/server,
+        // so always store/load from the overworld's data storage (single source of truth).
+        ServerLevel storageLevel = level;
+        if (level.getServer() != null) {
+            storageLevel = level.getServer().overworld();
+        }
+
+        return storageLevel.getDataStorage().computeIfAbsent(
             ResearchDataManager::load,
             ResearchDataManager::new,
             DATA_NAME
@@ -27,6 +35,7 @@ public class ResearchDataManager extends SavedData {
     
     public static ResearchData get(Player player) {
         if (player.level() instanceof ServerLevel serverLevel) {
+            // Route through the overworld-backed manager (research is global per save/server)
             ResearchDataManager manager = get(serverLevel);
             return manager.getPlayerResearchData(player.getUUID());
         }
@@ -51,7 +60,7 @@ public class ResearchDataManager extends SavedData {
     }
     
     @Override
-    public CompoundTag save(@org.jetbrains.annotations.NotNull CompoundTag tag) {
+    public CompoundTag save(@Nonnull CompoundTag tag) {
         CompoundTag playersTag = new CompoundTag();
         for (Map.Entry<UUID, ResearchData> entry : playerResearchData.entrySet()) {
             playersTag.put(entry.getKey().toString(), entry.getValue().serializeNBT());

@@ -17,6 +17,10 @@ All notable changes to Strange Matter will be documented in this file.
   - **Manual Save**: Press Ctrl+S in debug mode to manually save node positions
 - **Research Tablet Zoom**: Added ability to zoom in the research tablet using the scroll wheel.
 
+### Fixed
+- **Dimension Dependent Research**: Fixed issue where research was dependent on the dimension the player was in.
+- **Graviton Hammer Block Breaking**: Fixed issue where Graviton Hammer AoE/tunnel mining could break bedrock and bypass FTB Chunks claims.
+
 ## [0.2.7] - 11/2/2025
 
 ### Added
