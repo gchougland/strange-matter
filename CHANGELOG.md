@@ -15,6 +15,7 @@ All notable changes to Strange Matter will be documented in this file.
   - **KubeJS Compatibility**: Works with both built-in research nodes and nodes added through KubeJS
   - **Connection Line Updates**: Connection lines between nodes automatically update as nodes are moved
   - **Manual Save**: Press Ctrl+S in debug mode to manually save node positions
+- **Research Tablet Zoom**: Added ability to zoom in the research tablet using the scroll wheel.
 
 ## [0.2.7] - 11/2/2025
 

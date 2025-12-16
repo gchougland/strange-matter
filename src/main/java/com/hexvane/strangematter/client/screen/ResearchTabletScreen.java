@@ -32,13 +32,16 @@ public class ResearchTabletScreen extends Screen {
     private static final int BACKGROUND_TILE_SIZE = 64;
     
     private int guiX, guiY;
-    private int dragOffsetX = 0, dragOffsetY = 0;
+    /**
+     * Pan offset in research-space pixels (unscaled). Applied before zoom.
+     */
+    private double dragOffsetX = 0.0, dragOffsetY = 0.0;
     private boolean isDragging = false;
-    private int lastMouseX, lastMouseY;
+    private double lastMouseX, lastMouseY;
     private String selectedCategory = "general";
     
     // Store saved drag position when opening research panes
-    private int savedDragOffsetX = 0, savedDragOffsetY = 0;
+    private double savedDragOffsetX = 0.0, savedDragOffsetY = 0.0;
     private int refreshCounter = 0;
     
     // Track hovered node for sound effects
@@ -52,6 +55,12 @@ public class ResearchTabletScreen extends Screen {
     
     // Node dragging state (for debug mode)
     private ResearchNode draggedNode = null;
+
+    // Zoom state (session-only)
+    private static final float MIN_ZOOM = 0.5f;
+    private static final float MAX_ZOOM = 2.5f;
+    private static final float ZOOM_STEP_FACTOR = 1.12f; // per scroll notch
+    private float zoom = 1.0f;
     
     public ResearchTabletScreen() {
         super(Component.translatable("gui.strangematter.research_tablet"));
@@ -75,12 +84,57 @@ public class ResearchTabletScreen extends Screen {
         this.guiX = (this.width - GUI_WIDTH) / 2;
         this.guiY = (this.height - GUI_HEIGHT) / 2;
         
-        // Initialize drag offset to center the view on the screen (start at center of draggable area)
-        this.dragOffsetX = 0; // Start at center horizontally
-        this.dragOffsetY = 0; // Start at center vertically
+        // Initialize pan/zoom state (session-only)
+        this.dragOffsetX = 0.0;
+        this.dragOffsetY = 0.0;
+        this.zoom = 1.0f;
         
         // TODO: Re-enable category tabs when needed
         // createCategoryButtons();
+    }
+
+    private int getDraggableAreaX() {
+        return guiX + (GUI_WIDTH - DRAGGABLE_AREA_WIDTH) / 2;
+    }
+
+    private int getDraggableAreaY() {
+        // Must match render scissor area
+        return guiY + 21;
+    }
+
+    private boolean isMouseInDraggableArea(double mouseX, double mouseY) {
+        int x = getDraggableAreaX();
+        int y = getDraggableAreaY();
+        return mouseX >= x && mouseX <= x + DRAGGABLE_AREA_WIDTH &&
+               mouseY >= y && mouseY <= y + DRAGGABLE_AREA_HEIGHT;
+    }
+
+    private double getAreaCenterX() {
+        return getDraggableAreaX() + DRAGGABLE_AREA_WIDTH / 2.0;
+    }
+
+    private double getAreaCenterY() {
+        return getDraggableAreaY() + DRAGGABLE_AREA_HEIGHT / 2.0;
+    }
+
+    private double screenToResearchX(double mouseX) {
+        return (mouseX - getAreaCenterX()) / zoom - dragOffsetX;
+    }
+
+    private double screenToResearchY(double mouseY) {
+        return (mouseY - getAreaCenterY()) / zoom - dragOffsetY;
+    }
+
+    private double researchToScreenX(double researchX) {
+        return getAreaCenterX() + (researchX + dragOffsetX) * zoom;
+    }
+
+    private double researchToScreenY(double researchY) {
+        return getAreaCenterY() + (researchY + dragOffsetY) * zoom;
+    }
+
+    private float clampZoom(float value) {
+        return Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, value));
     }
     
     @Override
@@ -105,6 +159,39 @@ public class ResearchTabletScreen extends Screen {
         }
         
         return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollDelta) {
+        // Only zoom when scrolling over the draggable research area
+        if (!isMouseInDraggableArea(mouseX, mouseY)) {
+            return super.mouseScrolled(mouseX, mouseY, scrollDelta);
+        }
+
+        if (scrollDelta == 0.0) {
+            return true;
+        }
+
+        // Cursor-anchored zoom: keep the research-space point under the cursor stable
+        double localX = mouseX - getAreaCenterX();
+        double localY = mouseY - getAreaCenterY();
+
+        float oldZoom = this.zoom;
+        float newZoom = clampZoom((float) (oldZoom * Math.pow(ZOOM_STEP_FACTOR, scrollDelta)));
+        if (newZoom == oldZoom) {
+            return true;
+        }
+
+        // Research-space coordinate under cursor at old zoom
+        double anchorResearchX = localX / oldZoom - dragOffsetX;
+        double anchorResearchY = localY / oldZoom - dragOffsetY;
+
+        // Adjust pan so that anchorResearch stays under the cursor at new zoom
+        this.zoom = newZoom;
+        this.dragOffsetX = localX / newZoom - anchorResearchX;
+        this.dragOffsetY = localY / newZoom - anchorResearchY;
+
+        return true;
     }
     
     private void createCategoryButtons() {
@@ -172,16 +259,11 @@ public class ResearchTabletScreen extends Screen {
      * Render debug mode overlay showing mouse coordinates and debug mode indicator.
      */
     private void renderDebugOverlay(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        int draggableX = guiX + (GUI_WIDTH - DRAGGABLE_AREA_WIDTH) / 2;
-        int draggableY = guiY + 21;
-        
         // Check if mouse is in draggable area
-        if (mouseX >= draggableX && mouseX <= draggableX + DRAGGABLE_AREA_WIDTH &&
-            mouseY >= draggableY && mouseY <= draggableY + DRAGGABLE_AREA_HEIGHT) {
-            
-            // Convert mouse position to research coordinate space
-            int researchX = mouseX - draggableX - DRAGGABLE_AREA_WIDTH / 2 - dragOffsetX;
-            int researchY = mouseY - draggableY - DRAGGABLE_AREA_HEIGHT / 2 - dragOffsetY;
+        if (isMouseInDraggableArea(mouseX, mouseY)) {
+            // Convert mouse position to research coordinate space (zoom-aware)
+            int researchX = (int) Math.round(screenToResearchX(mouseX));
+            int researchY = (int) Math.round(screenToResearchY(mouseY));
             
             // Snap to grid
             int gridX = ResearchNodePositionManager.snapToGrid(researchX);
@@ -217,41 +299,57 @@ public class ResearchTabletScreen extends Screen {
     }
     
     private void renderDraggableArea(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        int draggableX = guiX + (GUI_WIDTH - DRAGGABLE_AREA_WIDTH) / 2;
-        int draggableY = guiY + 21;
-        
-        // Enable scissor to clip the draggable area
+        int draggableX = getDraggableAreaX();
+        int draggableY = getDraggableAreaY();
+
+        // Enable scissor to clip the draggable area (scissor is in screen coords, independent of pose)
         guiGraphics.enableScissor(draggableX, draggableY, draggableX + DRAGGABLE_AREA_WIDTH, draggableY + DRAGGABLE_AREA_HEIGHT);
-        
-        // Calculate how many tiles we need to cover the area plus extra buffer to prevent popping
-        int bufferTiles = 2; // Extra tiles on each side to prevent popping
-        int tilesX = (DRAGGABLE_AREA_WIDTH + bufferTiles * 2 * BACKGROUND_TILE_SIZE) / BACKGROUND_TILE_SIZE + 3;
-        int tilesY = (DRAGGABLE_AREA_HEIGHT + bufferTiles * 2 * BACKGROUND_TILE_SIZE) / BACKGROUND_TILE_SIZE + 3;
-        
-        int startTileX = (dragOffsetX % BACKGROUND_TILE_SIZE) - (dragOffsetX < 0 ? BACKGROUND_TILE_SIZE : 0) - (bufferTiles * BACKGROUND_TILE_SIZE);
-        int startTileY = (dragOffsetY % BACKGROUND_TILE_SIZE) - (dragOffsetY < 0 ? BACKGROUND_TILE_SIZE : 0) - (bufferTiles * BACKGROUND_TILE_SIZE);
-        
-        // Render tiled background with buffer to prevent popping
-        RenderSystem.setShaderTexture(0, RESEARCH_TABLET_BACKGROUND);
-        for (int x = 0; x < tilesX; x++) {
-            for (int y = 0; y < tilesY; y++) {
-                int tileX = draggableX + startTileX + (x * BACKGROUND_TILE_SIZE);
-                int tileY = draggableY + startTileY + (y * BACKGROUND_TILE_SIZE);
-                guiGraphics.blit(RESEARCH_TABLET_BACKGROUND, tileX, tileY, 0, 0, BACKGROUND_TILE_SIZE, BACKGROUND_TILE_SIZE, BACKGROUND_TILE_SIZE, BACKGROUND_TILE_SIZE);
-            }
-        }
-        
+
+        // Render everything in "research space" using pose transforms so nodes/lines/background scale together.
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate((float) getAreaCenterX(), (float) getAreaCenterY(), 0.0f);
+        guiGraphics.pose().scale(zoom, zoom, 1.0f);
+        guiGraphics.pose().translate((float) dragOffsetX, (float) dragOffsetY, 0.0f);
+
+        // Render tiled background in research-space coordinates
+        renderTiledBackground(guiGraphics);
+
         // Render research node connections (lines between nodes)
-        renderResearchNodeConnections(guiGraphics, draggableX, draggableY);
-        
-        // Render research nodes (inside scissor area)
-        renderResearchNodes(guiGraphics, draggableX, draggableY, mouseX, mouseY);
-        
-        // Disable scissor
+        renderResearchNodeConnections(guiGraphics);
+
+        // Render research nodes
+        renderResearchNodes(guiGraphics, mouseX, mouseY);
+
+        guiGraphics.pose().popPose();
         guiGraphics.disableScissor();
     }
+
+    private void renderTiledBackground(GuiGraphics guiGraphics) {
+        // Visible research-space bounds given current zoom + pan (origin at draggable area center)
+        double halfW = DRAGGABLE_AREA_WIDTH / (2.0 * zoom);
+        double halfH = DRAGGABLE_AREA_HEIGHT / (2.0 * zoom);
+
+        double left = -halfW - dragOffsetX;
+        double right = halfW - dragOffsetX;
+        double top = -halfH - dragOffsetY;
+        double bottom = halfH - dragOffsetY;
+
+        int bufferTiles = 2;
+        double startX = Math.floor(left / BACKGROUND_TILE_SIZE) * BACKGROUND_TILE_SIZE - (bufferTiles * BACKGROUND_TILE_SIZE);
+        double startY = Math.floor(top / BACKGROUND_TILE_SIZE) * BACKGROUND_TILE_SIZE - (bufferTiles * BACKGROUND_TILE_SIZE);
+        double endX = Math.ceil(right / BACKGROUND_TILE_SIZE) * BACKGROUND_TILE_SIZE + (bufferTiles * BACKGROUND_TILE_SIZE);
+        double endY = Math.ceil(bottom / BACKGROUND_TILE_SIZE) * BACKGROUND_TILE_SIZE + (bufferTiles * BACKGROUND_TILE_SIZE);
+
+        RenderSystem.setShaderTexture(0, RESEARCH_TABLET_BACKGROUND);
+        for (double x = startX; x <= endX; x += BACKGROUND_TILE_SIZE) {
+            for (double y = startY; y <= endY; y += BACKGROUND_TILE_SIZE) {
+                guiGraphics.blit(RESEARCH_TABLET_BACKGROUND, (int) x, (int) y, 0, 0,
+                    BACKGROUND_TILE_SIZE, BACKGROUND_TILE_SIZE, BACKGROUND_TILE_SIZE, BACKGROUND_TILE_SIZE);
+            }
+        }
+    }
     
-    private void renderResearchNodeConnections(GuiGraphics guiGraphics, int draggableX, int draggableY) {
+    private void renderResearchNodeConnections(GuiGraphics guiGraphics) {
         List<ResearchNode> nodes = ResearchNodeRegistry.getNodesByCategory(selectedCategory);
         ResearchData researchData = ResearchDataClientHandler.getClientResearchData();
         
@@ -262,9 +360,9 @@ public class ResearchTabletScreen extends Screen {
             if (!node.hasPrerequisites()) {
                 continue; // Skip nodes without prerequisites
             }
-            
-            int nodeX = draggableX + DRAGGABLE_AREA_WIDTH / 2 + positionManager.getEffectiveX(node) + dragOffsetX;
-            int nodeY = draggableY + DRAGGABLE_AREA_HEIGHT / 2 + positionManager.getEffectiveY(node) + dragOffsetY;
+
+            int nodeX = positionManager.getEffectiveX(node);
+            int nodeY = positionManager.getEffectiveY(node);
             
             // Node position for line calculations
             
@@ -272,8 +370,8 @@ public class ResearchTabletScreen extends Screen {
             for (String prerequisiteId : node.getPrerequisites()) {
                 ResearchNode prerequisite = ResearchNodeRegistry.getNode(prerequisiteId);
                 if (prerequisite != null) {
-                    int prereqX = draggableX + DRAGGABLE_AREA_WIDTH / 2 + positionManager.getEffectiveX(prerequisite) + dragOffsetX;
-                    int prereqY = draggableY + DRAGGABLE_AREA_HEIGHT / 2 + positionManager.getEffectiveY(prerequisite) + dragOffsetY;
+                    int prereqX = positionManager.getEffectiveX(prerequisite);
+                    int prereqY = positionManager.getEffectiveY(prerequisite);
                     
                     // Prerequisite position for line calculations
                     
@@ -327,17 +425,17 @@ public class ResearchTabletScreen extends Screen {
     
     // Helper method to get the research node that was clicked
     private ResearchNode getClickedNode(double mouseX, double mouseY) {
-        int draggableX = guiX + 1 + (GUI_WIDTH - DRAGGABLE_AREA_WIDTH) / 2;
-        int draggableY = guiY + 15;
-        
-        
         for (ResearchNode node : ResearchNodeRegistry.getNodesByCategory(selectedCategory)) {
-            int nodeX = draggableX + DRAGGABLE_AREA_WIDTH / 2 + positionManager.getEffectiveX(node) + dragOffsetX;
-            int nodeY = draggableY + DRAGGABLE_AREA_HEIGHT / 2 + positionManager.getEffectiveY(node) + dragOffsetY;
-            
-            // Check if click is within this node's bounds (32x32 pixels)
-            if (mouseX >= nodeX && mouseX <= nodeX + 32 &&
-                mouseY >= nodeY && mouseY <= nodeY + 32) {
+            int nodeResearchX = positionManager.getEffectiveX(node);
+            int nodeResearchY = positionManager.getEffectiveY(node);
+
+            double nodeScreenX = researchToScreenX(nodeResearchX);
+            double nodeScreenY = researchToScreenY(nodeResearchY);
+            double nodeScreenSize = 32.0 * zoom;
+
+            // Check if click is within this node's bounds (scaled)
+            if (mouseX >= nodeScreenX && mouseX <= nodeScreenX + nodeScreenSize &&
+                mouseY >= nodeScreenY && mouseY <= nodeScreenY + nodeScreenSize) {
                 return node;
             }
         }
@@ -544,22 +642,27 @@ public class ResearchTabletScreen extends Screen {
         guiGraphics.fill(x - 1, y - 1, x + 1, y + 1, darkerColor);
     }
     
-    private void renderResearchNodes(GuiGraphics guiGraphics, int draggableX, int draggableY, int mouseX, int mouseY) {
+    private void renderResearchNodes(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         List<ResearchNode> nodes = ResearchNodeRegistry.getNodesByCategory(selectedCategory);
         ResearchData researchData = ResearchDataClientHandler.getClientResearchData();
         
         for (ResearchNode node : nodes) {
-            int nodeX = draggableX + DRAGGABLE_AREA_WIDTH / 2 + positionManager.getEffectiveX(node) + dragOffsetX;
-            int nodeY = draggableY + DRAGGABLE_AREA_HEIGHT / 2 + positionManager.getEffectiveY(node) + dragOffsetY;
-            
-            // Check if node is within visible area
-            if (nodeX + 32 >= draggableX && nodeX <= draggableX + DRAGGABLE_AREA_WIDTH &&
-                nodeY + 32 >= draggableY && nodeY <= draggableY + DRAGGABLE_AREA_HEIGHT) {
+            int nodeX = positionManager.getEffectiveX(node);
+            int nodeY = positionManager.getEffectiveY(node);
+
+            double nodeScreenX = researchToScreenX(nodeX);
+            double nodeScreenY = researchToScreenY(nodeY);
+            double nodeScreenSize = 32.0 * zoom;
+
+            // Check if node is within visible area (screen-space)
+            if (nodeScreenX + nodeScreenSize >= getDraggableAreaX() && nodeScreenX <= getDraggableAreaX() + DRAGGABLE_AREA_WIDTH &&
+                nodeScreenY + nodeScreenSize >= getDraggableAreaY() && nodeScreenY <= getDraggableAreaY() + DRAGGABLE_AREA_HEIGHT) {
                 
                 boolean isUnlocked = researchData.getUnlockedResearch().contains(node.getId());
                 boolean canAfford = node.canAfford(getPlayerResearchPoints(researchData));
                 boolean prerequisitesUnlocked = hasPrerequisitesUnlocked(node, researchData);
-                boolean isHovered = mouseX >= nodeX && mouseX <= nodeX + 32 && mouseY >= nodeY && mouseY <= nodeY + 32;
+                boolean isHovered = mouseX >= nodeScreenX && mouseX <= nodeScreenX + nodeScreenSize &&
+                    mouseY >= nodeScreenY && mouseY <= nodeScreenY + nodeScreenSize;
                 
                 // Highlight dragged node in debug mode
                 boolean isDragged = debugMode && draggedNode == node;
@@ -619,18 +722,22 @@ public class ResearchTabletScreen extends Screen {
     private void renderResearchNodeTooltips(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         List<ResearchNode> nodes = ResearchNodeRegistry.getNodesByCategory(selectedCategory);
         ResearchData researchData = ResearchDataClientHandler.getClientResearchData();
-        int draggableX = guiX + 1 + (GUI_WIDTH - DRAGGABLE_AREA_WIDTH) / 2;
-        int draggableY = guiY + 15;
+        int draggableX = getDraggableAreaX();
+        int draggableY = getDraggableAreaY();
         
         for (ResearchNode node : nodes) {
-            int nodeX = draggableX + DRAGGABLE_AREA_WIDTH / 2 + positionManager.getEffectiveX(node) + dragOffsetX;
-            int nodeY = draggableY + DRAGGABLE_AREA_HEIGHT / 2 + positionManager.getEffectiveY(node) + dragOffsetY;
+            int nodeResearchX = positionManager.getEffectiveX(node);
+            int nodeResearchY = positionManager.getEffectiveY(node);
+
+            double nodeScreenX = researchToScreenX(nodeResearchX);
+            double nodeScreenY = researchToScreenY(nodeResearchY);
+            double nodeScreenSize = 32.0 * zoom;
             
             // Check if node is within visible area and being hovered
-            if (nodeX + 32 >= draggableX && nodeX <= draggableX + DRAGGABLE_AREA_WIDTH &&
-                nodeY + 32 >= draggableY && nodeY <= draggableY + DRAGGABLE_AREA_HEIGHT) {
-                
-                boolean isHovered = mouseX >= nodeX && mouseX <= nodeX + 32 && mouseY >= nodeY && mouseY <= nodeY + 32;
+            if (nodeScreenX + nodeScreenSize >= draggableX && nodeScreenX <= draggableX + DRAGGABLE_AREA_WIDTH &&
+                nodeScreenY + nodeScreenSize >= draggableY && nodeScreenY <= draggableY + DRAGGABLE_AREA_HEIGHT) {
+                boolean isHovered = mouseX >= nodeScreenX && mouseX <= nodeScreenX + nodeScreenSize &&
+                    mouseY >= nodeScreenY && mouseY <= nodeScreenY + nodeScreenSize;
                 
                 if (isHovered) {
                     renderTooltip(guiGraphics, node, researchData, mouseX, mouseY);
@@ -845,12 +952,8 @@ public class ResearchTabletScreen extends Screen {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) { // Left click
-            int draggableX = guiX + 1 + (GUI_WIDTH - DRAGGABLE_AREA_WIDTH) / 2;
-            int draggableY = guiY + 15;
-            
             // Check if click is within draggable area
-            if (mouseX >= draggableX && mouseX <= draggableX + DRAGGABLE_AREA_WIDTH &&
-                mouseY >= draggableY && mouseY <= draggableY + DRAGGABLE_AREA_HEIGHT) {
+            if (isMouseInDraggableArea(mouseX, mouseY)) {
                 
                 // First check for research node clicks
                 ResearchNode clickedNode = getClickedNode(mouseX, mouseY);
@@ -901,8 +1004,8 @@ public class ResearchTabletScreen extends Screen {
                 
                 // If no node was clicked, start dragging the view (panning works in both modes)
                 this.isDragging = true;
-                this.lastMouseX = (int) mouseX;
-                this.lastMouseY = (int) mouseY;
+                this.lastMouseX = mouseX;
+                this.lastMouseY = mouseY;
                 return true;
             }
         }
@@ -915,12 +1018,9 @@ public class ResearchTabletScreen extends Screen {
         if (button == 0) {
             if (debugMode && draggedNode != null) {
                 // Dragging a node in debug mode
-                int draggableX = guiX + 1 + (GUI_WIDTH - DRAGGABLE_AREA_WIDTH) / 2;
-                int draggableY = guiY + 15;
-                
                 // Convert mouse position to research coordinate space
-                int researchX = (int) mouseX - draggableX - DRAGGABLE_AREA_WIDTH / 2 - dragOffsetX;
-                int researchY = (int) mouseY - draggableY - DRAGGABLE_AREA_HEIGHT / 2 - dragOffsetY;
+                int researchX = (int) Math.round(screenToResearchX(mouseX));
+                int researchY = (int) Math.round(screenToResearchY(mouseY));
                 
                 // Update node position (will be snapped to grid by position manager)
                 positionManager.setPosition(draggedNode.getId(), researchX, researchY);
@@ -928,14 +1028,15 @@ public class ResearchTabletScreen extends Screen {
                 return true;
             } else if (isDragging) {
                 // Dragging the view (panning - works in both normal and debug mode)
-                int deltaXInt = (int) (mouseX - lastMouseX);
-                int deltaYInt = (int) (mouseY - lastMouseY);
-                
-                this.dragOffsetX += deltaXInt;
-                this.dragOffsetY += deltaYInt;
-                
-                this.lastMouseX = (int) mouseX;
-                this.lastMouseY = (int) mouseY;
+                double dx = mouseX - lastMouseX;
+                double dy = mouseY - lastMouseY;
+
+                // Pan is in research-space units, so scale mouse delta by 1/zoom
+                this.dragOffsetX += dx / zoom;
+                this.dragOffsetY += dy / zoom;
+
+                this.lastMouseX = mouseX;
+                this.lastMouseY = mouseY;
                 return true;
             }
         }
