@@ -421,5 +421,28 @@ public class ResearchNodeRegistry {
         } catch (Exception e) {
             // KubeJS not loaded or class not found - this is fine
         }
+        
+        // Load saved node positions on client side (after all nodes are registered)
+        loadSavedPositions();
+    }
+    
+    /**
+     * Load saved node positions from file (client-side only).
+     * This is called after all nodes are registered, including KubeJS nodes.
+     */
+    private static void loadSavedPositions() {
+        // Only load on client side
+        if (net.minecraftforge.fml.loading.FMLEnvironment.dist != net.minecraftforge.api.distmarker.Dist.CLIENT) {
+            return;
+        }
+        
+        try {
+            Class<?> positionManager = Class.forName("com.hexvane.strangematter.client.research.ResearchNodePositionManager");
+            Object instance = positionManager.getMethod("getInstance").invoke(null);
+            positionManager.getMethod("loadPositions").invoke(instance);
+        } catch (Exception e) {
+            // Position manager not available or failed to load - this is fine
+            // It might not be available during server-side initialization
+        }
     }
 }

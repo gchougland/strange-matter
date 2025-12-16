@@ -1,25 +1,19 @@
 package com.hexvane.strangematter.client.screen;
 
+import com.hexvane.strangematter.client.research.ResearchNodePositionManager;
 import com.hexvane.strangematter.network.ResearchDataClientHandler;
 import com.hexvane.strangematter.research.ResearchData;
 import com.hexvane.strangematter.research.ResearchNode;
 import com.hexvane.strangematter.research.ResearchNodeRegistry;
 import com.hexvane.strangematter.research.ResearchType;
-import com.hexvane.strangematter.item.ResearchNoteItem;
 import com.hexvane.strangematter.sound.StrangeMatterSounds;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.ItemModelShaper;
-import net.minecraft.client.renderer.texture.TextureAtlas;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,11 +46,21 @@ public class ResearchTabletScreen extends Screen {
     
     private final Map<String, Button> categoryButtons = new HashMap<>();
     
+    // Debug mode state
+    private boolean debugMode = false;
+    private ResearchNodePositionManager positionManager;
+    
+    // Node dragging state (for debug mode)
+    private ResearchNode draggedNode = null;
+    
     public ResearchTabletScreen() {
         super(Component.translatable("gui.strangematter.research_tablet"));
         
         // Initialize research nodes
         ResearchNodeRegistry.initializeDefaultNodes();
+        
+        // Initialize position manager
+        this.positionManager = ResearchNodePositionManager.getInstance();
     }
     
     @Override
@@ -77,6 +81,30 @@ public class ResearchTabletScreen extends Screen {
         
         // TODO: Re-enable category tabs when needed
         // createCategoryButtons();
+    }
+    
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        // Toggle debug mode with F3+D
+        if (keyCode == GLFW.GLFW_KEY_D && (modifiers & GLFW.GLFW_MOD_CONTROL) != 0) {
+            debugMode = !debugMode;
+            if (debugMode) {
+                // Save positions when entering debug mode
+                positionManager.savePositions();
+            }
+            return true;
+        }
+        
+        // Save positions with Ctrl+S in debug mode
+        if (debugMode && keyCode == GLFW.GLFW_KEY_S && (modifiers & GLFW.GLFW_MOD_CONTROL) != 0) {
+            positionManager.savePositions();
+            if (minecraft != null && minecraft.player != null) {
+                minecraft.player.sendSystemMessage(Component.literal("§aSaved research node positions"));
+            }
+            return true;
+        }
+        
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
     
     private void createCategoryButtons() {
@@ -131,8 +159,61 @@ public class ResearchTabletScreen extends Screen {
         RenderSystem.setShaderTexture(0, RESEARCH_TABLET_OVERLAY);
         guiGraphics.blit(RESEARCH_TABLET_OVERLAY, guiX, guiY, 0, 0, GUI_WIDTH, GUI_HEIGHT, 320, 240);
         
+        // Render debug mode overlay
+        if (debugMode) {
+            renderDebugOverlay(guiGraphics, mouseX, mouseY);
+        }
+        
         // Render research node tooltips on top of everything
         renderResearchNodeTooltips(guiGraphics, mouseX, mouseY);
+    }
+    
+    /**
+     * Render debug mode overlay showing mouse coordinates and debug mode indicator.
+     */
+    private void renderDebugOverlay(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        int draggableX = guiX + (GUI_WIDTH - DRAGGABLE_AREA_WIDTH) / 2;
+        int draggableY = guiY + 21;
+        
+        // Check if mouse is in draggable area
+        if (mouseX >= draggableX && mouseX <= draggableX + DRAGGABLE_AREA_WIDTH &&
+            mouseY >= draggableY && mouseY <= draggableY + DRAGGABLE_AREA_HEIGHT) {
+            
+            // Convert mouse position to research coordinate space
+            int researchX = mouseX - draggableX - DRAGGABLE_AREA_WIDTH / 2 - dragOffsetX;
+            int researchY = mouseY - draggableY - DRAGGABLE_AREA_HEIGHT / 2 - dragOffsetY;
+            
+            // Snap to grid
+            int gridX = ResearchNodePositionManager.snapToGrid(researchX);
+            int gridY = ResearchNodePositionManager.snapToGrid(researchY);
+            
+            // Render coordinate display
+            String coordText = String.format("X: %d, Y: %d", researchX, researchY);
+            String gridText = String.format("Grid: X: %d, Y: %d", gridX, gridY);
+            
+            int textX = mouseX + 10;
+            int textY = mouseY - 30;
+            
+            // Background for text
+            int textWidth = Math.max(font.width(coordText), font.width(gridText)) + 4;
+            guiGraphics.fill(textX - 2, textY - 2, textX + textWidth + 2, textY + 24, 0x80000000);
+            guiGraphics.renderOutline(textX - 2, textY - 2, textWidth + 4, 24, 0xFF00FF00);
+            
+            // Render text
+            guiGraphics.drawString(this.font, coordText, textX, textY, 0xFFFFFF);
+            guiGraphics.drawString(this.font, gridText, textX, textY + 12, 0x00FF00);
+        }
+        
+        // Render debug mode indicator in top-left corner
+        String debugText = "DEBUG MODE - Ctrl+D to toggle, Ctrl+S to save";
+        int indicatorX = guiX + 5;
+        int indicatorY = guiY + 5;
+        int indicatorWidth = font.width(debugText) + 4;
+        int indicatorHeight = 12;
+        
+        guiGraphics.fill(indicatorX - 2, indicatorY - 2, indicatorX + indicatorWidth + 2, indicatorY + indicatorHeight + 2, 0x80000000);
+        guiGraphics.renderOutline(indicatorX - 2, indicatorY - 2, indicatorWidth + 4, indicatorHeight + 2, 0xFFFF0000);
+        guiGraphics.drawString(this.font, debugText, indicatorX, indicatorY, 0xFFFF00);
     }
     
     private void renderDraggableArea(GuiGraphics guiGraphics, int mouseX, int mouseY) {
@@ -182,8 +263,8 @@ public class ResearchTabletScreen extends Screen {
                 continue; // Skip nodes without prerequisites
             }
             
-            int nodeX = draggableX + DRAGGABLE_AREA_WIDTH / 2 + node.getX() + dragOffsetX;
-            int nodeY = draggableY + DRAGGABLE_AREA_HEIGHT / 2 + node.getY() + dragOffsetY;
+            int nodeX = draggableX + DRAGGABLE_AREA_WIDTH / 2 + positionManager.getEffectiveX(node) + dragOffsetX;
+            int nodeY = draggableY + DRAGGABLE_AREA_HEIGHT / 2 + positionManager.getEffectiveY(node) + dragOffsetY;
             
             // Node position for line calculations
             
@@ -191,8 +272,8 @@ public class ResearchTabletScreen extends Screen {
             for (String prerequisiteId : node.getPrerequisites()) {
                 ResearchNode prerequisite = ResearchNodeRegistry.getNode(prerequisiteId);
                 if (prerequisite != null) {
-                    int prereqX = draggableX + DRAGGABLE_AREA_WIDTH / 2 + prerequisite.getX() + dragOffsetX;
-                    int prereqY = draggableY + DRAGGABLE_AREA_HEIGHT / 2 + prerequisite.getY() + dragOffsetY;
+                    int prereqX = draggableX + DRAGGABLE_AREA_WIDTH / 2 + positionManager.getEffectiveX(prerequisite) + dragOffsetX;
+                    int prereqY = draggableY + DRAGGABLE_AREA_HEIGHT / 2 + positionManager.getEffectiveY(prerequisite) + dragOffsetY;
                     
                     // Prerequisite position for line calculations
                     
@@ -251,8 +332,8 @@ public class ResearchTabletScreen extends Screen {
         
         
         for (ResearchNode node : ResearchNodeRegistry.getNodesByCategory(selectedCategory)) {
-            int nodeX = draggableX + DRAGGABLE_AREA_WIDTH / 2 + node.getX() + dragOffsetX;
-            int nodeY = draggableY + DRAGGABLE_AREA_HEIGHT / 2 + node.getY() + dragOffsetY;
+            int nodeX = draggableX + DRAGGABLE_AREA_WIDTH / 2 + positionManager.getEffectiveX(node) + dragOffsetX;
+            int nodeY = draggableY + DRAGGABLE_AREA_HEIGHT / 2 + positionManager.getEffectiveY(node) + dragOffsetY;
             
             // Check if click is within this node's bounds (32x32 pixels)
             if (mouseX >= nodeX && mouseX <= nodeX + 32 &&
@@ -468,8 +549,8 @@ public class ResearchTabletScreen extends Screen {
         ResearchData researchData = ResearchDataClientHandler.getClientResearchData();
         
         for (ResearchNode node : nodes) {
-            int nodeX = draggableX + DRAGGABLE_AREA_WIDTH / 2 + node.getX() + dragOffsetX;
-            int nodeY = draggableY + DRAGGABLE_AREA_HEIGHT / 2 + node.getY() + dragOffsetY;
+            int nodeX = draggableX + DRAGGABLE_AREA_WIDTH / 2 + positionManager.getEffectiveX(node) + dragOffsetX;
+            int nodeY = draggableY + DRAGGABLE_AREA_HEIGHT / 2 + positionManager.getEffectiveY(node) + dragOffsetY;
             
             // Check if node is within visible area
             if (nodeX + 32 >= draggableX && nodeX <= draggableX + DRAGGABLE_AREA_WIDTH &&
@@ -479,6 +560,9 @@ public class ResearchTabletScreen extends Screen {
                 boolean canAfford = node.canAfford(getPlayerResearchPoints(researchData));
                 boolean prerequisitesUnlocked = hasPrerequisitesUnlocked(node, researchData);
                 boolean isHovered = mouseX >= nodeX && mouseX <= nodeX + 32 && mouseY >= nodeY && mouseY <= nodeY + 32;
+                
+                // Highlight dragged node in debug mode
+                boolean isDragged = debugMode && draggedNode == node;
                 
                 // Check for hover sound
                 if (isHovered && lastHoveredNode != node) {
@@ -516,9 +600,15 @@ public class ResearchTabletScreen extends Screen {
                 }
                 
                 // Render hover effect
-                if (isHovered) {
+                if (isHovered && !debugMode) {
                     RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 0.5F);
                     guiGraphics.fill(nodeX, nodeY, nodeX + 32, nodeY + 32, 0xFFFFFFFF);
+                }
+                
+                // Render debug mode drag indicator
+                if (isDragged) {
+                    RenderSystem.setShaderColor(1.0F, 1.0F, 0.0F, 0.7F);
+                    guiGraphics.fill(nodeX - 2, nodeY - 2, nodeX + 34, nodeY + 34, 0xFFFFFF00);
                 }
                 
                 RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -533,8 +623,8 @@ public class ResearchTabletScreen extends Screen {
         int draggableY = guiY + 15;
         
         for (ResearchNode node : nodes) {
-            int nodeX = draggableX + DRAGGABLE_AREA_WIDTH / 2 + node.getX() + dragOffsetX;
-            int nodeY = draggableY + DRAGGABLE_AREA_HEIGHT / 2 + node.getY() + dragOffsetY;
+            int nodeX = draggableX + DRAGGABLE_AREA_WIDTH / 2 + positionManager.getEffectiveX(node) + dragOffsetX;
+            int nodeY = draggableY + DRAGGABLE_AREA_HEIGHT / 2 + positionManager.getEffectiveY(node) + dragOffsetY;
             
             // Check if node is within visible area and being hovered
             if (nodeX + 32 >= draggableX && nodeX <= draggableX + DRAGGABLE_AREA_WIDTH &&
@@ -765,44 +855,51 @@ public class ResearchTabletScreen extends Screen {
                 // First check for research node clicks
                 ResearchNode clickedNode = getClickedNode(mouseX, mouseY);
                 if (clickedNode != null) {
-                    ResearchData researchData = ResearchDataClientHandler.getClientResearchData();
-                    boolean isUnlocked = researchData.getUnlockedResearch().contains(clickedNode.getId());
-                    
-                    if (isUnlocked) {
-                        // Open information page for unlocked node
-                        openNodeInformationPage(clickedNode);
-                        // Play node click sound
-                        minecraft.player.playSound(StrangeMatterSounds.RESEARCH_TABLET_NODE_CLICK.get(), 0.7f, 1.0f);
+                    if (debugMode) {
+                        // In debug mode, start dragging the node
+                        draggedNode = clickedNode;
                         return true;
                     } else {
-                        // Check if player can afford this research
-                        boolean canAfford = true;
-                        for (Map.Entry<ResearchType, Integer> entry : clickedNode.getResearchCosts().entrySet()) {
-                            ResearchType type = entry.getKey();
-                            int cost = entry.getValue();
-                            int currentPoints = researchData.getResearchPoints(type);
-                            if (currentPoints < cost) {
-                                canAfford = false;
-                                break;
-                            }
-                        }
+                        // Normal mode: handle research node clicks
+                        ResearchData researchData = ResearchDataClientHandler.getClientResearchData();
+                        boolean isUnlocked = researchData.getUnlockedResearch().contains(clickedNode.getId());
                         
-                        if (canAfford) {
-                            // Spend research points and give research note
-                            spendResearchPointsAndGiveNote(clickedNode);
-                            // Play research note create sound
-                            minecraft.player.playSound(StrangeMatterSounds.RESEARCH_NOTE_CREATE.get(), 0.8f, 1.0f);
+                        if (isUnlocked) {
+                            // Open information page for unlocked node
+                            openNodeInformationPage(clickedNode);
+                            // Play node click sound
+                            minecraft.player.playSound(StrangeMatterSounds.RESEARCH_TABLET_NODE_CLICK.get(), 0.7f, 1.0f);
                             return true;
                         } else {
-                            // Show message that player can't afford it and play locked sound
-                            minecraft.player.sendSystemMessage(Component.translatable("research.strangematter.cannot_afford"));
-                            minecraft.player.playSound(StrangeMatterSounds.RESEARCH_NODE_LOCKED_CLICK.get(), 0.6f, 1.0f);
-                            return true;
+                            // Check if player can afford this research
+                            boolean canAfford = true;
+                            for (Map.Entry<ResearchType, Integer> entry : clickedNode.getResearchCosts().entrySet()) {
+                                ResearchType type = entry.getKey();
+                                int cost = entry.getValue();
+                                int currentPoints = researchData.getResearchPoints(type);
+                                if (currentPoints < cost) {
+                                    canAfford = false;
+                                    break;
+                                }
+                            }
+                            
+                            if (canAfford) {
+                                // Spend research points and give research note
+                                spendResearchPointsAndGiveNote(clickedNode);
+                                // Play research note create sound
+                                minecraft.player.playSound(StrangeMatterSounds.RESEARCH_NOTE_CREATE.get(), 0.8f, 1.0f);
+                                return true;
+                            } else {
+                                // Show message that player can't afford it and play locked sound
+                                minecraft.player.sendSystemMessage(Component.translatable("research.strangematter.cannot_afford"));
+                                minecraft.player.playSound(StrangeMatterSounds.RESEARCH_NODE_LOCKED_CLICK.get(), 0.6f, 1.0f);
+                                return true;
+                            }
                         }
                     }
                 }
                 
-                // If no node was clicked, start dragging
+                // If no node was clicked, start dragging the view (panning works in both modes)
                 this.isDragging = true;
                 this.lastMouseX = (int) mouseX;
                 this.lastMouseY = (int) mouseY;
@@ -815,16 +912,32 @@ public class ResearchTabletScreen extends Screen {
     
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        if (button == 0 && isDragging) {
-            int deltaXInt = (int) (mouseX - lastMouseX);
-            int deltaYInt = (int) (mouseY - lastMouseY);
-            
-            this.dragOffsetX += deltaXInt;
-            this.dragOffsetY += deltaYInt;
-            
-            this.lastMouseX = (int) mouseX;
-            this.lastMouseY = (int) mouseY;
-            return true;
+        if (button == 0) {
+            if (debugMode && draggedNode != null) {
+                // Dragging a node in debug mode
+                int draggableX = guiX + 1 + (GUI_WIDTH - DRAGGABLE_AREA_WIDTH) / 2;
+                int draggableY = guiY + 15;
+                
+                // Convert mouse position to research coordinate space
+                int researchX = (int) mouseX - draggableX - DRAGGABLE_AREA_WIDTH / 2 - dragOffsetX;
+                int researchY = (int) mouseY - draggableY - DRAGGABLE_AREA_HEIGHT / 2 - dragOffsetY;
+                
+                // Update node position (will be snapped to grid by position manager)
+                positionManager.setPosition(draggedNode.getId(), researchX, researchY);
+                
+                return true;
+            } else if (isDragging) {
+                // Dragging the view (panning - works in both normal and debug mode)
+                int deltaXInt = (int) (mouseX - lastMouseX);
+                int deltaYInt = (int) (mouseY - lastMouseY);
+                
+                this.dragOffsetX += deltaXInt;
+                this.dragOffsetY += deltaYInt;
+                
+                this.lastMouseX = (int) mouseX;
+                this.lastMouseY = (int) mouseY;
+                return true;
+            }
         }
         
         return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
@@ -833,6 +946,13 @@ public class ResearchTabletScreen extends Screen {
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if (button == 0) {
+            if (debugMode && draggedNode != null) {
+                // Finished dragging node - save positions
+                positionManager.savePositions();
+                draggedNode = null;
+                this.isDragging = false;
+                return true;
+            }
             this.isDragging = false;
             return true;
         }

@@ -87,3 +87,4 @@ public enum TinfoilHatArmorMaterial implements ArmorMaterial {
         return this.knockbackResistance;
     }
 }
+

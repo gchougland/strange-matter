@@ -8,3 +8,4 @@ public class TinfoilHatItem extends ArmorItem {
         super(TinfoilHatArmorMaterial.TINFOIL_HAT, ArmorItem.Type.HELMET, new Properties().durability(TinfoilHatArmorMaterial.TINFOIL_HAT.getDurabilityForType(ArmorItem.Type.HELMET)));
     }
 }
+

@@ -7,6 +7,14 @@ All notable changes to Strange Matter will be documented in this file.
 ### Added
 - **Chrono Blister**: A gadget that shoots a bubble of time blocks that slow down mobs.
 - **Tinfoil Hat**: A helmet that protects the player from certain anomaly effects.
+- **Research Tablet Debug Tools**: In-game debug tools for research node layout and positioning
+  - **Debug Mode Toggle**: Press Ctrl+D in the research tablet screen to toggle debug mode
+  - **Mouse Coordinate Display**: Shows X/Y coordinates in research space and grid-aligned positions when debug mode is active
+  - **Node Dragging**: Click and drag research nodes to reposition them with 80-unit grid snapping
+  - **Position Persistence**: Node positions are saved to `config/strangematter/research_node_positions.json` for sharing between modpacks
+  - **KubeJS Compatibility**: Works with both built-in research nodes and nodes added through KubeJS
+  - **Connection Line Updates**: Connection lines between nodes automatically update as nodes are moved
+  - **Manual Save**: Press Ctrl+S in debug mode to manually save node positions
 
 ## [0.2.7] - 11/2/2025
 
