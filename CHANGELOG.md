@@ -2,7 +2,7 @@
 
 All notable changes to Strange Matter will be documented in this file.
 
-## [0.3.0] - Unreleased
+## [0.3.0] - 12/16/2025
 
 ### Added
 - **Chrono Blister**: A gadget that shoots a bubble of time blocks that slow down mobs.
@@ -22,6 +22,7 @@ All notable changes to Strange Matter will be documented in this file.
 - **Dimension Dependent Research**: Fixed issue where research was dependent on the dimension the player was in.
 - **Graviton Hammer Block Breaking**: Fixed issue where Graviton Hammer AoE/tunnel mining could break bedrock and bypass FTB Chunks claims.
 - **Ores not working with modded tools**: Fixed issue where tools from some other mods don't drop shards/resonite when mining ores.
+- **Dedicated Server Startup Crash**: Fixed dedicated server crash by moving client-only packet/UI/sound hooks behind proper Dist guards.
 
 ## [0.2.7] - 11/2/2025
 

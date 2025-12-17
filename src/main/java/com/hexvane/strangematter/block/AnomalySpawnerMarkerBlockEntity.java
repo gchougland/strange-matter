@@ -95,6 +95,11 @@ public class AnomalySpawnerMarkerBlockEntity extends BlockEntity {
             return; // Don't remove on client
         }
         
+        // Explicitly remove the block entity first. During worldgen/proto-chunk transitions it's possible to end up with
+        // orphaned BE NBT if only the block state is changed. Clearing the BE proactively prevents
+        // "Tried to load a DUMMY block entity ... but found minecraft:air" warnings on future loads.
+        level.removeBlockEntity(pos);
+        
         // Use setBlock to air as primary method (more reliable than removeBlock)
         BlockState airState = net.minecraft.world.level.block.Blocks.AIR.defaultBlockState();
         level.setBlock(pos, airState, 3); // Flag 3 = notify neighbors and update clients
@@ -104,6 +109,7 @@ public class AnomalySpawnerMarkerBlockEntity extends BlockEntity {
             // Schedule on next tick as well to ensure removal
             serverLevel.getServer().execute(() -> {
                 if (level.getBlockState(pos).getBlock() instanceof AnomalySpawnerMarkerBlock) {
+                    level.removeBlockEntity(pos);
                     level.setBlock(pos, airState, 3);
                 }
             });

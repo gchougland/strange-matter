@@ -5,6 +5,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -28,7 +29,11 @@ public class AnomalySpawnerMarkerBlock extends Block implements EntityBlock {
     public AnomalySpawnerMarkerBlock() {
         super(BlockBehaviour.Properties.of()
             .mapColor(MapColor.NONE)
-            .air() // Makes it behave like air
+            // NOTE: Do NOT mark this block as "air".
+            // During worldgen we place this into proto-chunks. If the block is considered air, the blockstate can be
+            // optimized away as vanilla air while the block-entity NBT is still written, causing:
+            // "Tried to load a DUMMY block entity ... but found ... minecraft:air"
+            .noCollission() // Behave like air for collision/pathing
             .strength(-1.0F, 3600000.0F) // Unbreakable
             .noLootTable() // No drops
             .noOcclusion() // No occlusion culling
@@ -48,6 +53,11 @@ public class AnomalySpawnerMarkerBlock extends Block implements EntityBlock {
     @Override
     public VoxelShape getVisualShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return Shapes.empty(); // No visual shape
+    }
+    
+    @Override
+    public RenderShape getRenderShape(BlockState state) {
+        return RenderShape.INVISIBLE;
     }
     
     @Override

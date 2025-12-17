@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 import net.minecraftforge.registries.RegistryObject;
@@ -28,19 +29,23 @@ public class WarpGateAnomalyConfiguredFeature extends BaseAnomalyConfiguredFeatu
         int anomalyY = surfaceInfo.surfacePos.getY() + 2;
         BlockPos anomalyPos = new BlockPos(origin.getX(), anomalyY, origin.getZ());
         
+        // Place a marker block that will spawn the entity on the next server tick
+        // This defers entity spawning from the world generation thread to the main server thread
+        if (!level.setBlock(anomalyPos, StrangeMatterMod.ANOMALY_SPAWNER_MARKER_BLOCK.get().defaultBlockState(), 3)) {
+            return false;
+        }
+        var blockEntity = level.getBlockEntity(anomalyPos);
+        if (!(blockEntity instanceof com.hexvane.strangematter.block.AnomalySpawnerMarkerBlockEntity marker)) {
+            level.setBlock(anomalyPos, Blocks.AIR.defaultBlockState(), 3);
+            return false;
+        }
+        marker.setEntityData("strangematter:warp_gate_anomaly", 
+            anomalyPos.getX() + 0.5, anomalyPos.getY(), anomalyPos.getZ() + 0.5, 0.0f, 0.0f);
+        marker.setWarpGateActive(true); // Make sure it's active
+        
         // Place terrain modification (grass and ores) using base class
         placeAnomalousGrass(level, origin, random);
         placeOres(level, origin, random);
-        
-        // Place a marker block that will spawn the entity on the next server tick
-        // This defers entity spawning from the world generation thread to the main server thread
-        level.setBlock(anomalyPos, StrangeMatterMod.ANOMALY_SPAWNER_MARKER_BLOCK.get().defaultBlockState(), 3);
-        var blockEntity = level.getBlockEntity(anomalyPos);
-        if (blockEntity instanceof com.hexvane.strangematter.block.AnomalySpawnerMarkerBlockEntity marker) {
-            marker.setEntityData("strangematter:warp_gate_anomaly", 
-                anomalyPos.getX() + 0.5, anomalyPos.getY(), anomalyPos.getZ() + 0.5, 0.0f, 0.0f);
-            marker.setWarpGateActive(true); // Make sure it's active
-        }
         
         return true;
     }
