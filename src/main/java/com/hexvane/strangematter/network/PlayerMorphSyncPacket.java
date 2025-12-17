@@ -71,7 +71,7 @@ public class PlayerMorphSyncPacket {
                     PlayerMorphData.clearMorph(packet.playerUUID);
                     UUID finalPlayerUUID = packet.playerUUID;
                     DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> 
-                        com.hexvane.strangematter.client.PlayerMorphRenderer.cleanupMorphEntity(finalPlayerUUID));
+                        com.hexvane.strangematter.client.network.ClientPacketHandlers.cleanupMorphEntity(finalPlayerUUID));
                 } else if (packet.morphEntityType != null) {
                     System.out.println("CLIENT: Received morph sync - " + packet.playerUUID + " -> " + packet.morphEntityType);
                     System.out.println("CLIENT: Current morph data before update: " + PlayerMorphData.getMorphEntityType(packet.playerUUID));
@@ -82,7 +82,7 @@ public class PlayerMorphSyncPacket {
                         System.out.println("CLIENT: Clearing old morph entity cache");
                         UUID finalPlayerUUID = packet.playerUUID;
                         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> 
-                            com.hexvane.strangematter.client.PlayerMorphRenderer.cleanupMorphEntity(finalPlayerUUID));
+                            com.hexvane.strangematter.client.network.ClientPacketHandlers.cleanupMorphEntity(finalPlayerUUID));
                     }
                     
                     // Set new morph (with player UUID if morphing into a player)

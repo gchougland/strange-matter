@@ -1,6 +1,8 @@
 package com.hexvane.strangematter.network;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
@@ -24,14 +26,10 @@ public class TimeDilationSyncPacket {
         NetworkEvent.Context context = contextSupplier.get();
         
         context.enqueueWork(() -> {
-            // Client-side handling - get the local player
-            if (context.getSender() == null) {
-                net.minecraft.client.Minecraft minecraft = net.minecraft.client.Minecraft.getInstance();
-                net.minecraft.world.entity.player.Player player = minecraft.player;
-                if (player != null) {
-                    player.getPersistentData().putDouble("strangematter.time_dilation_factor", this.slowdownFactor);
-                    com.hexvane.strangematter.TimeDilationData.setPlayerSlowdownFactor(player.getUUID(), this.slowdownFactor);
-                }
+            if (context.getDirection().getReceptionSide().isClient()) {
+                double factor = this.slowdownFactor;
+                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
+                    com.hexvane.strangematter.client.network.ClientPacketHandlers.handleTimeDilationSync(factor));
             }
         });
         context.setPacketHandled(true);

@@ -265,12 +265,24 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
     
     @Override
     protected void updateSoundEffects() {
+        // Sound effects only run on client side
+        if (!this.level().isClientSide) {
+            return;
+        }
+
+        com.hexvane.strangematter.platform.AnomalySoundClient soundClient =
+            com.hexvane.strangematter.platform.ClientServices.anomalySound();
+        if (soundClient == null) {
+            return;
+        }
+        soundClient.initializeIfNeeded();
+
         Player nearestPlayer = this.level().getNearestPlayer(this, ECHOING_SHADOW_SOUND_DISTANCE);
         
         if (nearestPlayer == null) {
             // No player nearby, stop sound
             if (isSoundActive) {
-                com.hexvane.strangematter.client.sound.CustomSoundManager.getInstance().stopAmbientSound(getAnomalySound());
+                soundClient.stopAmbientSound(getAnomalySound());
                 isSoundActive = false;
             }
             return;
@@ -281,7 +293,7 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
         if (distance > ECHOING_SHADOW_SOUND_DISTANCE) {
             // Player too far, stop sound
             if (isSoundActive) {
-                com.hexvane.strangematter.client.sound.CustomSoundManager.getInstance().stopAmbientSound(getAnomalySound());
+                soundClient.stopAmbientSound(getAnomalySound());
                 isSoundActive = false;
             }
             return;
@@ -293,7 +305,7 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
         // Player is in range, manage continuous sound
         if (!isSoundActive) {
             // Start the sound
-            com.hexvane.strangematter.client.sound.CustomSoundManager.getInstance().playAmbientSound(
+            soundClient.playAmbientSound(
                 getAnomalySound(),
                 this.position().x,
                 this.position().y,
@@ -306,12 +318,12 @@ public class EchoingShadowEntity extends BaseAnomalyEntity {
         } else {
             // Update volume if it changed significantly
             if (Math.abs(volume - lastCalculatedVolume) > 0.01f) {
-                com.hexvane.strangematter.client.sound.CustomSoundManager.getInstance().updateSoundVolume(getAnomalySound(), volume);
+                soundClient.updateSoundVolume(getAnomalySound(), volume);
                 lastCalculatedVolume = volume;
             }
             
             // Update position
-            com.hexvane.strangematter.client.sound.CustomSoundManager.getInstance().updateSoundPosition(
+            soundClient.updateSoundPosition(
                 getAnomalySound(),
                 this.position().x,
                 this.position().y,

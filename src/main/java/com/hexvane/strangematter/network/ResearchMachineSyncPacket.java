@@ -4,6 +4,8 @@ import com.hexvane.strangematter.block.ResearchMachineBlockEntity;
 import com.hexvane.strangematter.research.ResearchType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.HashSet;
@@ -58,20 +60,21 @@ public class ResearchMachineSyncPacket {
     public static void handle(ResearchMachineSyncPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
         NetworkEvent.Context context = contextSupplier.get();
         context.enqueueWork(() -> {
-            if (context.getSender() != null) {
-                // Server side - shouldn't happen
-                return;
-            }
-            
-            // Client side - update the block entity
-            var minecraft = net.minecraft.client.Minecraft.getInstance();
-            if (minecraft.level != null) {
-                var blockEntity = minecraft.level.getBlockEntity(packet.pos);
-                if (blockEntity instanceof ResearchMachineBlockEntity researchMachine) {
-                    researchMachine.setClientState(packet.state, packet.researchId, packet.activeTypes, 
-                                                 packet.instabilityLevel, packet.researchTicks);
-                }
-            }
+            if (context.getSender() != null) return; // server side - shouldn't happen
+            if (!context.getDirection().getReceptionSide().isClient()) return;
+
+            BlockPos pos = packet.pos;
+            ResearchMachineBlockEntity.MachineState state = packet.state;
+            String researchId = packet.researchId;
+            Set<ResearchType> activeTypes = packet.activeTypes;
+            float instabilityLevel = packet.instabilityLevel;
+            int researchTicks = packet.researchTicks;
+
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
+                com.hexvane.strangematter.client.network.ClientPacketHandlers.handleResearchMachineSync(
+                    pos, state, researchId, activeTypes, instabilityLevel, researchTicks
+                )
+            );
         });
         context.setPacketHandled(true);
     }

@@ -43,9 +43,6 @@ public class EchoVacuumItem extends Item {
     // Track which anomalies are currently being targeted to prevent conflicts
     private static final java.util.Map<BaseAnomalyEntity, Player> targetedAnomalies = new java.util.HashMap<>();
     
-    // Track which players have the fire loop sound playing
-    private static final java.util.Set<Player> playersWithFireLoop = new java.util.HashSet<>();
-    
     public EchoVacuumItem() {
         super(new Item.Properties().stacksTo(1).durability(200));
     }
@@ -222,14 +219,6 @@ public class EchoVacuumItem extends Item {
             suckAnomaly(player, targetAnomaly, level);
         }
         
-        // Update fire loop sound position if it's playing
-        if (playersWithFireLoop.contains(player)) {
-            com.hexvane.strangematter.client.sound.CustomSoundManager.getInstance().updateSoundPosition(
-                com.hexvane.strangematter.sound.StrangeMatterSounds.ECHO_VACUUM_FIRE_LOOP.get().getLocation(),
-                player.getX(), player.getY(), player.getZ()
-            );
-        }
-        
         // Vacuum cone particles are now rendered client-side in EchoVacuumBeamRenderer
     }
     
@@ -303,20 +292,7 @@ public class EchoVacuumItem extends Item {
                 com.hexvane.strangematter.sound.StrangeMatterSounds.ECHO_VACUUM_CONTAIN.get(), 
                 SoundSource.PLAYERS, 1.0f, 1.0f);
             
-            // Stop fire loop sound and play charge down
-            if (playersWithFireLoop.contains(player)) {
-                playersWithFireLoop.remove(player);
-                // Stop the looping fire sound
-                com.hexvane.strangematter.client.sound.CustomSoundManager.getInstance().stopAmbientSound(
-                    com.hexvane.strangematter.sound.StrangeMatterSounds.ECHO_VACUUM_FIRE_LOOP.get().getLocation()
-                );
-                // Play charge down sound
-                level.playSound(null, player.getX(), player.getY(), player.getZ(), 
-                    com.hexvane.strangematter.sound.StrangeMatterSounds.ECHO_VACUUM_CHARGE_DOWN.get(), 
-                    SoundSource.PLAYERS, 0.6f, 1.0f);
-            }
-            
-            // Stop using the item
+            // Stop using the item (looping beam sounds/visuals are managed client-side)
             player.stopUsingItem();
         }
     }
@@ -342,15 +318,6 @@ public class EchoVacuumItem extends Item {
     private static void cleanupPlayerTargeting(Player player) {
         // Remove this player from any anomalies they were targeting
         targetedAnomalies.entrySet().removeIf(entry -> entry.getValue() == player);
-        
-        // Clean up fire loop tracking and stop any playing sound
-        if (playersWithFireLoop.contains(player)) {
-            playersWithFireLoop.remove(player);
-            // Stop the looping fire sound
-            com.hexvane.strangematter.client.sound.CustomSoundManager.getInstance().stopAmbientSound(
-                com.hexvane.strangematter.sound.StrangeMatterSounds.ECHO_VACUUM_FIRE_LOOP.get().getLocation()
-            );
-        }
         
         // Return any anomalies this player was targeting to their original state
         for (BaseAnomalyEntity anomaly : originalPositions.keySet()) {

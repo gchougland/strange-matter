@@ -56,6 +56,29 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
     // Simple disguise tracking system - maps entity UUIDs to disguise data
     private static final java.util.Map<java.util.UUID, String> DISGUISE_MAP = new java.util.concurrent.ConcurrentHashMap<>();
     private static final java.util.Map<java.util.UUID, Integer> DISGUISE_DURATION_MAP = new java.util.concurrent.ConcurrentHashMap<>();
+
+    // Common mob types that can be used as disguises (server-safe; used for sync + client rendering).
+    private static final String[] DISGUISE_TYPES = {
+        "minecraft:chicken",
+        "minecraft:cow",
+        "minecraft:pig",
+        "minecraft:sheep",
+        "minecraft:villager",
+        "minecraft:zombie",
+        "minecraft:skeleton",
+        "minecraft:spider",
+        "minecraft:creeper",
+        "minecraft:enderman",
+        "minecraft:witch",
+        "minecraft:slime",
+        "minecraft:husk",
+        "minecraft:stray",
+        "minecraft:cave_spider",
+        "minecraft:silverfish",
+        "minecraft:endermite",
+        "minecraft:magma_cube",
+        "minecraft:blaze"
+    };
     
     // Tracking for cooldowns
     private int nauseaCooldown = 0;
@@ -394,7 +417,7 @@ public class ThoughtwellEntity extends BaseAnomalyEntity {
         }
         
         // Get a random disguise type
-        String disguiseType = com.hexvane.strangematter.client.CognitiveDisguiseRenderer.getRandomDisguiseType();
+        String disguiseType = DISGUISE_TYPES[this.level().getRandom().nextInt(DISGUISE_TYPES.length)];
         
         // Store the disguise information in the static maps
         int duration = 2400; // 120 seconds at 20 TPS

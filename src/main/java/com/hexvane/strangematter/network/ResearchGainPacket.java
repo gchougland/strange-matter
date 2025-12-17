@@ -35,7 +35,7 @@ public class ResearchGainPacket {
                 ResearchType finalType = researchType;
                 int finalAmount = amount;
                 DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> 
-                    com.hexvane.strangematter.network.ResearchDataClientHandler.handleResearchGain(finalType, finalAmount));
+                    com.hexvane.strangematter.client.network.ClientPacketHandlers.handleResearchGain(finalType, finalAmount));
             }
         });
         context.setPacketHandled(true);

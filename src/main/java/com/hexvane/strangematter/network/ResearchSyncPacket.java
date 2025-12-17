@@ -32,7 +32,7 @@ public class ResearchSyncPacket {
             if (context.getDirection().getReceptionSide().isClient()) {
                 ResearchData finalData = researchData;
                 DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> 
-                    com.hexvane.strangematter.network.ResearchDataClientHandler.handleResearchSync(finalData));
+                    com.hexvane.strangematter.client.network.ClientPacketHandlers.handleResearchSync(finalData));
             }
         });
         context.setPacketHandled(true);

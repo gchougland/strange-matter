@@ -1,6 +1,8 @@
 package com.hexvane.strangematter.network;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
@@ -24,16 +26,15 @@ public class GravitySyncPacket {
         NetworkEvent.Context context = contextSupplier.get();
         
         context.enqueueWork(() -> {
-            // For client-side packets, getSender() returns null, so we need to get the local player
             if (context.getSender() != null) {
                 // Server-side handling (shouldn't happen with our current setup)
                 context.getSender().getPersistentData().putDouble("strangematter.gravity_force", this.gravityForce);
-            } else {
-                // Client-side handling - get the local player
-                net.minecraft.client.Minecraft minecraft = net.minecraft.client.Minecraft.getInstance();
-                if (minecraft.player != null) {
-                    minecraft.player.getPersistentData().putDouble("strangematter.gravity_force", this.gravityForce);
-                }
+                return;
+            }
+            if (context.getDirection().getReceptionSide().isClient()) {
+                double force = this.gravityForce;
+                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
+                    com.hexvane.strangematter.client.network.ClientPacketHandlers.handleGravitySync(force));
             }
         });
         context.setPacketHandled(true);

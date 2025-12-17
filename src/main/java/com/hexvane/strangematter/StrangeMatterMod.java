@@ -62,7 +62,6 @@ import com.hexvane.strangematter.entity.MiniWarpGateEntity;
 import com.hexvane.strangematter.entity.ChronoBlisterProjectileEntity;
 import com.hexvane.strangematter.item.HoverboardItem;
 import com.hexvane.strangematter.entity.HoverboardEntity;
-import com.hexvane.strangematter.client.HoverboardRenderer;
 import com.hexvane.strangematter.worldgen.GravityAnomalyConfiguredFeature;
 import com.hexvane.strangematter.worldgen.EchoingShadowConfiguredFeature;
 import com.hexvane.strangematter.worldgen.ThoughtwellConfiguredFeature;

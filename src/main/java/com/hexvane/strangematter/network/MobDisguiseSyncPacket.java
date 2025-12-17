@@ -1,6 +1,8 @@
 package com.hexvane.strangematter.network;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.UUID;
@@ -53,15 +55,16 @@ public class MobDisguiseSyncPacket {
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
         NetworkEvent.Context context = contextSupplier.get();
         context.enqueueWork(() -> {
-            // This runs on the client side
-            if (clearDisguise) {
-                com.hexvane.strangematter.entity.ThoughtwellEntity.removeDisguise(mobUUID);
-                // Clear cached disguise entity on client
-                com.hexvane.strangematter.client.CognitiveDisguiseRenderer.cleanupDisguise(mobUUID);
-            } else {
-                // Apply the disguise on the client
-                com.hexvane.strangematter.entity.ThoughtwellEntity.setDisguise(mobUUID, disguiseType, disguiseDuration);
-            }
+            if (!context.getDirection().getReceptionSide().isClient()) return;
+
+            UUID id = mobUUID;
+            boolean clear = clearDisguise;
+            String type = disguiseType;
+            int duration = disguiseDuration;
+
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
+                com.hexvane.strangematter.client.network.ClientPacketHandlers.handleMobDisguiseSync(id, clear, type, duration)
+            );
         });
         context.setPacketHandled(true);
     }

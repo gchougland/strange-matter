@@ -1,7 +1,7 @@
 package com.hexvane.strangematter.client.screen;
 
 import com.hexvane.strangematter.client.research.ResearchNodePositionManager;
-import com.hexvane.strangematter.network.ResearchDataClientHandler;
+import com.hexvane.strangematter.client.network.ClientPacketHandlers;
 import com.hexvane.strangematter.research.ResearchData;
 import com.hexvane.strangematter.research.ResearchNode;
 import com.hexvane.strangematter.research.ResearchNodeRegistry;
@@ -351,7 +351,7 @@ public class ResearchTabletScreen extends Screen {
     
     private void renderResearchNodeConnections(GuiGraphics guiGraphics) {
         List<ResearchNode> nodes = ResearchNodeRegistry.getNodesByCategory(selectedCategory);
-        ResearchData researchData = ResearchDataClientHandler.getClientResearchData();
+        ResearchData researchData = ClientPacketHandlers.getClientResearchData();
         
         // Collect all lines with their priority for proper z-ordering
         List<ConnectionLine> allLines = new ArrayList<>();
@@ -644,7 +644,7 @@ public class ResearchTabletScreen extends Screen {
     
     private void renderResearchNodes(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         List<ResearchNode> nodes = ResearchNodeRegistry.getNodesByCategory(selectedCategory);
-        ResearchData researchData = ResearchDataClientHandler.getClientResearchData();
+        ResearchData researchData = ClientPacketHandlers.getClientResearchData();
         
         for (ResearchNode node : nodes) {
             int nodeX = positionManager.getEffectiveX(node);
@@ -721,7 +721,7 @@ public class ResearchTabletScreen extends Screen {
     
     private void renderResearchNodeTooltips(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         List<ResearchNode> nodes = ResearchNodeRegistry.getNodesByCategory(selectedCategory);
-        ResearchData researchData = ResearchDataClientHandler.getClientResearchData();
+        ResearchData researchData = ClientPacketHandlers.getClientResearchData();
         int draggableX = getDraggableAreaX();
         int draggableY = getDraggableAreaY();
         
@@ -918,7 +918,7 @@ public class ResearchTabletScreen extends Screen {
     }
     
     private void renderResearchPoints(GuiGraphics guiGraphics) {
-        ResearchData researchData = ResearchDataClientHandler.getClientResearchData();
+        ResearchData researchData = ClientPacketHandlers.getClientResearchData();
         int startX = guiX + GUI_WIDTH - 110;
         int startY = guiY + 25;
         
@@ -964,7 +964,7 @@ public class ResearchTabletScreen extends Screen {
                         return true;
                     } else {
                         // Normal mode: handle research node clicks
-                        ResearchData researchData = ResearchDataClientHandler.getClientResearchData();
+                        ResearchData researchData = ClientPacketHandlers.getClientResearchData();
                         boolean isUnlocked = researchData.getUnlockedResearch().contains(clickedNode.getId());
                         
                         if (isUnlocked) {

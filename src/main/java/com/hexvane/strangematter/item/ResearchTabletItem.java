@@ -13,6 +13,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.DistExecutor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -27,7 +28,9 @@ public class ResearchTabletItem extends Item {
         ItemStack itemStack = player.getItemInHand(hand);
         
         if (level.isClientSide) {
-            openResearchTablet(player);
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
+                com.hexvane.strangematter.client.network.ClientPacketHandlers.openResearchTabletScreen()
+            );
         } else {
             // Server side: sync research data to client before opening GUI
             if (player instanceof ServerPlayer serverPlayer) {
@@ -37,11 +40,6 @@ public class ResearchTabletItem extends Item {
         }
         
         return InteractionResultHolder.success(itemStack);
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    private void openResearchTablet(Player player) {
-        net.minecraft.client.Minecraft.getInstance().setScreen(new com.hexvane.strangematter.client.screen.ResearchTabletScreen());
     }
 
     @Override

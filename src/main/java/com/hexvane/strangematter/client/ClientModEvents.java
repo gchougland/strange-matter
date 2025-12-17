@@ -71,6 +71,9 @@ public class ClientModEvents {
         // Initialize custom sound manager
         event.enqueueWork(() -> {
             com.hexvane.strangematter.client.sound.CustomSoundManager.getInstance().initialize();
+            com.hexvane.strangematter.platform.ClientServices.setAnomalySoundClient(
+                new com.hexvane.strangematter.client.sound.AnomalySoundClientImpl()
+            );
         });
         
         // Register compass angle property for anomaly resonator

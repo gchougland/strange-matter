@@ -3,6 +3,8 @@ package com.hexvane.strangematter.network;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.PacketDistributor;
 import com.hexvane.strangematter.StrangeMatterMod;
@@ -30,15 +32,13 @@ public class EchoVacuumBeamPacket {
     
     public boolean handle(Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> {
-            // For server-to-client packets, we need to get the client's level
-            net.minecraft.client.Minecraft minecraft = net.minecraft.client.Minecraft.getInstance();
-            if (minecraft.level != null) {
-                net.minecraft.world.entity.Entity entity = minecraft.level.getEntity(this.playerId);
-                if (entity instanceof Player player) {
-                    // Store the beam state for this player
-                    StrangeMatterMod.setPlayerBeamState(player, this.isActive);
-                }
-            }
+            if (!context.get().getDirection().getReceptionSide().isClient()) return;
+
+            int id = this.playerId;
+            boolean active = this.isActive;
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
+                com.hexvane.strangematter.client.network.ClientPacketHandlers.handleEchoVacuumBeam(id, active)
+            );
         });
         return true;
     }

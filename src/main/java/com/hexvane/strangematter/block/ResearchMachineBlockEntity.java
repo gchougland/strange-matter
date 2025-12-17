@@ -547,14 +547,6 @@ public class ResearchMachineBlockEntity extends BlockEntity {
         this.activeResearchTypes = new HashSet<>(activeTypes);
         this.instabilityLevel = instabilityLevel;
         this.researchTicks = researchTicks;
-        
-        // Update the GUI if it's open
-        if (level != null && level.isClientSide) {
-            var minecraft = net.minecraft.client.Minecraft.getInstance();
-            if (minecraft.screen instanceof com.hexvane.strangematter.client.screen.ResearchMachineScreen screen) {
-                screen.handleStateSync(state, researchId, activeTypes, instabilityLevel, researchTicks);
-            }
-        }
     }
     
 }

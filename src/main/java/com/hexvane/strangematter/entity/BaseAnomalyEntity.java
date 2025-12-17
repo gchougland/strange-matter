@@ -201,9 +201,15 @@ public abstract class BaseAnomalyEntity extends Entity {
         if (!this.level().isClientSide) {
             return;
         }
-        
-        // Ensure CustomSoundManager is initialized
-        com.hexvane.strangematter.client.sound.CustomSoundManager.getInstance().initialize();
+
+        // Client service may not be initialized yet (early startup / no client).
+        com.hexvane.strangematter.platform.AnomalySoundClient soundClient =
+            com.hexvane.strangematter.platform.ClientServices.anomalySound();
+        if (soundClient == null) {
+            return;
+        }
+
+        soundClient.initializeIfNeeded();
         
         // Find the nearest player
         Player nearestPlayer = this.level().getNearestPlayer(this, MAX_SOUND_DISTANCE);
@@ -211,7 +217,7 @@ public abstract class BaseAnomalyEntity extends Entity {
         if (nearestPlayer == null) {
             // No player nearby, stop sound
             if (isSoundActive) {
-                com.hexvane.strangematter.client.sound.CustomSoundManager.getInstance().stopAmbientSound(getAnomalySound());
+                soundClient.stopAmbientSound(getAnomalySound());
                 isSoundActive = false;
             }
             return;
@@ -223,7 +229,7 @@ public abstract class BaseAnomalyEntity extends Entity {
         if (distance > MAX_SOUND_DISTANCE) {
             // Player too far, stop sound
             if (isSoundActive) {
-                com.hexvane.strangematter.client.sound.CustomSoundManager.getInstance().stopAmbientSound(getAnomalySound());
+                soundClient.stopAmbientSound(getAnomalySound());
                 isSoundActive = false;
             }
             return;
@@ -235,7 +241,7 @@ public abstract class BaseAnomalyEntity extends Entity {
         // Player is in range, manage continuous sound
         if (!isSoundActive) {
             // Start the sound
-            com.hexvane.strangematter.client.sound.CustomSoundManager.getInstance().playAmbientSound(
+            soundClient.playAmbientSound(
                 getAnomalySound(),
                 this.getX(), this.getY(), this.getZ(),
                 volume,
@@ -246,12 +252,12 @@ public abstract class BaseAnomalyEntity extends Entity {
         } else {
             // Update volume if it changed significantly
             if (Math.abs(volume - lastCalculatedVolume) > 0.01f) {
-                com.hexvane.strangematter.client.sound.CustomSoundManager.getInstance().updateSoundVolume(getAnomalySound(), volume);
+                soundClient.updateSoundVolume(getAnomalySound(), volume);
                 lastCalculatedVolume = volume;
             }
             
             // Update position
-            com.hexvane.strangematter.client.sound.CustomSoundManager.getInstance().updateSoundPosition(
+            soundClient.updateSoundPosition(
                 getAnomalySound(),
                 this.getX(), this.getY(), this.getZ()
             );
