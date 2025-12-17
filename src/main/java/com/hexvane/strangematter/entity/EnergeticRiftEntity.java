@@ -3,8 +3,6 @@ package com.hexvane.strangematter.entity;
 import com.hexvane.strangematter.research.ResearchType;
 import com.hexvane.strangematter.sound.StrangeMatterSounds;
 import com.hexvane.strangematter.StrangeMatterMod;
-import net.minecraft.world.level.block.Block;
-import net.minecraftforge.registries.RegistryObject;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -38,6 +36,12 @@ public class EnergeticRiftEntity extends BaseAnomalyEntity {
     
     // Entity data for syncing between client and server
     private static final EntityDataAccessor<Boolean> IS_ACTIVE = SynchedEntityData.defineId(EnergeticRiftEntity.class, EntityDataSerializers.BOOLEAN);
+
+    /**
+     * When a lightning rod is nearby, Energetic Rifts should not zap entities.
+     * This small cooldown prevents re-scanning for rods every tick while grounded.
+     */
+    private static final int LIGHTNING_ROD_RECHECK_COOLDOWN_TICKS = 5;
     
     // Config-driven getters for energetic rift parameters
     private float getZapRadius() {
@@ -105,7 +109,13 @@ public class EnergeticRiftEntity extends BaseAnomalyEntity {
         
         // Zap entities in range
         if (zapCooldown <= 0 && com.hexvane.strangematter.Config.enableEnergeticZap) {
-            zapEntitiesInRange();
+            // If a lightning rod is nearby, the rift is effectively grounded and should not zap entities.
+            // This suppression is independent of enableEnergeticLightning (rod presence alone protects entities).
+            if (hasLightningRodNearby()) {
+                zapCooldown = LIGHTNING_ROD_RECHECK_COOLDOWN_TICKS;
+            } else {
+                zapEntitiesInRange();
+            }
         }
         
         // Strike lightning rods in range
@@ -192,6 +202,40 @@ public class EnergeticRiftEntity extends BaseAnomalyEntity {
             strikeLightningRod(targetRod);
             lightningCooldown = getLightningCooldownMax();
         }
+    }
+
+    /**
+     * Checks if any lightning rod is within the energetic lightning radius.
+     * Uses the same search volume as {@link #strikeLightningRods()}, but exits early.
+     */
+    private boolean hasLightningRodNearby() {
+        float lightningRadius = getLightningRodRadius();
+        if (lightningRadius <= 0) {
+            return false;
+        }
+
+        int r = (int) lightningRadius;
+        double radiusSq = lightningRadius * lightningRadius;
+
+        BlockPos center = this.blockPosition();
+        for (int x = -r; x <= r; x++) {
+            for (int y = -3; y <= 3; y++) {
+                for (int z = -r; z <= r; z++) {
+                    // Match existing behavior: radius check is horizontal (x/z), ignore y for the circle test
+                    double horizSq = (double) x * (double) x + (double) z * (double) z;
+                    if (horizSq > radiusSq) {
+                        continue;
+                    }
+
+                    BlockPos pos = center.offset(x, y, z);
+                    if (this.level().getBlockState(pos).is(Blocks.LIGHTNING_ROD)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
     
     private void strikeLightningRod(BlockPos rodPos) {

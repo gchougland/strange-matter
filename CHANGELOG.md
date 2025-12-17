@@ -12,14 +12,16 @@ All notable changes to Strange Matter will be documented in this file.
   - **Mouse Coordinate Display**: Shows X/Y coordinates in research space and grid-aligned positions when debug mode is active
   - **Node Dragging**: Click and drag research nodes to reposition them with 80-unit grid snapping
   - **Position Persistence**: Node positions are saved to `config/strangematter/research_node_positions.json` for sharing between modpacks
-  - **KubeJS Compatibility**: Works with both built-in research nodes and nodes added through KubeJS
-  - **Connection Line Updates**: Connection lines between nodes automatically update as nodes are moved
   - **Manual Save**: Press Ctrl+S in debug mode to manually save node positions
 - **Research Tablet Zoom**: Added ability to zoom in the research tablet using the scroll wheel.
+
+### Changed
+- **Energetic Rift Zaps Lightning Rod**: Placing a lightning rod near an energetic rift directs all zaps to the lightning rod, protecting mobs/players.
 
 ### Fixed
 - **Dimension Dependent Research**: Fixed issue where research was dependent on the dimension the player was in.
 - **Graviton Hammer Block Breaking**: Fixed issue where Graviton Hammer AoE/tunnel mining could break bedrock and bypass FTB Chunks claims.
+- **Ores not working with modded tools**: Fixed issue where tools from some other mods don't drop shards/resonite when mining ores.
 
 ## [0.2.7] - 11/2/2025
 

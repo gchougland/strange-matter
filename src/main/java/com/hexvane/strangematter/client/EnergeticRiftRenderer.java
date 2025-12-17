@@ -10,15 +10,32 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import javax.annotation.Nonnull;
 import org.joml.Matrix4f;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import net.minecraft.world.phys.AABB;
 
 public class EnergeticRiftRenderer extends EntityRenderer<EnergeticRiftEntity> {
     
     private static final ResourceLocation RIFT_TEXTURE = ResourceLocation.fromNamespaceAndPath(StrangeMatterMod.MODID, "textures/entity/energetic_rift.png");
+
+    // Cache lightning rod lookups so we don't scan blocks every frame.
+    private static final int LIGHTNING_ROD_CACHE_TTL_TICKS = 5;
+    private static final long LIGHTNING_ROD_CACHE_STALE_TICKS = 200;
+    private static final Map<Integer, CachedLightningRod> LIGHTNING_ROD_CACHE = new HashMap<>();
+
+    private static class CachedLightningRod {
+        BlockPos rodPos;
+        long nextRefreshTick;
+        long lastSeenTick;
+    }
     
     public EnergeticRiftRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -26,13 +43,13 @@ public class EnergeticRiftRenderer extends EntityRenderer<EnergeticRiftEntity> {
     }
     
     @Override
-    public ResourceLocation getTextureLocation(@org.jetbrains.annotations.NotNull EnergeticRiftEntity entity) {
+    public ResourceLocation getTextureLocation(@Nonnull EnergeticRiftEntity entity) {
         return RIFT_TEXTURE;
     }
     
     @Override
-    public void render(@org.jetbrains.annotations.NotNull EnergeticRiftEntity entity, float entityYaw, float partialTicks, 
-                      @org.jetbrains.annotations.NotNull PoseStack poseStack, @org.jetbrains.annotations.NotNull MultiBufferSource buffer, int packedLight) {
+    public void render(@Nonnull EnergeticRiftEntity entity, float entityYaw, float partialTicks, 
+                      @Nonnull PoseStack poseStack, @Nonnull MultiBufferSource buffer, int packedLight) {
         
         poseStack.pushPose();
         
@@ -70,7 +87,8 @@ public class EnergeticRiftRenderer extends EntityRenderer<EnergeticRiftEntity> {
     private void renderSwirlingRift(PoseStack poseStack, MultiBufferSource buffer, int packedLight, 
                                    float rotation, float pulseIntensity) {
         
-        VertexConsumer consumer = buffer.getBuffer(RenderType.entityCutout(getTextureLocation(null)));
+        // Texture is static; avoid calling getTextureLocation with null (Nonnull contract).
+        VertexConsumer consumer = buffer.getBuffer(RenderType.entityCutout(RIFT_TEXTURE));
         
         // Scale based on pulse intensity
         float scale = 1.0f + pulseIntensity * 0.3f;
@@ -294,6 +312,22 @@ public class EnergeticRiftRenderer extends EntityRenderer<EnergeticRiftEntity> {
     private void renderTargetingSparks(PoseStack poseStack, MultiBufferSource buffer, int packedLight, EnergeticRiftEntity entity) {
         // Use lightning render type for targeting sparks
         VertexConsumer consumer = buffer.getBuffer(RenderType.lightning());
+
+        // If a lightning rod is nearby, render targeting sparks ONLY to the rod (not to entities).
+        BlockPos rodPos = getNearestLightningRodCached(entity);
+        if (rodPos != null) {
+            long currentTime = System.currentTimeMillis();
+            int cycleTime = 2000; // 2 seconds in milliseconds
+            int sparkDuration = 500; // 0.5 seconds visibility
+            int sparkTimer = (int) (currentTime % cycleTime);
+
+            if (sparkTimer < sparkDuration) {
+                float progress = sparkTimer / (float) sparkDuration;
+                float alpha = progress <= 0.2f ? 1.0f : (1.0f - (progress - 0.2f) / 0.8f);
+                renderTargetingSparkToRod(poseStack, consumer, packedLight, entity, rodPos, alpha);
+            }
+            return;
+        }
         
         // Create targeting sparks client-side based on entities in range
         // Show sparks that appear instantly and disappear quickly
@@ -398,6 +432,150 @@ public class EnergeticRiftRenderer extends EntityRenderer<EnergeticRiftEntity> {
             // Move to next position
             x = nextX; y = nextY; z = nextZ;
         }
+    }
+
+    private void renderTargetingSparkToRod(PoseStack poseStack, VertexConsumer consumer, int packedLight,
+                                          EnergeticRiftEntity entity, BlockPos rodPos, float alpha) {
+        // Target the top of the lightning rod for a nice visual
+        double targetX = rodPos.getX() + 0.5;
+        double targetY = rodPos.getY() + 1.0;
+        double targetZ = rodPos.getZ() + 0.5;
+
+        double startX = 0.0;
+        double startY = 0.5;
+        double startZ = 0.0;
+
+        double endX = targetX - entity.getX();
+        double endY = targetY - entity.getY();
+        double endZ = targetZ - entity.getZ();
+
+        renderTargetingSparkToPoint(poseStack, consumer, packedLight, startX, startY, startZ, endX, endY, endZ, alpha);
+    }
+
+    private void renderTargetingSparkToPoint(PoseStack poseStack, VertexConsumer consumer, int packedLight,
+                                            double startX, double startY, double startZ,
+                                            double endX, double endY, double endZ,
+                                            float alpha) {
+        // Create targeting spark that goes straight from start to end with some zigzag
+        int segments = 12;
+
+        double x = startX;
+        double y = startY;
+        double z = startZ;
+
+        // Calculate direction vector
+        double dx = endX - startX;
+        double dy = endY - startY;
+        double dz = endZ - startZ;
+        double totalDistance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (totalDistance < 0.0001) {
+            return;
+        }
+        dx /= totalDistance;
+        dy /= totalDistance;
+        dz /= totalDistance;
+
+        // Use time for zigzag animation (faster flicker)
+        float time = (System.currentTimeMillis() % 1000) / 1000.0f; // 1 second cycle
+
+        for (int i = 0; i < segments; i++) {
+            float t = i / (float) segments;
+            float nextT = (i + 1) / (float) segments;
+
+            // Calculate next position along the direction (full distance instantly)
+            double nextX = startX + dx * (nextT * totalDistance);
+            double nextY = startY + dy * (nextT * totalDistance);
+            double nextZ = startZ + dz * (nextT * totalDistance);
+
+            // Add zigzag effect (match entity targeting style)
+            if (i > 0) {
+                float zigzagIntensity = 0.4f * (1f - t * 0.6f);
+
+                // Use multiple sine waves for more natural lightning
+                float noise1 = (float) Math.sin((t * 10f + time * 8f) * Math.PI * 2) * zigzagIntensity;
+                float noise2 = (float) Math.sin((t * 7f + time * 5f) * Math.PI * 2) * zigzagIntensity * 0.6f;
+                float noise3 = (float) Math.sin((t * 13f + time * 9f) * Math.PI * 2) * zigzagIntensity * 0.4f;
+
+                // Apply noise perpendicular-ish to direction (simple axis mix)
+                nextX += (noise1 + noise3) * (1.0 - Math.abs(dx));
+                nextY += (noise2) * (1.0 - Math.abs(dy));
+                nextZ += (noise1 - noise3) * (1.0 - Math.abs(dz));
+            }
+
+            // Render segment
+            renderSparkQuad3D(poseStack, consumer, packedLight,
+                x, y, z,
+                nextX, nextY, nextZ,
+                0x7FDBFF, alpha, 0.06f
+            );
+
+            // Update current position
+            x = nextX;
+            y = nextY;
+            z = nextZ;
+        }
+    }
+
+    private BlockPos getNearestLightningRodCached(EnergeticRiftEntity entity) {
+        long gameTime = entity.level().getGameTime();
+        int id = entity.getId();
+
+        // Periodic cleanup to prevent unbounded growth
+        if (gameTime % 100L == 0L && !LIGHTNING_ROD_CACHE.isEmpty()) {
+            LIGHTNING_ROD_CACHE.entrySet().removeIf(e -> (gameTime - e.getValue().lastSeenTick) > LIGHTNING_ROD_CACHE_STALE_TICKS);
+        }
+
+        CachedLightningRod cached = LIGHTNING_ROD_CACHE.get(id);
+        if (cached != null) {
+            cached.lastSeenTick = gameTime;
+            if (gameTime < cached.nextRefreshTick) {
+                return cached.rodPos;
+            }
+        } else {
+            cached = new CachedLightningRod();
+            cached.lastSeenTick = gameTime;
+            LIGHTNING_ROD_CACHE.put(id, cached);
+        }
+
+        cached.rodPos = findNearestLightningRod(entity);
+        cached.nextRefreshTick = gameTime + LIGHTNING_ROD_CACHE_TTL_TICKS;
+        return cached.rodPos;
+    }
+
+    private BlockPos findNearestLightningRod(EnergeticRiftEntity entity) {
+        float lightningRadius = (float) com.hexvane.strangematter.Config.energeticLightningRadius;
+        if (lightningRadius <= 0) {
+            return null;
+        }
+
+        int r = (int) lightningRadius;
+        double radiusSq = lightningRadius * lightningRadius;
+        BlockPos center = entity.blockPosition();
+
+        BlockPos best = null;
+        double bestHorizSq = Double.MAX_VALUE;
+
+        for (int x = -r; x <= r; x++) {
+            for (int y = -3; y <= 3; y++) {
+                for (int z = -r; z <= r; z++) {
+                    double horizSq = (double) x * (double) x + (double) z * (double) z;
+                    if (horizSq > radiusSq) {
+                        continue;
+                    }
+
+                    BlockPos pos = center.offset(x, y, z);
+                    BlockState state = entity.level().getBlockState(pos);
+                    if (state.is(Blocks.LIGHTNING_ROD)) {
+                        if (horizSq < bestHorizSq) {
+                            bestHorizSq = horizSq;
+                            best = pos;
+                        }
+                    }
+                }
+            }
+        }
+
+        return best;
     }
     
 }
