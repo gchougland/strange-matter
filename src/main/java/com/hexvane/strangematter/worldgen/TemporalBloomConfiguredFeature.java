@@ -6,7 +6,6 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 import net.minecraftforge.registries.RegistryObject;
@@ -32,16 +31,14 @@ public class TemporalBloomConfiguredFeature extends BaseAnomalyConfiguredFeature
         
         // Place a marker block that will spawn the entity on the next server tick
         // This defers entity spawning from the world generation thread to the main server thread
-        if (!level.setBlock(anomalyPos, StrangeMatterMod.ANOMALY_SPAWNER_MARKER_BLOCK.get().defaultBlockState(), 3)) {
+        var markerBlock = (com.hexvane.strangematter.block.AnomalySpawnerMarkerBlock) StrangeMatterMod.ANOMALY_SPAWNER_MARKER_BLOCK.get();
+        BlockState markerState = markerBlock.defaultBlockState()
+            .setValue(com.hexvane.strangematter.block.AnomalySpawnerMarkerBlock.TYPE, com.hexvane.strangematter.block.AnomalySpawnerMarkerBlock.SpawnType.TEMPORAL)
+            .setValue(com.hexvane.strangematter.block.AnomalySpawnerMarkerBlock.ATTEMPTS, 0);
+        if (!level.setBlock(anomalyPos, markerState, 3)) {
             return false;
         }
-        var blockEntity = level.getBlockEntity(anomalyPos);
-        if (!(blockEntity instanceof com.hexvane.strangematter.block.AnomalySpawnerMarkerBlockEntity marker)) {
-            level.setBlock(anomalyPos, Blocks.AIR.defaultBlockState(), 3);
-            return false;
-        }
-        marker.setEntityData("strangematter:temporal_bloom", 
-            anomalyPos.getX() + 0.5, anomalyPos.getY(), anomalyPos.getZ() + 0.5, 0.0f, 0.0f);
+        level.scheduleTick(anomalyPos, markerBlock, 1);
         
         // Place terrain modification (grass and ores) using base class
         placeAnomalousGrass(level, origin, random);

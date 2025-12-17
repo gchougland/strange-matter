@@ -1,9 +1,11 @@
 {
-  "variants": {
-    "": {
-      "model": "minecraft:block/air"
+  "multipart": [
+    {
+      "apply": {
+        "model": "minecraft:block/air"
+      }
     }
-  }
+  ]
 }
 
 
