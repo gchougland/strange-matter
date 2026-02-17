@@ -7,11 +7,12 @@ import com.hexvane.strangematter.research.ResearchCategoryRegistry;
 import com.hexvane.strangematter.research.ResearchData;
 import com.hexvane.strangematter.research.ResearchNode;
 import com.hexvane.strangematter.research.ResearchNodeRegistry;
-import com.hexvane.strangematter.research.ResearchType;
+import com.hexvane.strangematter.research.ResearchTypeHelper;
 import com.hexvane.strangematter.sound.StrangeMatterSounds;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -937,20 +938,21 @@ public class ResearchTabletScreen extends Screen {
         
         // Add unlock status
         if (isUnlocked) {
-            tooltipLines.add(new TooltipLine(Component.translatable("gui.strangematter.research_tablet.unlocked").withStyle(style -> style.withColor(0x00FF00)), null));
+            tooltipLines.add(new TooltipLine(Component.translatable("gui.strangematter.research_tablet.unlocked").withStyle(style -> style.withColor(0x00FF00)), (String) null));
         } else {
-            tooltipLines.add(new TooltipLine(Component.translatable("gui.strangematter.research_tablet.locked").withStyle(style -> style.withColor(0xFF0000)), null));
+            tooltipLines.add(new TooltipLine(Component.translatable("gui.strangematter.research_tablet.locked").withStyle(style -> style.withColor(0xFF0000)), (String) null));
             
             // Add research point costs (only if prerequisites are unlocked and there are costs)
             if (prerequisitesUnlocked && !node.getResearchCosts().isEmpty()) {
-                for (Map.Entry<ResearchType, Integer> cost : node.getResearchCosts().entrySet()) {
-                    int playerPoints = researchData.getResearchPoints(cost.getKey());
+                for (Map.Entry<String, Integer> cost : node.getResearchCosts().entrySet()) {
+                    String typeId = cost.getKey();
+                    int playerPoints = researchData.getResearchPoints(typeId);
                     int requiredPoints = cost.getValue();
                     boolean canAfford = playerPoints >= requiredPoints;
                     String color = canAfford ? "§a" : "§c";
                     
                     Component costLine = Component.literal(color + "• " + requiredPoints);
-                    tooltipLines.add(new TooltipLine(costLine, cost.getKey()));
+                    tooltipLines.add(new TooltipLine(costLine, typeId));
                 }
             }
         }
@@ -999,20 +1001,21 @@ public class ResearchTabletScreen extends Screen {
         int textY = tooltipY + 4;
         
         for (TooltipLine line : tooltipLines) {
-            if (line.researchType != null) {
-                // Render icon first, then text offset to the right
-                ResourceLocation iconTexture = line.researchType.getIconResourceLocation();
-                RenderSystem.setShaderTexture(0, iconTexture);
-                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-                guiGraphics.blit(iconTexture, tooltipX + 4, textY, 0, 0, 8, 8, 8, 8);
-                
-                // Render text offset to the right of the icon
+            if (line.typeId != null) {
+                if (ResearchTypeHelper.hasIconTexture(line.typeId)) {
+                    ResourceLocation iconTexture = ResearchTypeHelper.getIconResourceLocation(line.typeId);
+                    if (iconTexture != null) {
+                        RenderSystem.setShaderTexture(0, iconTexture);
+                        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+                        guiGraphics.blit(iconTexture, tooltipX + 4, textY, 0, 0, 8, 8, 8, 8);
+                    }
+                } else if (ResearchTypeHelper.hasIconItem(line.typeId)) {
+                    renderResearchPointIconItem(guiGraphics, ResearchTypeHelper.getIconItem(line.typeId), tooltipX + 4, textY, 8);
+                }
                 guiGraphics.drawString(this.font, line.text, tooltipX + 16, textY, 0xFFFFFF);
             } else {
-                // Regular text line
                 guiGraphics.drawString(this.font, line.text, tooltipX + 4, textY, 0xFFFFFF);
             }
-            
             textY += 12;
         }
     }
@@ -1020,11 +1023,11 @@ public class ResearchTabletScreen extends Screen {
     // Helper class to store tooltip line data
     private static class TooltipLine {
         final Component text;
-        final ResearchType researchType;
+        final String typeId; // research point type id for cost lines (icon), null for plain text
         
-        TooltipLine(Component text, ResearchType researchType) {
+        TooltipLine(Component text, String typeId) {
             this.text = text;
-            this.researchType = researchType;
+            this.typeId = typeId;
         }
     }
     
@@ -1075,16 +1078,23 @@ public class ResearchTabletScreen extends Screen {
         return wrappedLines;
     }
     
+    /** Renders an item icon at the given size (e.g. 8) so it matches texture-based research type icons. */
+    private void renderResearchPointIconItem(GuiGraphics guiGraphics, ItemStack stack, int x, int y, int size) {
+        float scale = size / 16f;
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(x, y, 0);
+        guiGraphics.pose().scale(scale, scale, 1f);
+        guiGraphics.renderItem(stack, 0, 0);
+        guiGraphics.pose().popPose();
+    }
     
     private void renderResearchPointsBackground(GuiGraphics guiGraphics) {
         // Calculate the area needed for research points display
         int startX = guiX + GUI_WIDTH - 110;
         int startY = guiY + 25;
         
-        // Calculate dimensions based on the research points content
-        // Title: "Research:" + 6 research types with spacing
-        int width = 95; // Width of the research points area
-        int height = 10 + (ResearchType.values().length * 9) + 5; // Title + all types + padding
+        int width = 95;
+        int height = 10 + (ResearchTypeHelper.getAllTypeIds().size() * 9) + 5;
         
         // Render semi-transparent black background
         guiGraphics.fill(startX - 5, startY - 5, startX + width, startY + height, 0x80000000);
@@ -1099,25 +1109,27 @@ public class ResearchTabletScreen extends Screen {
         guiGraphics.drawString(this.font, "Research:", startX, startY, 0xFFFFFF);
         
         int yOffset = 10;
-        for (ResearchType type : ResearchType.values()) {
-            int points = researchData.getResearchPoints(type);
+        for (String typeId : ResearchTypeHelper.getAllTypeIds()) {
+            int points = researchData.getResearchPoints(typeId);
+            String name = ResearchTypeHelper.getDisplayName(typeId).getString();
             
-            // Render smaller research type icon (8x8 instead of 12x12)
-            ResourceLocation icon = type.getIconResourceLocation();
-            guiGraphics.blit(icon, startX, startY + yOffset, 0, 0, 8, 8, 8, 8);
-            
-            // Render full research type name + points
-            Component text = Component.literal(type.getName() + ": " + points);
-            guiGraphics.drawString(this.font, text, startX + 10, startY + yOffset + 1, 0xFFFFFF);
-            
-            yOffset += 9; // Reduced spacing from 14 to 9
+            if (ResearchTypeHelper.hasIconTexture(typeId)) {
+                ResourceLocation icon = ResearchTypeHelper.getIconResourceLocation(typeId);
+                if (icon != null) {
+                    guiGraphics.blit(icon, startX, startY + yOffset, 0, 0, 8, 8, 8, 8);
+                }
+            } else if (ResearchTypeHelper.hasIconItem(typeId)) {
+                renderResearchPointIconItem(guiGraphics, ResearchTypeHelper.getIconItem(typeId), startX, startY + yOffset, 8);
+            }
+            guiGraphics.drawString(this.font, name + ": " + points, startX + 10, startY + yOffset + 1, 0xFFFFFF);
+            yOffset += 9;
         }
     }
     
-    private Map<ResearchType, Integer> getPlayerResearchPoints(ResearchData researchData) {
-        Map<ResearchType, Integer> points = new HashMap<>();
-        for (ResearchType type : ResearchType.values()) {
-            points.put(type, researchData.getResearchPoints(type));
+    private Map<String, Integer> getPlayerResearchPoints(ResearchData researchData) {
+        Map<String, Integer> points = new HashMap<>();
+        for (String typeId : ResearchTypeHelper.getAllTypeIds()) {
+            points.put(typeId, researchData.getResearchPoints(typeId));
         }
         return points;
     }
@@ -1195,10 +1207,10 @@ public class ResearchTabletScreen extends Screen {
                         } else {
                             // Check if player can afford this research
                             boolean canAfford = true;
-                            for (Map.Entry<ResearchType, Integer> entry : clickedNode.getResearchCosts().entrySet()) {
-                                ResearchType type = entry.getKey();
+                            for (Map.Entry<String, Integer> entry : clickedNode.getResearchCosts().entrySet()) {
+                                String typeId = entry.getKey();
                                 int cost = entry.getValue();
-                                int currentPoints = researchData.getResearchPoints(type);
+                                int currentPoints = researchData.getResearchPoints(typeId);
                                 if (currentPoints < cost) {
                                     canAfford = false;
                                     break;
@@ -1206,10 +1218,13 @@ public class ResearchTabletScreen extends Screen {
                             }
                             
                             if (canAfford) {
-                                // Spend research points and give research note
-                                spendResearchPointsAndGiveNote(clickedNode);
-                                // Play research note create sound
-                                minecraft.player.playSound(StrangeMatterSounds.RESEARCH_NOTE_CREATE.get(), 0.8f, 1.0f);
+                                boolean instantUnlock = clickedNode.usesOnlyCustomResearchTypes();
+                                spendResearchPointsAndGiveNote(clickedNode, instantUnlock);
+                                if (instantUnlock) {
+                                    minecraft.player.playSound(StrangeMatterSounds.RESEARCH_TABLET_NODE_CLICK.get(), 0.7f, 1.0f);
+                                } else {
+                                    minecraft.player.playSound(StrangeMatterSounds.RESEARCH_NOTE_CREATE.get(), 0.8f, 1.0f);
+                                }
                                 return true;
                             } else {
                                 // Show message that player can't afford it and play locked sound
@@ -1296,11 +1311,10 @@ public class ResearchTabletScreen extends Screen {
         }
     }
     
-    private void spendResearchPointsAndGiveNote(ResearchNode node) {
-        // Send packet to server to spend research points and create research note
-        com.hexvane.strangematter.network.SpendResearchPointsPacket packet = 
-            new com.hexvane.strangematter.network.SpendResearchPointsPacket(node.getResearchCosts(), node.getId());
-        
+    private void spendResearchPointsAndGiveNote(ResearchNode node, boolean instantUnlock) {
+        com.hexvane.strangematter.network.SpendResearchPointsPacket packet =
+            new com.hexvane.strangematter.network.SpendResearchPointsPacket(node.getResearchCosts(), node.getId(), instantUnlock);
+
         com.hexvane.strangematter.network.NetworkHandler.INSTANCE.sendToServer(packet);
     }
 }

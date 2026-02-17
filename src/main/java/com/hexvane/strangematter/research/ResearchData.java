@@ -13,7 +13,7 @@ import java.util.HashSet;
 import java.util.UUID;
 
 public class ResearchData {
-    private final Map<ResearchType, Integer> researchPoints;
+    private final Map<String, Integer> researchPoints;
     private final Set<String> scannedObjects;
     private final Set<String> unlockedResearch;
     private ResearchDataManager manager;
@@ -24,12 +24,10 @@ public class ResearchData {
         this.scannedObjects = new HashSet<>();
         this.unlockedResearch = new HashSet<>();
         
-        // Initialize all research types to 0
-        for (ResearchType type : ResearchType.values()) {
-            researchPoints.put(type, 0);
+        for (String typeId : ResearchTypeHelper.getAllTypeIds()) {
+            researchPoints.put(typeId, 0);
         }
         
-        // Initialize default unlocked research
         initializeDefaultUnlockedResearch();
     }
     
@@ -48,19 +46,19 @@ public class ResearchData {
         this.playerId = playerId;
     }
     
-    public int getResearchPoints(ResearchType type) {
-        return researchPoints.getOrDefault(type, 0);
+    public int getResearchPoints(String typeId) {
+        return researchPoints.getOrDefault(typeId, 0);
     }
     
-    public void addResearchPoints(ResearchType type, int amount) {
-        int current = researchPoints.getOrDefault(type, 0);
-        researchPoints.put(type, current + amount);
+    public void addResearchPoints(String typeId, int amount) {
+        int current = researchPoints.getOrDefault(typeId, 0);
+        researchPoints.put(typeId, current + amount);
         markDirty();
     }
     
-    public void spendResearchPoints(ResearchType type, int amount) {
-        int current = researchPoints.getOrDefault(type, 0);
-        researchPoints.put(type, Math.max(0, current - amount));
+    public void spendResearchPoints(String typeId, int amount) {
+        int current = researchPoints.getOrDefault(typeId, 0);
+        researchPoints.put(typeId, Math.max(0, current - amount));
         markDirty();
     }
     
@@ -113,8 +111,8 @@ public class ResearchData {
         
         // Serialize research points
         CompoundTag researchTag = new CompoundTag();
-        for (Map.Entry<ResearchType, Integer> entry : researchPoints.entrySet()) {
-            researchTag.putInt(entry.getKey().getName(), entry.getValue());
+        for (Map.Entry<String, Integer> entry : researchPoints.entrySet()) {
+            researchTag.putInt(entry.getKey(), entry.getValue());
         }
         tag.put("research_points", researchTag);
         
@@ -147,13 +145,12 @@ public class ResearchData {
         // Deserialize research points
         if (tag.contains("research_points")) {
             CompoundTag researchTag = tag.getCompound("research_points");
-            for (ResearchType type : ResearchType.values()) {
-                if (researchTag.contains(type.getName())) {
-                    researchPoints.put(type, researchTag.getInt(type.getName()));
-                } else {
-                    researchPoints.put(type, 0);
-                }
+            for (String key : researchTag.getAllKeys()) {
+                researchPoints.put(key, researchTag.getInt(key));
             }
+        }
+        for (String typeId : ResearchTypeHelper.getAllTypeIds()) {
+            researchPoints.putIfAbsent(typeId, 0);
         }
         
         // Deserialize scanned objects

@@ -6,6 +6,7 @@ This guide explains how to use KubeJS with Strange Matter to create custom recip
 - [Requirements](#requirements)
 - [Recipe Integration](#recipe-integration)
 - [Research Category Integration](#research-category-integration)
+- [Custom Research Point Types](#custom-research-point-types)
 - [Research Node Integration](#research-node-integration)
 - [Info Pages Integration](#info-pages-integration)
 - [Translation Keys](#translation-keys)
@@ -186,6 +187,46 @@ StrangeMatter.registerCategory(
   "research.category.mymod.my_category": "My Custom Category"
 }
 ```
+
+## Custom Research Point Types
+
+You can add custom research point types (with name and icon) that appear in the Research Tablet and can be used as costs for research nodes. Custom types are registered in `startup_scripts`.
+
+**Location:** `kubejs/startup_scripts/research.js`
+
+```javascript
+// Register a custom research point type
+StrangeMatter.registerResearchPointType(
+  StrangeMatter.createResearchPointType('test_mana')
+    .name('Test Mana')
+    .iconItem('minecraft:experience_bottle')
+);
+
+// With texture icon and translation key
+StrangeMatter.registerResearchPointType(
+  StrangeMatter.createResearchPointType('arcane_essence')
+    .name('research.strangematter.arcane_essence')
+    .iconTexture('mymod:textures/ui/arcane_icon.png')
+);
+```
+
+### Builder methods
+
+- **`.name(string)`** – Display name (plain text or translation key if it contains a dot)
+- **`.iconTexture(string)`** – Texture path, e.g. `'mymod:textures/ui/icon.png'`
+- **`.iconItem(string)`** – Item ID for icon, e.g. `'minecraft:experience_bottle'`
+
+Set either an icon texture or an icon item; if neither is set, the default research notes icon is used.
+
+### Using custom types
+
+- Use the type id in **research node costs**: `StrangeMatter.createResearchNode('my_node').cost('test_mana', 10).cost('energy', 5)`
+- **Commands**: `/researchpoints check <targets> <typeId> <minPoints>` – type id suggestions include custom types
+- Custom types **cannot** be earned via Research Machine minigames or scanning; they can be granted via commands or future KubeJS hooks (e.g. advancement rewards).
+
+### Translation
+
+Default name key: `research.strangematter.<id>`. Override with `.name('mymod.research.my_type')` and add the key to your lang file.
 
 ## Research Node Integration
 

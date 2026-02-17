@@ -1,6 +1,6 @@
 package com.hexvane.strangematter.client;
 
-import com.hexvane.strangematter.research.ResearchType;
+import com.hexvane.strangematter.research.ResearchTypeHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
@@ -11,18 +11,17 @@ import java.util.List;
 
 public class ResearchOverlay {
     private static final List<ResearchNotification> notifications = new ArrayList<>();
-    private static final int NOTIFICATION_DURATION = 100; // 5 seconds at 20 TPS
-    private static final int FADE_DURATION = 20; // 1 second fade
+    private static final int NOTIFICATION_DURATION = 100;
+    private static final int FADE_DURATION = 20;
     private static long lastTickTime = 0;
     
-    public static void showResearchGain(ResearchType type, int amount) {
-        notifications.add(new ResearchNotification(type, amount, NOTIFICATION_DURATION));
+    public static void showResearchGain(String typeId, int amount) {
+        notifications.add(new ResearchNotification(typeId, amount, NOTIFICATION_DURATION));
     }
     
     public static void render(GuiGraphics guiGraphics, float partialTick) {
         if (notifications.isEmpty()) return;
         
-        // Only tick once per game tick (50ms = 20 TPS)
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastTickTime >= 50) {
             lastTickTime = currentTime;
@@ -38,8 +37,6 @@ public class ResearchOverlay {
         
         Minecraft minecraft = Minecraft.getInstance();
         int screenWidth = minecraft.getWindow().getGuiScaledWidth();
-        
-        // Position notifications in top-right corner
         int startX = screenWidth - 120;
         int startY = 20;
         
@@ -48,7 +45,6 @@ public class ResearchOverlay {
         
         while (renderIterator.hasNext()) {
             ResearchNotification notification = renderIterator.next();
-            
             int x = startX;
             int y = startY + (index * 25);
             
@@ -57,29 +53,28 @@ public class ResearchOverlay {
                 continue;
             }
             
-            // No background - just the text and icon
-            
-            // Render research icon
-            ResourceLocation icon = notification.getResearchType().getIconResourceLocation();
             guiGraphics.setColor(1.0f, 1.0f, 1.0f, alpha);
-            guiGraphics.blit(icon, x, y, 0, 0, 16, 16, 16, 16);
-            
-            // Render text
-            String text = "+" + notification.getAmount();
+            if (ResearchTypeHelper.hasIconTexture(notification.getTypeId())) {
+                ResourceLocation icon = ResearchTypeHelper.getIconResourceLocation(notification.getTypeId());
+                if (icon != null) {
+                    guiGraphics.blit(icon, x, y, 0, 0, 16, 16, 16, 16);
+                }
+            } else if (ResearchTypeHelper.hasIconItem(notification.getTypeId())) {
+                guiGraphics.renderItem(ResearchTypeHelper.getIconItem(notification.getTypeId()), x, y);
+            }
             guiGraphics.setColor(1.0f, 1.0f, 1.0f, alpha);
-            guiGraphics.drawString(minecraft.font, text, x + 20, y + 4, 0xFFFFFF);
-            
+            guiGraphics.drawString(minecraft.font, "+" + notification.getAmount(), x + 20, y + 4, 0xFFFFFF);
             index++;
         }
     }
     
     private static class ResearchNotification {
-        private final ResearchType researchType;
+        private final String typeId;
         private final int amount;
         private int ticksRemaining;
         
-        public ResearchNotification(ResearchType researchType, int amount, int duration) {
-            this.researchType = researchType;
+        public ResearchNotification(String typeId, int amount, int duration) {
+            this.typeId = typeId;
             this.amount = amount;
             this.ticksRemaining = duration;
         }
@@ -99,8 +94,8 @@ public class ResearchOverlay {
             return (float) ticksRemaining / FADE_DURATION;
         }
         
-        public ResearchType getResearchType() {
-            return researchType;
+        public String getTypeId() {
+            return typeId;
         }
         
         public int getAmount() {

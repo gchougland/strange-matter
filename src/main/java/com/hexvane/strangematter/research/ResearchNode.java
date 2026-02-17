@@ -12,14 +12,14 @@ public class ResearchNode {
     private final String category;
     private final int x;
     private final int y;
-    private final Map<ResearchType, Integer> researchCosts;
+    private final Map<String, Integer> researchCosts;
     private final ResourceLocation iconTexture;
     private final ItemStack iconItem;
     private final boolean requiresMultipleAspects;
     private final List<String> prerequisites;
     
     public ResearchNode(String id, String category, int x, int y, 
-                       Map<ResearchType, Integer> researchCosts, ResourceLocation iconTexture, ItemStack iconItem, boolean requiresMultipleAspects, List<String> prerequisites) {
+                       Map<String, Integer> researchCosts, ResourceLocation iconTexture, ItemStack iconItem, boolean requiresMultipleAspects, List<String> prerequisites) {
         this.id = id;
         this.category = category;
         this.x = x;
@@ -55,7 +55,7 @@ public class ResearchNode {
         return y;
     }
     
-    public Map<ResearchType, Integer> getResearchCosts() {
+    public Map<String, Integer> getResearchCosts() {
         return researchCosts;
     }
     
@@ -83,8 +83,8 @@ public class ResearchNode {
         return iconItem != null && !iconItem.isEmpty();
     }
     
-    public boolean canAfford(Map<ResearchType, Integer> playerPoints) {
-        for (Map.Entry<ResearchType, Integer> cost : researchCosts.entrySet()) {
+    public boolean canAfford(Map<String, Integer> playerPoints) {
+        for (Map.Entry<String, Integer> cost : researchCosts.entrySet()) {
             int playerPointsForType = playerPoints.getOrDefault(cost.getKey(), 0);
             if (playerPointsForType < cost.getValue()) {
                 return false;
@@ -99,5 +99,21 @@ public class ResearchNode {
     
     public boolean hasPrerequisites() {
         return prerequisites != null && !prerequisites.isEmpty();
+    }
+
+    /**
+     * Returns true if this node's costs use only custom research point types (no built-in types with minigames).
+     * Such nodes can be unlocked instantly from the tablet without a research note or Research Machine.
+     */
+    public boolean usesOnlyCustomResearchTypes() {
+        if (researchCosts.isEmpty()) {
+            return true;
+        }
+        for (String typeId : researchCosts.keySet()) {
+            if (ResearchType.fromName(typeId) != null) {
+                return false; // has at least one built-in type
+            }
+        }
+        return true;
     }
 }

@@ -46,35 +46,31 @@ public class ResearchNoteItem extends Item {
     }
     
     /**
-     * Creates a research note with the specified research types and costs
+     * Creates a research note with the specified research type ids and costs (string-keyed).
      */
-    public static ItemStack createResearchNote(Map<ResearchType, Integer> researchCosts, String researchId) {
+    public static ItemStack createResearchNote(Map<String, Integer> researchCosts, String researchId) {
         ItemStack stack = new ItemStack(StrangeMatterMod.RESEARCH_NOTES.get());
         CompoundTag tag = stack.getOrCreateTag();
         
-        // Store research types
         ListTag typesList = new ListTag();
-        for (ResearchType type : researchCosts.keySet()) {
-            typesList.add(StringTag.valueOf(type.name()));
+        for (String typeId : researchCosts.keySet()) {
+            typesList.add(StringTag.valueOf(typeId));
         }
         tag.put("research_types", typesList);
         
-        // Store research costs
         CompoundTag costsTag = new CompoundTag();
-        for (Map.Entry<ResearchType, Integer> entry : researchCosts.entrySet()) {
-            costsTag.putInt(entry.getKey().name(), entry.getValue());
+        for (Map.Entry<String, Integer> entry : researchCosts.entrySet()) {
+            costsTag.putInt(entry.getKey(), entry.getValue());
         }
         tag.put("research_costs", costsTag);
         
-        // Store the research ID this note is for
         tag.putString("research_id", researchId);
-        
-        
         return stack;
     }
     
     /**
-     * Gets the research types required for this note
+     * Gets the research types required for this note (built-in enum only; for Research Machine).
+     * Custom type ids in the note are not included since the machine has no minigames for them.
      */
     public static Set<ResearchType> getResearchTypes(ItemStack stack) {
         Set<ResearchType> types = new HashSet<>();
@@ -82,7 +78,11 @@ public class ResearchNoteItem extends Item {
         if (tag != null && tag.contains("research_types")) {
             ListTag typesList = tag.getList("research_types", Tag.TAG_STRING);
             for (Tag typeTag : typesList) {
-                types.add(ResearchType.valueOf(typeTag.getAsString()));
+                String typeId = typeTag.getAsString();
+                ResearchType type = ResearchType.fromName(typeId);
+                if (type != null) {
+                    types.add(type);
+                }
             }
         }
         return types;

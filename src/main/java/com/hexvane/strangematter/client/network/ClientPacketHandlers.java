@@ -25,9 +25,9 @@ public final class ClientPacketHandlers {
         clientResearchData = data;
     }
 
-    public static void handleResearchGain(ResearchType type, int amount) {
-        clientResearchData.addResearchPoints(type, amount);
-        com.hexvane.strangematter.client.ResearchOverlay.showResearchGain(type, amount);
+    public static void handleResearchGain(String typeId, int amount) {
+        clientResearchData.addResearchPoints(typeId, amount);
+        com.hexvane.strangematter.client.ResearchOverlay.showResearchGain(typeId, amount);
     }
 
     public static ResearchData getClientResearchData() {

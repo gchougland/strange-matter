@@ -1,54 +1,61 @@
 package com.hexvane.strangematter.network;
 
-import com.hexvane.strangematter.research.ResearchType;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
 public class SpendResearchPointsPacket {
-    private final Map<ResearchType, Integer> costs;
+    private final Map<String, Integer> costs;
     private final String researchId;
-    
-    public SpendResearchPointsPacket(Map<ResearchType, Integer> costs, String researchId) {
+    private final boolean instantUnlock;
+
+    /** @param instantUnlock if true, unlock research immediately and do not create a research note (for nodes that use only custom point types). */
+    public SpendResearchPointsPacket(Map<String, Integer> costs, String researchId, boolean instantUnlock) {
         this.costs = costs;
         this.researchId = researchId;
+        this.instantUnlock = instantUnlock;
     }
-    
+
+    public SpendResearchPointsPacket(Map<String, Integer> costs, String researchId) {
+        this(costs, researchId, false);
+    }
+
     public static void encode(SpendResearchPointsPacket packet, FriendlyByteBuf buffer) {
         buffer.writeInt(packet.costs.size());
-        for (Map.Entry<ResearchType, Integer> entry : packet.costs.entrySet()) {
-            buffer.writeEnum(entry.getKey());
+        for (Map.Entry<String, Integer> entry : packet.costs.entrySet()) {
+            buffer.writeUtf(entry.getKey());
             buffer.writeInt(entry.getValue());
         }
         buffer.writeUtf(packet.researchId);
+        buffer.writeBoolean(packet.instantUnlock);
     }
-    
+
     public static SpendResearchPointsPacket new_(FriendlyByteBuf buffer) {
         int size = buffer.readInt();
-        Map<ResearchType, Integer> costs = new java.util.HashMap<>();
+        Map<String, Integer> costs = new HashMap<>();
         for (int i = 0; i < size; i++) {
-            ResearchType type = buffer.readEnum(ResearchType.class);
+            String typeId = buffer.readUtf();
             int amount = buffer.readInt();
-            costs.put(type, amount);
+            costs.put(typeId, amount);
         }
         String researchId = buffer.readUtf();
-        return new SpendResearchPointsPacket(costs, researchId);
+        boolean instantUnlock = buffer.readableBytes() >= 1 && buffer.readBoolean();
+        return new SpendResearchPointsPacket(costs, researchId, instantUnlock);
     }
     
     public static void handle(SpendResearchPointsPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
         NetworkEvent.Context context = contextSupplier.get();
         context.enqueueWork(() -> {
             if (context.getSender() != null) {
-                // Server side - spend the research points
                 var player = context.getSender();
                 com.hexvane.strangematter.research.ResearchData researchData = 
                     com.hexvane.strangematter.research.ResearchData.get(player);
                 
-                // Check if player has enough points
                 boolean canAfford = true;
-                for (Map.Entry<ResearchType, Integer> entry : packet.costs.entrySet()) {
+                for (Map.Entry<String, Integer> entry : packet.costs.entrySet()) {
                     if (researchData.getResearchPoints(entry.getKey()) < entry.getValue()) {
                         canAfford = false;
                         break;
@@ -56,35 +63,36 @@ public class SpendResearchPointsPacket {
                 }
                 
                 if (canAfford) {
-                    // Spend the points
-                    for (Map.Entry<ResearchType, Integer> entry : packet.costs.entrySet()) {
+                    for (Map.Entry<String, Integer> entry : packet.costs.entrySet()) {
                         researchData.spendResearchPoints(entry.getKey(), entry.getValue());
                     }
-                    
-                    // Create and give research note on server side
-                    net.minecraft.world.item.ItemStack researchNote = 
-                        com.hexvane.strangematter.item.ResearchNoteItem.createResearchNote(packet.costs, packet.researchId);
-                    
-                    if (player.getInventory().add(researchNote)) {
-                        // Sync to client
+
+                    if (packet.instantUnlock) {
+                        researchData.unlockResearch(packet.researchId);
                         researchData.syncToClient(player);
-                        
-                        // Send success message
+                        com.hexvane.strangematter.research.ResearchNode node =
+                            com.hexvane.strangematter.research.ResearchNodeRegistry.getNode(packet.researchId);
                         player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
-                            "research.strangematter.note_received", 
-                            com.hexvane.strangematter.research.ResearchNodeRegistry.getNode(packet.researchId).getDisplayName()));
+                            "research.strangematter.research_unlocked", node != null ? node.getDisplayName() : net.minecraft.network.chat.Component.literal(packet.researchId)));
                     } else {
-                        // Inventory full - refund the points
-                        for (Map.Entry<ResearchType, Integer> entry : packet.costs.entrySet()) {
-                            researchData.addResearchPoints(entry.getKey(), entry.getValue());
+                        net.minecraft.world.item.ItemStack researchNote =
+                            com.hexvane.strangematter.item.ResearchNoteItem.createResearchNote(packet.costs, packet.researchId);
+
+                        if (player.getInventory().add(researchNote)) {
+                            researchData.syncToClient(player);
+                            player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
+                                "research.strangematter.note_received",
+                                com.hexvane.strangematter.research.ResearchNodeRegistry.getNode(packet.researchId).getDisplayName()));
+                        } else {
+                            for (Map.Entry<String, Integer> entry : packet.costs.entrySet()) {
+                                researchData.addResearchPoints(entry.getKey(), entry.getValue());
+                            }
+                            researchData.syncToClient(player);
+                            player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
+                                "research.strangematter.inventory_full"));
                         }
-                        researchData.syncToClient(player);
-                        
-                        player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
-                            "research.strangematter.inventory_full"));
                     }
                 } else {
-                    // Send failure message
                     player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
                         "research.strangematter.cannot_afford"));
                 }

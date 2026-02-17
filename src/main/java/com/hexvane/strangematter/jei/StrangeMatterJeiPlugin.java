@@ -2,11 +2,18 @@ package com.hexvane.strangematter.jei;
 
 import com.hexvane.strangematter.StrangeMatterMod;
 import com.hexvane.strangematter.jei.categories.RealityForgeCategory;
+import com.hexvane.strangematter.recipe.RealityForgeRecipe;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 
@@ -34,63 +41,39 @@ public class StrangeMatterJeiPlugin implements IModPlugin {
             return;
         }
         
-        // Check if recipes should be hidden in recipe viewers
-        if (com.hexvane.strangematter.Config.hideRecipesInRecipeViewers) {
-            // Recipes are hidden in JEI - only show info pages
-            addInfoPages(registration);
-            return;
-        }
-        
-        // Register Reality Forge recipes
-        java.util.List<com.hexvane.strangematter.jei.recipes.RealityForgeRecipe> recipes = loadRealityForgeRecipes(registration);
+        addInfoPages(registration);
+
+        java.util.List<com.hexvane.strangematter.jei.recipes.RealityForgeRecipe> recipes = loadAllRealityForgeRecipes();
         if (!recipes.isEmpty()) {
             registration.addRecipes(RealityForgeCategory.RECIPE_TYPE, recipes);
         }
-        
-        // Add info pages for machines
-        addInfoPages(registration);
     }
-    
-    private java.util.List<com.hexvane.strangematter.jei.recipes.RealityForgeRecipe> loadRealityForgeRecipes(IRecipeRegistration registration) {
+
+    private java.util.List<com.hexvane.strangematter.jei.recipes.RealityForgeRecipe> loadAllRealityForgeRecipes() {
         java.util.List<com.hexvane.strangematter.jei.recipes.RealityForgeRecipe> recipes = new java.util.ArrayList<>();
-        
         try {
-            // Get recipe manager from the level - use client world access through a helper method
-            net.minecraft.world.level.Level level = getClientLevel();
+            Level level = getClientLevel();
             if (level == null) {
-                System.out.println("Level is null, cannot load recipes yet");
                 return recipes;
             }
-            
-            net.minecraft.world.item.crafting.RecipeManager recipeManager = level.getRecipeManager();
+            RecipeManager recipeManager = level.getRecipeManager();
             if (recipeManager == null) {
-                System.out.println("Recipe manager is null, cannot load recipes yet");
                 return recipes;
             }
-            
-            // Get all reality forge recipes
-            net.minecraft.world.item.crafting.RecipeType<com.hexvane.strangematter.recipe.RealityForgeRecipe> recipeType = 
-                StrangeMatterMod.REALITY_FORGE_RECIPE_TYPE.get();
+            RecipeType<RealityForgeRecipe> recipeType = StrangeMatterMod.REALITY_FORGE_RECIPE_TYPE.get();
             if (recipeType == null) {
                 return recipes;
             }
-            
-            java.util.List<com.hexvane.strangematter.recipe.RealityForgeRecipe> realityForgeRecipes = 
-                recipeManager.getAllRecipesFor(recipeType);
-            
-            // Convert each recipe to JEI format
-            for (com.hexvane.strangematter.recipe.RealityForgeRecipe recipe : realityForgeRecipes) {
+            for (RealityForgeRecipe recipe : recipeManager.getAllRecipesFor(recipeType)) {
                 com.hexvane.strangematter.jei.recipes.RealityForgeRecipe jeiRecipe = convertToJeiRecipe(recipe, level);
                 if (jeiRecipe != null) {
                     recipes.add(jeiRecipe);
                 }
             }
-            
         } catch (Exception e) {
             System.err.println("Failed to load reality forge recipes: " + e.getMessage());
             e.printStackTrace();
         }
-        
         return recipes;
     }
     
@@ -109,7 +92,8 @@ public class StrangeMatterJeiPlugin implements IModPlugin {
             
             java.util.List<net.minecraft.world.item.crafting.Ingredient> inputs = new java.util.ArrayList<>(ingredients);
             
-            return new com.hexvane.strangematter.jei.recipes.RealityForgeRecipe(inputs, resultStack, shardInputs);
+            String requiredResearch = recipe.getRequiredResearch();
+            return new com.hexvane.strangematter.jei.recipes.RealityForgeRecipe(inputs, resultStack, shardInputs, requiredResearch);
         } catch (Exception e) {
             System.err.println("Failed to convert recipe " + recipe.getId() + " to JEI format: " + e.getMessage());
             e.printStackTrace();
@@ -120,23 +104,23 @@ public class StrangeMatterJeiPlugin implements IModPlugin {
     private void addInfoPages(IRecipeRegistration registration) {
         // Reality Forge info page
         registration.addIngredientInfo(
-            new net.minecraft.world.item.ItemStack(StrangeMatterMod.REALITY_FORGE_ITEM.get()),
-            mezz.jei.api.constants.VanillaTypes.ITEM_STACK,
-            net.minecraft.network.chat.Component.translatable("jei.strangematter.reality_forge.info")
+            new ItemStack(StrangeMatterMod.REALITY_FORGE_ITEM.get()),
+            VanillaTypes.ITEM_STACK,
+            Component.translatable("jei.strangematter.reality_forge.info")
         );
-        
+
         // Resonance Condenser info page
         registration.addIngredientInfo(
-            new net.minecraft.world.item.ItemStack(StrangeMatterMod.RESONANCE_CONDENSER_ITEM.get()),
-            mezz.jei.api.constants.VanillaTypes.ITEM_STACK,
-            net.minecraft.network.chat.Component.translatable("jei.strangematter.resonance_condenser.info")
+            new ItemStack(StrangeMatterMod.RESONANCE_CONDENSER_ITEM.get()),
+            VanillaTypes.ITEM_STACK,
+            Component.translatable("jei.strangematter.resonance_condenser.info")
         );
-        
+
         // Research Notes info page
         registration.addIngredientInfo(
-            new net.minecraft.world.item.ItemStack(StrangeMatterMod.RESEARCH_NOTES.get()),
-            mezz.jei.api.constants.VanillaTypes.ITEM_STACK,
-            net.minecraft.network.chat.Component.translatable("jei.strangematter.research_notes.info")
+            new ItemStack(StrangeMatterMod.RESEARCH_NOTES.get()),
+            VanillaTypes.ITEM_STACK,
+            Component.translatable("jei.strangematter.research_notes.info")
         );
     }
 }

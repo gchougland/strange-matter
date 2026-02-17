@@ -72,9 +72,10 @@ public class ResearchCommand {
         
         context.getSource().sendSuccess(() -> Component.literal("§6Research Points for " + player.getName().getString() + ":"), false);
         
-        for (ResearchType type : ResearchType.values()) {
-            int points = researchData.getResearchPoints(type);
-            context.getSource().sendSuccess(() -> Component.literal("§e" + type.getName() + ": §f" + points), false);
+        for (String typeId : com.hexvane.strangematter.research.ResearchTypeHelper.getAllTypeIds()) {
+            int points = researchData.getResearchPoints(typeId);
+            String name = com.hexvane.strangematter.research.ResearchTypeHelper.getDisplayName(typeId).getString();
+            context.getSource().sendSuccess(() -> Component.literal("§e" + name + ": §f" + points), false);
         }
         
         int scannedCount = researchData.getScannedObjects().size();
@@ -97,8 +98,7 @@ public class ResearchCommand {
         String typeName = context.getArgument("type", String.class);
         int amount = context.getArgument("amount", Integer.class);
         
-        ResearchType type = ResearchType.fromName(typeName);
-        if (type == null) {
+        if (!com.hexvane.strangematter.research.ResearchTypeHelper.isKnownType(typeName)) {
             context.getSource().sendFailure(Component.literal("§cInvalid research type: " + typeName));
             return 0;
         }
@@ -106,10 +106,11 @@ public class ResearchCommand {
         int result = 0;
         for (ServerPlayer player : players) {
             ResearchData researchData = ResearchData.get(player);
-            researchData.addResearchPoints(type, amount);
+            researchData.addResearchPoints(typeName, amount);
             researchData.syncToClient(player);
             
-            context.getSource().sendSuccess(() -> Component.literal("§aAdded " + amount + " " + type.getName() + " research points to " + player.getName().getString()), true);
+            String displayName = com.hexvane.strangematter.research.ResearchTypeHelper.getDisplayName(typeName).getString();
+            context.getSource().sendSuccess(() -> Component.literal("§aAdded " + amount + " " + displayName + " research points to " + player.getName().getString()), true);
             result = 1;
         }
         
@@ -133,9 +134,8 @@ public class ResearchCommand {
     private static int resetResearch(CommandContext<CommandSourceStack> context, ServerPlayer player) {
         ResearchData researchData = ResearchData.get(player);
         
-        // Reset all research points to 0
-        for (ResearchType type : ResearchType.values()) {
-            researchData.addResearchPoints(type, -researchData.getResearchPoints(type));
+        for (String typeId : com.hexvane.strangematter.research.ResearchTypeHelper.getAllTypeIds()) {
+            researchData.addResearchPoints(typeId, -researchData.getResearchPoints(typeId));
         }
         
         // Clear scanned objects

@@ -9,33 +9,36 @@ import net.minecraftforge.network.NetworkEvent;
 import java.util.function.Supplier;
 
 public class ResearchGainPacket {
-    private final ResearchType researchType;
+    private final String typeId;
     private final int amount;
     
-    public ResearchGainPacket(ResearchType researchType, int amount) {
-        this.researchType = researchType;
+    public ResearchGainPacket(String typeId, int amount) {
+        this.typeId = typeId;
         this.amount = amount;
     }
     
+    public ResearchGainPacket(ResearchType type, int amount) {
+        this(type.getName(), amount);
+    }
+    
     public ResearchGainPacket(FriendlyByteBuf buf) {
-        this.researchType = ResearchType.fromName(buf.readUtf());
+        this.typeId = buf.readUtf();
         this.amount = buf.readInt();
     }
     
     public void encode(FriendlyByteBuf buf) {
-        buf.writeUtf(researchType.getName());
+        buf.writeUtf(typeId);
         buf.writeInt(amount);
     }
     
     public void handle(Supplier<NetworkEvent.Context> contextSupplier) {
         NetworkEvent.Context context = contextSupplier.get();
         context.enqueueWork(() -> {
-            // This packet is handled on the client side
             if (context.getDirection().getReceptionSide().isClient()) {
-                ResearchType finalType = researchType;
+                String finalTypeId = typeId;
                 int finalAmount = amount;
                 DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> 
-                    com.hexvane.strangematter.client.network.ClientPacketHandlers.handleResearchGain(finalType, finalAmount));
+                    com.hexvane.strangematter.client.network.ClientPacketHandlers.handleResearchGain(finalTypeId, finalAmount));
             }
         });
         context.setPacketHandled(true);

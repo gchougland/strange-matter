@@ -4,7 +4,28 @@ All notable changes to Strange Matter will be documented in this file.
 
 ## [0.4.0] - Unreleased
 
+### Added
+- **Custom Research Point Types (KubeJS)**: Pack developers can register custom research point types with display name and icon (texture or item)
+  - **ResearchPointTypeBuilder**: `name()`, `iconTexture()`, `iconItem()`; register via `StrangeMatterHelper.createResearchPointType(id)` and `registerResearchPointType(builder)`
+  - Custom type IDs can be used in research node costs (`ResearchNodeBuilder.cost(typeId, amount)`), `/strangematter research` commands, and research point conditions
+  - Custom types appear in the Research Tablet points panel and in cost tooltips; they do not have Research Machine minigames (grant via commands or future hooks)
+  - Documentation in `KUBEJS_INTEGRATION.md` and test script `kubejs/startup_scripts/strangematter_test_research_point_type.js` (registers "Mana" type and test nodes)
+- **Custom Research Categories (KubeJS)**: Pack developers can register custom research categories (tabs in the Research Tablet)
+  - **ResearchCategoryBuilder**: `name()`, `iconTexture()`, `iconItem()`, `unlockRequirement(researchNodeId)`, `order()`, `rootNode(researchNodeId)`; register via `StrangeMatterHelper.createCategory(id)` and `registerCategory(builder)`
+  - Categories can be hidden until a research node is unlocked; tab order is configurable; optional root node centers the view when the tab is selected
+  - Nodes can be assigned to custom categories via `ResearchNodeBuilder.category(categoryId)`; documented in `KUBEJS_INTEGRATION.md` with examples
+- **Instant Unlock for Custom-Only Nodes**: Research nodes that cost only custom research point types (no built-in types with minigames) unlock immediately when the player has enough points—no research note or Research Machine required
+- **Research note + custom types**: Research notes that list both custom and built-in point types work in the Research Machine; minigames run only for the built-in types, and completion unlocks the research as usual
 
+### Changed
+- **Research system type IDs**: Research points and node costs now use string type IDs internally; built-in types (cognition, energy, gravity, shadow, space, time) keep their names as IDs, and custom types are added via KubeJS
+- **Custom type icon size**: Item-based icons for custom research point types are rendered at 8×8 in the Research Tablet and cost tooltips to match built-in texture icons
+- **JEI Reality Forge**: All Reality Forge recipes are always registered; no filtering by research. Research-gated recipes the player hasn’t unlocked show a dynamic locked overlay (opaque overlay + “Learn this recipe in the Research Tablet” text) that hides the recipe items.
+
+### Fixed
+- **Graviton Hammer stuck charge**: If the player held right-click to charge then switched to another hotbar slot, the hammer stayed in a charged state and right-click no longer worked. Charge state is now cleared when the hammer is not the selected item, so switching back restores normal use.
+- **Field Scanner stuck scanning**: The scanner could get stuck in the scanning animation and become unusable. Scanning state is now fully reset when the player switches away from the scanner or when the scanner is selected but not actually in use, so the item no longer gets stuck.
+- **Warp gates and world border**: Warp gates (world-gen and Warp Gun mini gates) could teleport players outside the world border, causing instant death on servers with smaller borders. Teleport destinations are now clamped to the level’s world border and build height (with a 1-block inset) so players are never sent outside safe bounds.
 
 ## [0.3.0] - 12/16/2025
 

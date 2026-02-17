@@ -115,7 +115,7 @@ public class MiniWarpGateEntity extends Entity {
             // Only teleport if the paired gate is a different color
             if (pairedGate.isPurplePortal != this.isPurplePortal) {
                 // Calculate teleport position (slightly offset to prevent immediate re-teleportation)
-                Vec3 teleportPos = pairedGate.position().add(0, 0.5, 0);
+                Vec3 teleportPos = WarpGateAnomalyEntity.clampToWorldBorder(this.level(), pairedGate.position().add(0, 0.5, 0));
                 
                 // Preserve velocity and direction
                 Vec3 velocity = entity.getDeltaMovement();

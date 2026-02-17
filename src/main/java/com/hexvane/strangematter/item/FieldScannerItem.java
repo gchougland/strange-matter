@@ -43,6 +43,25 @@ public class FieldScannerItem extends Item {
     }
     
     @Override
+    public void inventoryTick(ItemStack stack, Level level, net.minecraft.world.entity.Entity entity, int slotId, boolean isSelected) {
+        super.inventoryTick(stack, level, entity, slotId, isSelected);
+        if (level.isClientSide || !(entity instanceof Player player)) {
+            return;
+        }
+        // Clear stuck scanning state: when scanner is not selected (player switched away) or when selected but not actually in use
+        if (!isScanning(stack)) {
+            return;
+        }
+        if (!isSelected) {
+            stopScanning(stack);
+            return;
+        }
+        if (player.getUseItem().isEmpty() || player.getUseItem().getItem() != this) {
+            stopScanning(stack);
+        }
+    }
+
+    @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         
@@ -257,7 +276,7 @@ public class FieldScannerItem extends Item {
             if (researchType != null && !objectId.isEmpty()) {
                 // Add research points
                 ResearchData researchData = ResearchData.get(player);
-                researchData.addResearchPoints(researchType, amount);
+                researchData.addResearchPoints(researchType.getName(), amount);
                 researchData.markAsScanned(objectId);
                 
                 // Sync to client

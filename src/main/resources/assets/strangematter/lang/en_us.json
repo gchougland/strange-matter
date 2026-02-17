@@ -393,6 +393,7 @@
   "research.strangematter.event.quantum_entanglement.message": "Quantum particles become entangled!",
   "research.strangematter.cannot_afford": "You don't have enough research points to unlock this research.",
   "research.strangematter.note_received": "Received research notes for: %s",
+  "research.strangematter.research_unlocked": "Research unlocked: %s",
   "research.strangematter.inventory_full": "Your inventory is full! Cannot receive research notes.",
   "research.strangematter.points_spent": "Research points spent successfully.",
   "block.strangematter.research_machine.note_inserted": "Research note inserted into the machine.",
@@ -456,5 +457,8 @@
   "jei.strangematter.resonance_condenser": "Resonance Condenser",
   "jei.strangematter.reality_forge.info": "The Reality Forge is a powerful machine that can craft items using anomaly shards. It requires specific materials and anomaly shards to function. Use it to create advanced Strange Matter items.",
   "jei.strangematter.resonance_condenser.info": "The Resonance Condenser is a specialized machine that processes anomaly energy. It crystallizes the energy of nearby anomalies into shards.",
-  "jei.strangematter.research_notes.info": "Research Notes are obtained by completing research projects in the Research Tablet. Right-click with a Research Tablet to open the research interface, accumulate research points by scanning anomalies, then spend those points to unlock technologies and receive Research Notes."
+  "jei.strangematter.research_notes.info": "Research Notes are obtained by completing research projects in the Research Tablet. Right-click with a Research Tablet to open the research interface, accumulate research points by scanning anomalies, then spend those points to unlock technologies and receive Research Notes.",
+  "jei.strangematter.learn_in_research_tablet": "Learn this recipe in the Research Tablet.",
+  "jei.strangematter.learn_in_research_tablet.line1": "Learn this recipe in the",
+  "jei.strangematter.learn_in_research_tablet.line2": "Research Tablet."
 }

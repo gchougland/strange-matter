@@ -1,7 +1,7 @@
 package com.hexvane.strangematter.command;
 
 import com.hexvane.strangematter.research.ResearchData;
-import com.hexvane.strangematter.research.ResearchType;
+import com.hexvane.strangematter.research.ResearchTypeHelper;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -32,44 +32,30 @@ public class ResearchPointsCondition {
 
         @Override
         public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
-            return SharedSuggestionProvider.suggest(
-                new String[]{"gravity", "time", "space", "energy", "shadow", "cognition"}, builder);
+            return SharedSuggestionProvider.suggest(ResearchTypeHelper.getAllTypeIds(), builder);
         }
     }
 
     public static boolean checkResearchPoints(CommandSourceStack source, Collection<ServerPlayer> targets, 
                                             String researchTypeStr, int minPoints, int maxPoints) throws CommandSyntaxException {
-        ResearchType researchType = parseResearchType(researchTypeStr);
-        if (researchType == null) {
+        if (!ResearchTypeHelper.isKnownType(researchTypeStr)) {
             throw INVALID_RESEARCH_TYPE.create(researchTypeStr);
         }
 
         for (ServerPlayer player : targets) {
             ResearchData researchData = ResearchData.get(player);
-            int points = researchData.getResearchPoints(researchType);
+            int points = researchData.getResearchPoints(researchTypeStr);
             
             if (points >= minPoints && points <= maxPoints) {
-                return true; // At least one player meets the criteria
+                return true;
             }
         }
         
-        return false; // No players meet the criteria
+        return false;
     }
 
     public static boolean checkResearchPoints(CommandSourceStack source, Collection<ServerPlayer> targets, 
                                             String researchTypeStr, int minPoints) throws CommandSyntaxException {
         return checkResearchPoints(source, targets, researchTypeStr, minPoints, Integer.MAX_VALUE);
-    }
-
-    private static ResearchType parseResearchType(String researchTypeStr) {
-        return switch (researchTypeStr.toLowerCase()) {
-            case "gravity" -> ResearchType.GRAVITY;
-            case "time" -> ResearchType.TIME;
-            case "space" -> ResearchType.SPACE;
-            case "energy" -> ResearchType.ENERGY;
-            case "shadow" -> ResearchType.SHADOW;
-            case "cognition" -> ResearchType.COGNITION;
-            default -> null;
-        };
     }
 }

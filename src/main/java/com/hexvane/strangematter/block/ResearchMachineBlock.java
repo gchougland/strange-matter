@@ -145,12 +145,10 @@ public class ResearchMachineBlock extends Block implements EntityBlock {
                         Set<com.hexvane.strangematter.research.ResearchType> activeTypes = researchMachine.getActiveResearchTypes();
                         
                         if (!researchId.isEmpty() && !activeTypes.isEmpty()) {
-                            // Create a map of research types with default costs
-                            Map<com.hexvane.strangematter.research.ResearchType, Integer> researchCosts = new HashMap<>();
+                            Map<String, Integer> researchCosts = new HashMap<>();
                             for (com.hexvane.strangematter.research.ResearchType type : activeTypes) {
-                                researchCosts.put(type, 1); // Default cost of 1
+                                researchCosts.put(type.getName(), 1);
                             }
-                            
                             ItemStack researchNote = com.hexvane.strangematter.item.ResearchNoteItem.createResearchNote(researchCosts, researchId);
                             
                             // Drop the research note at the block's position

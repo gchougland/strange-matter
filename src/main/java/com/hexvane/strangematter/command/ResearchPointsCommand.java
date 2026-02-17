@@ -1,7 +1,7 @@
 package com.hexvane.strangematter.command;
 
 import com.hexvane.strangematter.research.ResearchData;
-import com.hexvane.strangematter.research.ResearchType;
+import com.hexvane.strangematter.research.ResearchTypeHelper;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -23,8 +23,7 @@ public class ResearchPointsCommand {
         new DynamicCommandExceptionType(type -> Component.literal("Invalid research type: " + type));
     
     private static final SuggestionProvider<CommandSourceStack> RESEARCH_TYPE_SUGGESTIONS = 
-        (context, builder) -> SharedSuggestionProvider.suggest(
-            new String[]{"gravity", "time", "space", "energy", "shadow", "cognition"}, builder);
+        (context, builder) -> SharedSuggestionProvider.suggest(ResearchTypeHelper.getAllTypeIds(), builder);
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("researchpoints")
@@ -42,9 +41,8 @@ public class ResearchPointsCommand {
     private static int checkResearchPoints(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         Collection<ServerPlayer> targets = EntityArgument.getPlayers(context, "targets");
         String researchTypeStr = StringArgumentType.getString(context, "researchType");
-        ResearchType researchType = parseResearchType(researchTypeStr);
         
-        if (researchType == null) {
+        if (!ResearchTypeHelper.isKnownType(researchTypeStr)) {
             throw INVALID_RESEARCH_TYPE.create(researchTypeStr);
         }
 
@@ -59,31 +57,17 @@ public class ResearchPointsCommand {
         int successCount = 0;
         for (ServerPlayer player : targets) {
             ResearchData researchData = ResearchData.get(player);
-            int points = researchData.getResearchPoints(researchType);
+            int points = researchData.getResearchPoints(researchTypeStr);
             
             if (points >= minPoints && points <= maxPoints) {
                 successCount++;
             }
         }
 
-        // Return the number of players that meet the criteria
-        // This allows command blocks to use the result for conditional execution
         return successCount;
     }
 
     private static int checkResearchPointsRange(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         return checkResearchPoints(context);
-    }
-
-    private static ResearchType parseResearchType(String researchTypeStr) {
-        return switch (researchTypeStr.toLowerCase()) {
-            case "gravity" -> ResearchType.GRAVITY;
-            case "time" -> ResearchType.TIME;
-            case "space" -> ResearchType.SPACE;
-            case "energy" -> ResearchType.ENERGY;
-            case "shadow" -> ResearchType.SHADOW;
-            case "cognition" -> ResearchType.COGNITION;
-            default -> null;
-        };
     }
 }

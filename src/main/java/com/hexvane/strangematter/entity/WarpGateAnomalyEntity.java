@@ -19,6 +19,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
 import com.hexvane.strangematter.registry.WarpGateRegistry;
 import net.minecraftforge.common.world.ForgeChunkManager;
+import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import com.hexvane.strangematter.research.ResearchType;
@@ -157,6 +158,24 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
         }
     }
     
+    /**
+     * Clamps a position to the level's world border and build height so teleporting never places entities outside.
+     * Uses a 1-block inset from the border so entities are safely inside (avoids instant death on servers with small borders).
+     */
+    public static Vec3 clampToWorldBorder(Level level, Vec3 pos) {
+        WorldBorder border = level.getWorldBorder();
+        double minX = border.getMinX() + 1;
+        double maxX = border.getMaxX() - 1;
+        double minZ = border.getMinZ() + 1;
+        double maxZ = border.getMaxZ() - 1;
+        double x = Math.max(minX, Math.min(maxX, pos.x));
+        double z = Math.max(minZ, Math.min(maxZ, pos.z));
+        double minY = level.getMinBuildHeight() + 1;
+        double maxY = level.getMaxBuildHeight() - 1;
+        double y = Math.max(minY, Math.min(maxY, pos.y));
+        return new Vec3(x, y, z);
+    }
+
     private void teleportEntity(Entity entity) {
         // Ensure we're on the server side
         if (this.level().isClientSide) {
@@ -176,6 +195,7 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
             // Use the stored warp gate position but offset it to prevent immediate re-detection
             // Offset by 4 blocks to ensure we're outside the 2-block teleportation radius
             Vec3 teleportPos = new Vec3(pairedGateStructureLocation.getX() + 4.0, pairedGateStructureLocation.getY() + 2, pairedGateStructureLocation.getZ() + 0.5);
+            teleportPos = clampToWorldBorder(serverLevel, teleportPos);
             
             performDirectTeleportation(entity, serverLevel, teleportPos);
             return;
@@ -189,7 +209,7 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
         }
         
         // Calculate teleport position (offset from the paired gate to prevent back-and-forth)
-        Vec3 teleportPos = pairedGate.position().add(3, 1, 0); // 3 blocks away from the destination portal
+        Vec3 teleportPos = clampToWorldBorder(serverLevel, pairedGate.position().add(3, 1, 0)); // 3 blocks away from the destination portal
         
         
         // Teleport the entity using server-side methods
@@ -450,7 +470,7 @@ public class WarpGateAnomalyEntity extends BaseAnomalyEntity {
     }
     
     private void performDirectTeleportation(Entity entity, ServerLevel serverLevel, Vec3 teleportPos) {
-        
+        teleportPos = clampToWorldBorder(serverLevel, teleportPos);
         
         // Teleport the entity using server-side methods
         if (entity instanceof Player player) {

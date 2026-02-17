@@ -1,7 +1,7 @@
 package com.hexvane.strangematter.kubejs;
 
 import com.hexvane.strangematter.research.ResearchNode;
-import com.hexvane.strangematter.research.ResearchType;
+import com.hexvane.strangematter.research.ResearchTypeHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -20,7 +20,7 @@ public class ResearchNodeBuilder {
     private String category = "custom";
     private int x = 0;
     private int y = 0;
-    private Map<ResearchType, Integer> researchCosts = new HashMap<>();
+    private Map<String, Integer> researchCosts = new HashMap<>();
     private ResourceLocation iconTexture = null;
     private ItemStack iconItem = ItemStack.EMPTY;
     private boolean requiresMultipleAspects = false;
@@ -66,12 +66,12 @@ public class ResearchNodeBuilder {
     
     /**
      * Add a research cost for a specific type.
-     * Types: "gravity", "time", "space", "energy", "shadow", "cognition"
+     * Built-in: "gravity", "time", "space", "energy", "shadow", "cognition".
+     * Custom type ids registered via createResearchPointType() are also valid.
      */
     public ResearchNodeBuilder cost(String typeName, int amount) {
-        ResearchType type = ResearchType.fromName(typeName);
-        if (type != null && amount > 0) {
-            this.researchCosts.put(type, amount);
+        if (ResearchTypeHelper.isKnownType(typeName) && amount > 0) {
+            this.researchCosts.put(typeName, amount);
         }
         return this;
     }
@@ -160,7 +160,7 @@ public class ResearchNodeBuilder {
             category,
             x,
             y,
-            new HashMap<>(researchCosts), // Copy to prevent external modification
+            new HashMap<>(researchCosts),
             iconTexture,
             iconItem.copy(),
             requiresMultipleAspects,

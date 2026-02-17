@@ -1,7 +1,9 @@
 package com.hexvane.strangematter.jei.categories;
 
 import com.hexvane.strangematter.StrangeMatterMod;
+import com.hexvane.strangematter.client.network.ClientPacketHandlers;
 import com.hexvane.strangematter.jei.recipes.RealityForgeRecipe;
+import com.hexvane.strangematter.research.ResearchData;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
@@ -52,85 +54,44 @@ public class RealityForgeCategory implements IRecipeCategory<RealityForgeRecipe>
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, RealityForgeRecipe recipe, IFocusGroup focuses) {
         java.util.List<net.minecraft.world.item.crafting.Ingredient> inputs = recipe.getInputs();
-        System.out.println("JEI Category: Recipe has " + inputs.size() + " inputs");
-        
         if (inputs.isEmpty()) {
-            System.out.println("ERROR: Recipe has no inputs, cannot display in JEI");
             return;
         }
-        
-        // Ensure we have at least 9 inputs (3x3 grid)
         while (inputs.size() < 9) {
             inputs.add(net.minecraft.world.item.crafting.Ingredient.EMPTY);
         }
-        
-        // 3x3 crafting grid layout (moved to center-right)
-        int gridStartX = 92; // Start after shard columns
+
+        // Always show real ingredients and output. When locked, draw() covers items with an opaque overlay.
+        int gridStartX = 92;
         int gridStartY = 20;
-        builder.addSlot(mezz.jei.api.recipe.RecipeIngredientRole.INPUT, gridStartX, gridStartY)
-            .addIngredients(inputs.get(0)); // Top-left
-        builder.addSlot(mezz.jei.api.recipe.RecipeIngredientRole.INPUT, gridStartX + 18, gridStartY)
-            .addIngredients(inputs.get(1)); // Top-center
-        builder.addSlot(mezz.jei.api.recipe.RecipeIngredientRole.INPUT, gridStartX + 36, gridStartY)
-            .addIngredients(inputs.get(2)); // Top-right
-        builder.addSlot(mezz.jei.api.recipe.RecipeIngredientRole.INPUT, gridStartX, gridStartY + 18)
-            .addIngredients(inputs.get(3)); // Middle-left
-        builder.addSlot(mezz.jei.api.recipe.RecipeIngredientRole.INPUT, gridStartX + 18, gridStartY + 18)
-            .addIngredients(inputs.get(4)); // Middle-center
-        builder.addSlot(mezz.jei.api.recipe.RecipeIngredientRole.INPUT, gridStartX + 36, gridStartY + 18)
-            .addIngredients(inputs.get(5)); // Middle-right
-        builder.addSlot(mezz.jei.api.recipe.RecipeIngredientRole.INPUT, gridStartX, gridStartY + 36)
-            .addIngredients(inputs.get(6)); // Bottom-left
-        builder.addSlot(mezz.jei.api.recipe.RecipeIngredientRole.INPUT, gridStartX + 18, gridStartY + 36)
-            .addIngredients(inputs.get(7)); // Bottom-center
-        builder.addSlot(mezz.jei.api.recipe.RecipeIngredientRole.INPUT, gridStartX + 36, gridStartY + 36)
-            .addIngredients(inputs.get(8)); // Bottom-right
-        
-        // Anomaly shard slots (external forge slots) - 2 columns on the left
+        for (int i = 0; i < 9; i++) {
+            int x = gridStartX + (i % 3) * 18;
+            int y = gridStartY + (i / 3) * 18;
+            builder.addSlot(mezz.jei.api.recipe.RecipeIngredientRole.INPUT, x, y)
+                .addIngredients(inputs.get(i));
+        }
+
         int shardIndex = 0;
         for (java.util.Map.Entry<String, Integer> shardEntry : recipe.getShardInputs().entrySet()) {
             String shardType = shardEntry.getKey();
-            int shardCount = shardEntry.getValue();
-            
-            // Create ingredient for specific shard type
-            net.minecraft.world.item.crafting.Ingredient shardIngredient;
-            switch (shardType) {
-                case "spatial":
-                    shardIngredient = net.minecraft.world.item.crafting.Ingredient.of(StrangeMatterMod.SPATIAL_SHARD.get());
-                    break;
-                case "energetic":
-                    shardIngredient = net.minecraft.world.item.crafting.Ingredient.of(StrangeMatterMod.ENERGETIC_SHARD.get());
-                    break;
-                case "gravitic":
-                    shardIngredient = net.minecraft.world.item.crafting.Ingredient.of(StrangeMatterMod.GRAVITIC_SHARD.get());
-                    break;
-                case "chrono":
-                    shardIngredient = net.minecraft.world.item.crafting.Ingredient.of(StrangeMatterMod.CHRONO_SHARD.get());
-                    break;
-                case "shade":
-                    shardIngredient = net.minecraft.world.item.crafting.Ingredient.of(StrangeMatterMod.SHADE_SHARD.get());
-                    break;
-                case "insight":
-                    shardIngredient = net.minecraft.world.item.crafting.Ingredient.of(StrangeMatterMod.INSIGHT_SHARD.get());
-                    break;
-                default:
-                    shardIngredient = net.minecraft.world.item.crafting.Ingredient.of(StrangeMatterMod.ENERGETIC_SHARD.get());
-                    break;
-            }
-            
-            // Calculate position: left column (0-2) or right column (3-5)
             int shardSlotX = (shardIndex < 3) ? 20 : 50;
             int shardSlotY = 20 + ((shardIndex % 3) * 18);
-            
-            // Add shard slot
+            net.minecraft.world.item.crafting.Ingredient shardIngredient;
+            switch (shardType) {
+                case "spatial": shardIngredient = net.minecraft.world.item.crafting.Ingredient.of(StrangeMatterMod.SPATIAL_SHARD.get()); break;
+                case "energetic": shardIngredient = net.minecraft.world.item.crafting.Ingredient.of(StrangeMatterMod.ENERGETIC_SHARD.get()); break;
+                case "gravitic": shardIngredient = net.minecraft.world.item.crafting.Ingredient.of(StrangeMatterMod.GRAVITIC_SHARD.get()); break;
+                case "chrono": shardIngredient = net.minecraft.world.item.crafting.Ingredient.of(StrangeMatterMod.CHRONO_SHARD.get()); break;
+                case "shade": shardIngredient = net.minecraft.world.item.crafting.Ingredient.of(StrangeMatterMod.SHADE_SHARD.get()); break;
+                case "insight": shardIngredient = net.minecraft.world.item.crafting.Ingredient.of(StrangeMatterMod.INSIGHT_SHARD.get()); break;
+                default: shardIngredient = net.minecraft.world.item.crafting.Ingredient.of(StrangeMatterMod.ENERGETIC_SHARD.get()); break;
+            }
             builder.addSlot(mezz.jei.api.recipe.RecipeIngredientRole.INPUT, shardSlotX, shardSlotY)
                 .addIngredients(shardIngredient)
                 .setSlotName("shard_" + shardType);
-            
             shardIndex++;
         }
-        
-        // Output slot (far right)
+
         builder.addSlot(mezz.jei.api.recipe.RecipeIngredientRole.OUTPUT, 172, 38)
             .addItemStack(recipe.getOutput());
     }
@@ -141,11 +102,11 @@ public class RealityForgeCategory implements IRecipeCategory<RealityForgeRecipe>
         int shardIndex = 0;
         for (java.util.Map.Entry<String, Integer> shardEntry : recipe.getShardInputs().entrySet()) {
             int shardCount = shardEntry.getValue();
-            
+
             // Calculate position: left column (0-2) or right column (3-5)
             int shardSlotX = (shardIndex < 3) ? 20 : 50;
             int shardSlotY = 20 + ((shardIndex % 3) * 18);
-            
+
             // Always draw quantity (including 1x)
             String quantityText = shardCount + "x";
             // Position text to the left of shard slot
@@ -156,10 +117,31 @@ public class RealityForgeCategory implements IRecipeCategory<RealityForgeRecipe>
                 textX, shardSlotY + 4,
                 0xFFFFFF
             );
-            
+
             shardIndex++;
         }
-        
+
         IRecipeCategory.super.draw(recipe, recipeSlotsView, guiGraphics, mouseX, mouseY);
+
+        // Draw locked overlay for gated recipes the player hasn't unlocked. Fully opaque overlay hides items; text on top.
+        if (recipe.isLockedByResearch()) {
+            ResearchData researchData = ClientPacketHandlers.getClientResearchData();
+            if (researchData != null && !researchData.hasUnlockedResearch(recipe.getRequiredResearchId())) {
+                int w = getBackground().getWidth();
+                int h = getBackground().getHeight();
+                guiGraphics.pose().pushPose();
+                guiGraphics.pose().translate(0, 0, 500);
+                guiGraphics.fill(0, 0, w, h, 0xFF000000);
+                var font = net.minecraft.client.Minecraft.getInstance().font;
+                Component line1 = Component.translatable("jei.strangematter.learn_in_research_tablet.line1");
+                Component line2 = Component.translatable("jei.strangematter.learn_in_research_tablet.line2");
+                int lineHeight = font.lineHeight + 2;
+                int totalHeight = lineHeight * 2 - 2;
+                int y0 = (h - totalHeight) / 2;
+                guiGraphics.drawString(font, line1, (w - font.width(line1)) / 2, y0, 0xFFFFFFFF);
+                guiGraphics.drawString(font, line2, (w - font.width(line2)) / 2, y0 + lineHeight, 0xFFFFFFFF);
+                guiGraphics.pose().popPose();
+            }
+        }
     }
 }

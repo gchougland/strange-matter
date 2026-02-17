@@ -108,6 +108,15 @@ public class GravitonHammerItem extends Item {
     }
     
     @Override
+    public void inventoryTick(@Nonnull ItemStack stack, @Nonnull Level level, @Nonnull net.minecraft.world.entity.Entity entity, int slotId, boolean isSelected) {
+        super.inventoryTick(stack, level, entity, slotId, isSelected);
+        // If player swapped away while charging, releaseUsing is never called. Clear stuck charge when not selected.
+        if (!level.isClientSide && entity instanceof Player && isCharging(stack) && !isSelected) {
+            stopCharging(stack);
+        }
+    }
+
+    @Override
     public int getUseDuration(@Nonnull ItemStack stack) {
         return 72000; // Max duration for charging
     }

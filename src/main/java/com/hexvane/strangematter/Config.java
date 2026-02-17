@@ -680,7 +680,7 @@ public class Config {
         HIDE_RECIPES_IN_RECIPE_VIEWERS = BUILDER
                 .comment("Hide Strange Matter recipes in JEI/REI/EMI recipe viewers",
                         "When enabled, recipes will only be visible in the Research Tablet.",
-                        "This encourages players to use the research system to discover recipes.",
+                        "Items that are results of research-gated recipes will show JEI/EMI info: \"Learn this recipe in the Research Tablet.\"",
                         "Defaults to false (recipes visible in recipe viewers)")
                 .define("hideRecipesInRecipeViewers", false);
         

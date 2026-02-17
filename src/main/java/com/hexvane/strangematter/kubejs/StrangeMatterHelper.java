@@ -1,7 +1,6 @@
 package com.hexvane.strangematter.kubejs;
 
 import com.hexvane.strangematter.research.ResearchNode;
-import com.hexvane.strangematter.research.ResearchType;
 import com.mojang.logging.LogUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -78,6 +77,21 @@ public class StrangeMatterHelper {
     public static void registerCategory(ResearchCategoryBuilder builder) {
         com.hexvane.strangematter.research.ResearchCategory category = builder.build();
         CustomResearchRegistry.registerCategory(category);
+    }
+    
+    /**
+     * Create a new research point type builder (custom type with name and icon).
+     * Register in startup_scripts. Custom types can be used in node costs and commands.
+     */
+    public static ResearchPointTypeBuilder createResearchPointType(String id) {
+        return new ResearchPointTypeBuilder(id);
+    }
+    
+    /**
+     * Register a custom research point type. Call after configuring the builder.
+     */
+    public static void registerResearchPointType(ResearchPointTypeBuilder builder) {
+        builder.build();
     }
     
     /**

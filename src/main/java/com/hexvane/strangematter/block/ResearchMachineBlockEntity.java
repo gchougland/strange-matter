@@ -119,8 +119,8 @@ public class ResearchMachineBlockEntity extends BlockEntity {
                     // Trigger advancement for each research category used in this research
                     com.hexvane.strangematter.research.ResearchNode researchNode = com.hexvane.strangematter.research.ResearchNodeRegistry.getNode(currentResearchId);
                     if (researchNode != null && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
-                        for (com.hexvane.strangematter.research.ResearchType researchType : researchNode.getResearchCosts().keySet()) {
-                            StrangeMatterMod.COMPLETE_RESEARCH_CATEGORY_TRIGGER.trigger(serverPlayer, researchType.getName());
+                        for (String typeId : researchNode.getResearchCosts().keySet()) {
+                            StrangeMatterMod.COMPLETE_RESEARCH_CATEGORY_TRIGGER.trigger(serverPlayer, typeId);
                         }
                     }
                     
@@ -171,12 +171,10 @@ public class ResearchMachineBlockEntity extends BlockEntity {
             return ItemStack.EMPTY;
         }
         
-        // Create a map of research types with default costs (since we don't store the original costs)
-        Map<com.hexvane.strangematter.research.ResearchType, Integer> researchCosts = new HashMap<>();
-        for (com.hexvane.strangematter.research.ResearchType type : activeResearchTypes) {
-            researchCosts.put(type, 1); // Default cost of 1
+        Map<String, Integer> researchCosts = new HashMap<>();
+        for (ResearchType type : activeResearchTypes) {
+            researchCosts.put(type.getName(), 1);
         }
-        
         return com.hexvane.strangematter.item.ResearchNoteItem.createResearchNote(researchCosts, currentResearchId);
     }
     
