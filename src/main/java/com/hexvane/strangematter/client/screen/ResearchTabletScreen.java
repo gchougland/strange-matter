@@ -2,6 +2,8 @@ package com.hexvane.strangematter.client.screen;
 
 import com.hexvane.strangematter.client.research.ResearchNodePositionManager;
 import com.hexvane.strangematter.client.network.ClientPacketHandlers;
+import com.hexvane.strangematter.research.ResearchCategory;
+import com.hexvane.strangematter.research.ResearchCategoryRegistry;
 import com.hexvane.strangematter.research.ResearchData;
 import com.hexvane.strangematter.research.ResearchNode;
 import com.hexvane.strangematter.research.ResearchNodeRegistry;
@@ -24,12 +26,21 @@ public class ResearchTabletScreen extends Screen {
     private static final ResourceLocation RESEARCH_TABLET_BACKGROUND = ResourceLocation.parse("strangematter:textures/ui/research_tablet_background.png");
     private static final ResourceLocation RESEARCH_TABLET_OVERLAY = ResourceLocation.parse("strangematter:textures/ui/research_tablet_overlay.png");
     private static final ResourceLocation RESEARCH_NODE_TEXTURE = ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png");
+    private static final ResourceLocation RESEARCH_TAB_TEXTURE = ResourceLocation.parse("strangematter:textures/ui/research_tablet_tab.png");
     
     private static final int GUI_WIDTH = 320;
     private static final int GUI_HEIGHT = 240;
     private static final int DRAGGABLE_AREA_WIDTH = 246;
     private static final int DRAGGABLE_AREA_HEIGHT = 161;
     private static final int BACKGROUND_TILE_SIZE = 64;
+    
+    // Tab constants (doubled size)
+    private static final int TAB_WIDTH = 26; // 2x original 13
+    private static final int TAB_HEIGHT = 22; // 2x original 11
+    private static final int TAB_SPACING = 4; // Doubled from 2
+    private static final int TAB_HOVER_OFFSET = 4; // Doubled - pixels to pull out on hover
+    private static final int TAB_SELECTED_OFFSET = 4; // Doubled - pixels to pull in when selected
+    private static final int TAB_EXTEND_DISTANCE = 24; // How far tabs stick out from GUI edge (increased for better visibility)
     
     private int guiX, guiY;
     /**
@@ -47,7 +58,8 @@ public class ResearchTabletScreen extends Screen {
     // Track hovered node for sound effects
     private ResearchNode lastHoveredNode = null;
     
-    private final Map<String, Button> categoryButtons = new HashMap<>();
+    // Track hovered tab
+    private String hoveredTabCategory = null;
     
     // Debug mode state
     private boolean debugMode = false;
@@ -88,9 +100,6 @@ public class ResearchTabletScreen extends Screen {
         this.dragOffsetX = 0.0;
         this.dragOffsetY = 0.0;
         this.zoom = 1.0f;
-        
-        // TODO: Re-enable category tabs when needed
-        // createCategoryButtons();
     }
 
     private int getDraggableAreaX() {
@@ -194,33 +203,16 @@ public class ResearchTabletScreen extends Screen {
         return true;
     }
     
-    private void createCategoryButtons() {
-        List<String> categories = ResearchNodeRegistry.getCategories();
-        int buttonWidth = 60;
-        int buttonHeight = 20;
-        int buttonSpacing = 5;
-        int totalButtonWidth = categories.size() * buttonWidth + (categories.size() - 1) * buttonSpacing;
-        int startX = guiX + (GUI_WIDTH - totalButtonWidth) / 2;
-        int buttonY = guiY + 20; // Added more padding from top
-        
-        for (int i = 0; i < categories.size(); i++) {
-            String category = categories.get(i);
-            Button button = Button.builder(
-                Component.translatable("research.category.strangematter." + category),
-                (btn) -> {
-                    selectedCategory = category;
-                    // Play page turn sound
-                    if (minecraft != null && minecraft.player != null) {
-                        minecraft.player.playSound(StrangeMatterSounds.RESEARCH_TABLET_PAGE_TURN.get(), 0.6f, 1.0f);
-                    }
-                }
-            )
-            .bounds(startX + i * (buttonWidth + buttonSpacing), buttonY, buttonWidth, buttonHeight)
-            .build();
-            
-            categoryButtons.put(category, button);
-            addRenderableWidget(button);
+    /**
+     * Check if a research node should be considered unlocked.
+     * Handles special cases like reality_forge_category auto-unlocking.
+     */
+    private boolean isNodeUnlocked(ResearchNode node, ResearchData researchData) {
+        // Special case: reality_forge_category auto-unlocks when reality_forge unlocks
+        if ("reality_forge_category".equals(node.getId())) {
+            return researchData.hasUnlockedResearch("reality_forge");
         }
+        return researchData.hasUnlockedResearch(node.getId());
     }
     
     @Override
@@ -230,6 +222,9 @@ public class ResearchTabletScreen extends Screen {
         // Render main GUI background as grey box
         int bPadding = 10;
         guiGraphics.fill(guiX + bPadding, guiY + bPadding, guiX + GUI_WIDTH - bPadding, guiY + GUI_HEIGHT - bPadding, 0xFF404040);
+        
+        // Render category tabs
+        renderCategoryTabs(guiGraphics, mouseX, mouseY);
         
         // Render draggable research area (without item icons)
         renderDraggableArea(guiGraphics, mouseX, mouseY);
@@ -245,6 +240,9 @@ public class ResearchTabletScreen extends Screen {
         // Render overlay last to appear on top of everything including item icons
         RenderSystem.setShaderTexture(0, RESEARCH_TABLET_OVERLAY);
         guiGraphics.blit(RESEARCH_TABLET_OVERLAY, guiX, guiY, 0, 0, GUI_WIDTH, GUI_HEIGHT, 320, 240);
+        
+        // Render category title after overlay so it's visible
+        renderCategoryTitle(guiGraphics);
         
         // Render debug mode overlay
         if (debugMode) {
@@ -366,10 +364,15 @@ public class ResearchTabletScreen extends Screen {
             
             // Node position for line calculations
             
-            // Collect lines to prerequisite nodes
+            // Collect lines to prerequisite nodes (only within same category)
             for (String prerequisiteId : node.getPrerequisites()) {
                 ResearchNode prerequisite = ResearchNodeRegistry.getNode(prerequisiteId);
                 if (prerequisite != null) {
+                    // Only draw connections within the same category
+                    if (!prerequisite.getCategory().equals(selectedCategory)) {
+                        continue; // Skip prerequisites in different categories
+                    }
+                    
                     int prereqX = positionManager.getEffectiveX(prerequisite);
                     int prereqY = positionManager.getEffectiveY(prerequisite);
                     
@@ -377,8 +380,8 @@ public class ResearchTabletScreen extends Screen {
                     
                     // Always add line to collection (render lines at all times)
                     // Determine line color and priority based on unlock status
-                    boolean isUnlocked = researchData.getUnlockedResearch().contains(node.getId());
-                    boolean prereqUnlocked = researchData.getUnlockedResearch().contains(prerequisiteId);
+                    boolean isUnlocked = isNodeUnlocked(node, researchData);
+                    boolean prereqUnlocked = isNodeUnlocked(prerequisite, researchData);
                     
                     int lineColor;
                     int priority; // Higher number = renders on top (drawn later)
@@ -416,8 +419,18 @@ public class ResearchTabletScreen extends Screen {
     // Helper method to check if all prerequisites are unlocked
     private boolean hasPrerequisitesUnlocked(ResearchNode node, ResearchData researchData) {
         for (String prerequisiteId : node.getPrerequisites()) {
-            if (!researchData.getUnlockedResearch().contains(prerequisiteId)) {
-                return false;
+            ResearchNode prerequisite = ResearchNodeRegistry.getNode(prerequisiteId);
+            if (prerequisite == null) {
+                // If prerequisite doesn't exist, check if it's unlocked in research data
+                if (!researchData.hasUnlockedResearch(prerequisiteId)) {
+                    return false;
+                }
+            } else {
+                // Use the helper method to check unlock status (handles special cases)
+                // This works across categories - prerequisites can be in any category
+                if (!isNodeUnlocked(prerequisite, researchData)) {
+                    return false;
+                }
             }
         }
         return true;
@@ -658,7 +671,7 @@ public class ResearchTabletScreen extends Screen {
             if (nodeScreenX + nodeScreenSize >= getDraggableAreaX() && nodeScreenX <= getDraggableAreaX() + DRAGGABLE_AREA_WIDTH &&
                 nodeScreenY + nodeScreenSize >= getDraggableAreaY() && nodeScreenY <= getDraggableAreaY() + DRAGGABLE_AREA_HEIGHT) {
                 
-                boolean isUnlocked = researchData.getUnlockedResearch().contains(node.getId());
+                boolean isUnlocked = isNodeUnlocked(node, researchData);
                 boolean canAfford = node.canAfford(getPlayerResearchPoints(researchData));
                 boolean prerequisitesUnlocked = hasPrerequisitesUnlocked(node, researchData);
                 boolean isHovered = mouseX >= nodeScreenX && mouseX <= nodeScreenX + nodeScreenSize &&
@@ -719,6 +732,149 @@ public class ResearchTabletScreen extends Screen {
         }
     }
     
+    /**
+     * Render category tabs along the left side (and right side if overflow).
+     */
+    private void renderCategoryTabs(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        ResearchData researchData = ClientPacketHandlers.getClientResearchData();
+        List<ResearchCategory> visibleCategories = ResearchCategoryRegistry.getVisibleCategories(researchData);
+        
+        if (visibleCategories.isEmpty()) {
+            return;
+        }
+        
+        // Calculate available space on left side
+        int leftStartY = guiY + 30;
+        int leftEndY = guiY + GUI_HEIGHT - 30;
+        int leftAvailableHeight = leftEndY - leftStartY;
+        int maxTabsOnLeft = leftAvailableHeight / (TAB_HEIGHT + TAB_SPACING);
+        
+        // Split categories between left and right sides
+        List<ResearchCategory> leftTabs = visibleCategories.subList(0, Math.min(maxTabsOnLeft, visibleCategories.size()));
+        List<ResearchCategory> rightTabs = visibleCategories.size() > maxTabsOnLeft 
+            ? visibleCategories.subList(maxTabsOnLeft, visibleCategories.size())
+            : new ArrayList<>();
+        
+        hoveredTabCategory = null;
+        
+        // Render left side tabs (extend outward from GUI)
+        int leftTabX = guiX - TAB_EXTEND_DISTANCE;
+        int tabY = leftStartY;
+        for (ResearchCategory category : leftTabs) {
+            boolean isSelected = selectedCategory.equals(category.getId());
+            boolean isHovered = isMouseOverTab(leftTabX, tabY, mouseX, mouseY, true);
+            
+            if (isHovered) {
+                hoveredTabCategory = category.getId();
+            }
+            
+            renderTab(guiGraphics, category, leftTabX, tabY, isSelected, isHovered, true);
+            tabY += TAB_HEIGHT + TAB_SPACING;
+        }
+        
+        // Render right side tabs (if overflow) - extend outward from GUI
+        if (!rightTabs.isEmpty()) {
+            int rightTabX = guiX + GUI_WIDTH + TAB_EXTEND_DISTANCE;
+            tabY = leftStartY;
+            for (ResearchCategory category : rightTabs) {
+                boolean isSelected = selectedCategory.equals(category.getId());
+                boolean isHovered = isMouseOverTab(rightTabX, tabY, mouseX, mouseY, false);
+                
+                if (isHovered) {
+                    hoveredTabCategory = category.getId();
+                }
+                
+                renderTab(guiGraphics, category, rightTabX, tabY, isSelected, isHovered, false);
+                tabY += TAB_HEIGHT + TAB_SPACING;
+            }
+        }
+    }
+    
+    /**
+     * Check if mouse is over a tab.
+     */
+    private boolean isMouseOverTab(int tabX, int tabY, int mouseX, int mouseY, boolean isLeftSide) {
+        int actualX = tabX;
+        if (isLeftSide) {
+            // Left side: hover pulls out (left), selected pulls in (right)
+            // For hit detection, use base position
+        } else {
+            // Right side: hover pulls out (right), selected pulls in (left)
+            // For hit detection, use base position
+        }
+        return mouseX >= actualX && mouseX <= actualX + TAB_WIDTH &&
+               mouseY >= tabY && mouseY <= tabY + TAB_HEIGHT;
+    }
+    
+    /**
+     * Render a single category tab.
+     */
+    private void renderTab(GuiGraphics guiGraphics, ResearchCategory category, int x, int y, 
+                          boolean isSelected, boolean isHovered, boolean isLeftSide) {
+        int renderX = x;
+        int renderY = y;
+        
+        // Calculate tab position based on state
+        if (isSelected) {
+            // Selected: pull in (right for left tabs, left for right tabs)
+            renderX += isLeftSide ? TAB_SELECTED_OFFSET : -TAB_SELECTED_OFFSET;
+        } else if (isHovered) {
+            // Hovered: pull out (left for left tabs, right for right tabs)
+            renderX += isLeftSide ? -TAB_HOVER_OFFSET : TAB_HOVER_OFFSET;
+        }
+        
+        // Render tab background
+        RenderSystem.setShaderTexture(0, RESEARCH_TAB_TEXTURE);
+        
+        // Apply grey tint if selected
+        if (isSelected) {
+            RenderSystem.setShaderColor(0.5F, 0.5F, 0.5F, 1.0F);
+        } else {
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        }
+        
+        guiGraphics.blit(RESEARCH_TAB_TEXTURE, renderX, renderY, 0, 0, TAB_WIDTH, TAB_HEIGHT, TAB_WIDTH, TAB_HEIGHT);
+        
+        // Render category icon (centered in tab)
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        
+        if (category.hasIconItem()) {
+            // Center 16x16 item icon in 26x22 tab
+            int iconX = renderX + (TAB_WIDTH - 16) / 2; // Center horizontally: (26-16)/2 = 5
+            int iconY = renderY + (TAB_HEIGHT - 16) / 2; // Center vertically: (22-16)/2 = 3
+            guiGraphics.renderItem(category.getIconItem(), iconX, iconY);
+        } else if (category.hasIconTexture()) {
+            // Center texture icon (use 16x16 for consistency, or scale to fit)
+            int iconSize = 16; // Use 16x16 for consistency with items
+            int iconX = renderX + (TAB_WIDTH - iconSize) / 2; // Center horizontally
+            int iconY = renderY + (TAB_HEIGHT - iconSize) / 2; // Center vertically
+            RenderSystem.setShaderTexture(0, category.getIconTexture());
+            guiGraphics.blit(category.getIconTexture(), iconX, iconY, 0, 0, iconSize, iconSize, iconSize, iconSize);
+        }
+    }
+    
+    /**
+     * Render category title at top of GUI.
+     */
+    private void renderCategoryTitle(GuiGraphics guiGraphics) {
+        ResearchCategory category = ResearchCategoryRegistry.getCategory(selectedCategory);
+        if (category == null) {
+            return;
+        }
+        
+        Component title = category.getDisplayName();
+        int titleWidth = font.width(title);
+        int titleX = guiX + GUI_WIDTH / 2 - titleWidth / 2;
+        int titleY = guiY + 5; // Position at top
+        
+        // Render title background for visibility
+        int padding = 4;
+        guiGraphics.fill(titleX - padding, titleY - 2, titleX + titleWidth + padding, titleY + 12, 0xC0000000);
+        
+        // Render title
+        guiGraphics.drawString(this.font, title, titleX, titleY, 0xFFFFFF, false);
+    }
+    
     private void renderResearchNodeTooltips(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         List<ResearchNode> nodes = ResearchNodeRegistry.getNodesByCategory(selectedCategory);
         ResearchData researchData = ClientPacketHandlers.getClientResearchData();
@@ -749,7 +905,7 @@ public class ResearchTabletScreen extends Screen {
     private void renderTooltip(GuiGraphics guiGraphics, ResearchNode node, ResearchData researchData, int mouseX, int mouseY) {
         List<TooltipLine> tooltipLines = new ArrayList<>();
         
-        boolean isUnlocked = researchData.getUnlockedResearch().contains(node.getId());
+        boolean isUnlocked = isNodeUnlocked(node, researchData);
         boolean prerequisitesUnlocked = hasPrerequisitesUnlocked(node, researchData);
         
         // Add research name (show obfuscated text if prerequisites not unlocked)
@@ -952,6 +1108,52 @@ public class ResearchTabletScreen extends Screen {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) { // Left click
+            // Check for tab clicks first
+            ResearchData researchData = ClientPacketHandlers.getClientResearchData();
+            List<ResearchCategory> visibleCategories = ResearchCategoryRegistry.getVisibleCategories(researchData);
+            
+            if (!visibleCategories.isEmpty()) {
+                int leftStartY = guiY + 30;
+                int leftEndY = guiY + GUI_HEIGHT - 30;
+                int leftAvailableHeight = leftEndY - leftStartY;
+                int maxTabsOnLeft = leftAvailableHeight / (TAB_HEIGHT + TAB_SPACING);
+                
+                List<ResearchCategory> leftTabs = visibleCategories.subList(0, Math.min(maxTabsOnLeft, visibleCategories.size()));
+                List<ResearchCategory> rightTabs = visibleCategories.size() > maxTabsOnLeft 
+                    ? visibleCategories.subList(maxTabsOnLeft, visibleCategories.size())
+                    : new ArrayList<>();
+                
+                // Check left side tabs (account for extend distance)
+                int leftTabX = guiX - TAB_EXTEND_DISTANCE;
+                int tabY = leftStartY;
+                for (ResearchCategory category : leftTabs) {
+                    if (isMouseOverTab(leftTabX, tabY, (int)mouseX, (int)mouseY, true)) {
+                        selectedCategory = category.getId();
+                        if (minecraft != null && minecraft.player != null) {
+                            minecraft.player.playSound(StrangeMatterSounds.RESEARCH_TABLET_PAGE_TURN.get(), 0.6f, 1.0f);
+                        }
+                        return true;
+                    }
+                    tabY += TAB_HEIGHT + TAB_SPACING;
+                }
+                
+                // Check right side tabs (account for extend distance)
+                if (!rightTabs.isEmpty()) {
+                    int rightTabX = guiX + GUI_WIDTH + TAB_EXTEND_DISTANCE;
+                    tabY = leftStartY;
+                    for (ResearchCategory category : rightTabs) {
+                        if (isMouseOverTab(rightTabX, tabY, (int)mouseX, (int)mouseY, false)) {
+                            selectedCategory = category.getId();
+                            if (minecraft != null && minecraft.player != null) {
+                                minecraft.player.playSound(StrangeMatterSounds.RESEARCH_TABLET_PAGE_TURN.get(), 0.6f, 1.0f);
+                            }
+                            return true;
+                        }
+                        tabY += TAB_HEIGHT + TAB_SPACING;
+                    }
+                }
+            }
+            
             // Check if click is within draggable area
             if (isMouseInDraggableArea(mouseX, mouseY)) {
                 
@@ -963,11 +1165,9 @@ public class ResearchTabletScreen extends Screen {
                         draggedNode = clickedNode;
                         return true;
                     } else {
-                        // Normal mode: handle research node clicks
-                        ResearchData researchData = ClientPacketHandlers.getClientResearchData();
-                        boolean isUnlocked = researchData.getUnlockedResearch().contains(clickedNode.getId());
-                        
-                        if (isUnlocked) {
+                        // Normal mode: handle research node clicks (researchData already set above for tab check)
+                        boolean nodeUnlocked = isNodeUnlocked(clickedNode, researchData);
+                        if (nodeUnlocked) {
                             // Open information page for unlocked node
                             openNodeInformationPage(clickedNode);
                             // Play node click sound

@@ -2,6 +2,10 @@
 
 All notable changes to Strange Matter will be documented in this file.
 
+## [0.4.0] - Unreleased
+
+
+
 ## [0.3.0] - 12/16/2025
 
 ### Added

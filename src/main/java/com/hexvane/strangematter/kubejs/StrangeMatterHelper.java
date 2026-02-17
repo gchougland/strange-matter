@@ -60,6 +60,27 @@ public class StrangeMatterHelper {
     }
     
     /**
+     * Create a new research category builder.
+     * 
+     * @param id Unique identifier for the research category
+     * @return A new ResearchCategoryBuilder
+     */
+    public static ResearchCategoryBuilder createCategory(String id) {
+        return new ResearchCategoryBuilder(id);
+    }
+    
+    /**
+     * Register a research category with the game.
+     * This should be called during startup (not in server scripts).
+     * 
+     * @param builder The configured research category builder
+     */
+    public static void registerCategory(ResearchCategoryBuilder builder) {
+        com.hexvane.strangematter.research.ResearchCategory category = builder.build();
+        CustomResearchRegistry.registerCategory(category);
+    }
+    
+    /**
      * Create a new info page builder.
      * 
      * @return A new ResearchInfoPageBuilder

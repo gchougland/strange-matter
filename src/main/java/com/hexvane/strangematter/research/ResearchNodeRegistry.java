@@ -1,6 +1,7 @@
 package com.hexvane.strangematter.research;
 
 import com.hexvane.strangematter.Config;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -89,9 +90,13 @@ public class ResearchNodeRegistry {
     }
     
     public static void initializeDefaultNodes() {
-        // Clear existing nodes
+        // Clear existing nodes and categories
         nodes.clear();
         nodesByCategory.clear();
+        ResearchCategoryRegistry.clear();
+        
+        // Initialize default categories
+        initializeDefaultCategories();
         
         // Also reset custom research registry when reloading
         try {
@@ -209,43 +214,8 @@ public class ResearchNodeRegistry {
             List.of("field_scanner") // Requires field scanner
         ));
         
-        // Resonance Condenser machine (locked) - Connected to reality_forge
-        register(new ResearchNode(
-            "resonance_condenser",
-            "general",
-            -160, 160,
-            applyConfigCosts("resonance_condenser", Map.of(ResearchType.ENERGY, 25, ResearchType.SPACE, 15)),
-            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
-            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.RESONANCE_CONDENSER_ITEM.get()),
-            true,
-            List.of("reality_forge") // Requires reality forge
-        ));
-        
-        // Echo Vacuum tool and Containment capsule system (locked) - Connected to reality_forge
-        register(new ResearchNode(
-            "containment_basics",
-            "general",
-            -80, 400,
-            applyConfigCosts("containment_basics", Map.of(ResearchType.ENERGY, 20, ResearchType.SHADOW, 15)),
-            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
-            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.ECHO_VACUUM.get()),
-            true,
-            List.of("reality_forge") // Requires reality_forge
-        ));
-        
-        // Echoform Imprinter tool (locked) - Connected to containment_basics
-        register(new ResearchNode(
-            "echoform_imprinter",
-            "general",
-            80, 400,
-            applyConfigCosts("echoform_imprinter", Map.of(ResearchType.SHADOW, 25, ResearchType.COGNITION, 20)),
-            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
-            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.ECHOFORM_IMPRINTER.get()),
-            true,
-            List.of("containment_basics") // Requires containment_basics
-        ));
-        
         // Reality Forge machine (locked) - Connected to resonite and anomaly_types
+        // This stays in "general" category
         register(new ResearchNode(
             "reality_forge",
             "general",
@@ -257,87 +227,139 @@ public class ResearchNodeRegistry {
             List.of("resonite") // Requires resonite and anomaly types
         ));
         
-        // Warp Gun weapon (locked) - Connected to reality_forge
+        // ===== REALITY FORGE CATEGORY NODES =====
+        // Only nodes that directly require reality_forge are moved to this category
+        // All prerequisites stay as "reality_forge" to maintain connections
+        
+        // Duplicate Reality Forge node in reality_forge category (same position as original, auto-unlocks when category unlocks)
+        register(new ResearchNode(
+            "reality_forge_category",
+            "reality_forge",
+            -80, 240, // Same position as original reality_forge node
+            applyConfigCosts("reality_forge", Map.of(ResearchType.ENERGY, 5, ResearchType.SPACE, 5, ResearchType.TIME, 5)),
+            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.REALITY_FORGE_ITEM.get()),
+            true,
+            List.of() // No prerequisites - auto-unlocks when category becomes visible
+        ));
+        
+        // Resonance Condenser machine (locked) - Connected to reality_forge_category
+        register(new ResearchNode(
+            "resonance_condenser",
+            "reality_forge",
+            -160, 160,
+            applyConfigCosts("resonance_condenser", Map.of(ResearchType.ENERGY, 25, ResearchType.SPACE, 15)),
+            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.RESONANCE_CONDENSER_ITEM.get()),
+            true,
+            List.of("reality_forge_category") // Requires reality_forge_category node in this category
+        ));
+        
+        // Echo Vacuum tool and Containment capsule system (locked) - Connected to reality_forge_category
+        register(new ResearchNode(
+            "containment_basics",
+            "reality_forge",
+            -80, 400,
+            applyConfigCosts("containment_basics", Map.of(ResearchType.ENERGY, 20, ResearchType.SHADOW, 15)),
+            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.ECHO_VACUUM.get()),
+            true,
+            List.of("reality_forge_category") // Requires reality_forge_category node in this category
+        ));
+        
+        // Echoform Imprinter tool (locked) - Connected to containment_basics (in reality_forge category)
+        register(new ResearchNode(
+            "echoform_imprinter",
+            "reality_forge",
+            80, 400,
+            applyConfigCosts("echoform_imprinter", Map.of(ResearchType.SHADOW, 25, ResearchType.COGNITION, 20)),
+            ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.ECHOFORM_IMPRINTER.get()),
+            true,
+            List.of("containment_basics") // Requires containment_basics
+        ));
+        
+        // Warp Gun weapon (locked) - Connected to containment_basics (in reality_forge category)
         register(new ResearchNode(
             "warp_gun",
-            "general",
+            "reality_forge",
             0, 320,
             applyConfigCosts("warp_gun", Map.of(ResearchType.SPACE, 15, ResearchType.ENERGY, 10)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.WARP_GUN.get()),
             true,
-            List.of("containment_basics") // Requires reality forge
+            List.of("containment_basics") // Requires containment_basics
         ));
         
-        // Chrono Blister gadget (locked) - Connected to temporal_anomalies
+        // Chrono Blister gadget (locked) - Connected to temporal_anomalies (in reality_forge category)
         register(new ResearchNode(
             "chrono_blister",
-            "general",
+            "reality_forge",
             80, 320,
             applyConfigCosts("chrono_blister", Map.of(ResearchType.TIME, 15, ResearchType.ENERGY, 10)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.CHRONO_BLISTER.get()),
             true,
-            List.of("temporal_anomalies") // Requires temporal anomalies research
+            List.of("containment_basics") // Requires containment_basics
         ));
         
-        // Graviton Hammer tool (locked) - Connected to reality_forge
+        // Graviton Hammer tool (locked) - Connected to containment_basics (in reality_forge category)
         register(new ResearchNode(
             "graviton_hammer",
-            "general",
+            "reality_forge",
             -80, 480,
             applyConfigCosts("graviton_hammer", Map.of(ResearchType.GRAVITY, 20, ResearchType.ENERGY, 5)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.GRAVITON_HAMMER.get()),
             true,
-            List.of("containment_basics") // Requires reality forge
+            List.of("containment_basics") // Requires containment_basics
         ));
         
-        // Stasis Projector device (locked) - Connected to reality_forge
+        // Stasis Projector device (locked) - Connected to reality_forge_category
         register(new ResearchNode(
             "stasis_projector",
-            "general",
+            "reality_forge",
             80, 240,
             applyConfigCosts("stasis_projector", Map.of(ResearchType.GRAVITY, 5, ResearchType.TIME, 5)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.STASIS_PROJECTOR_ITEM.get()),
             true,
-            List.of("reality_forge") // Requires reality forge
+            List.of("reality_forge_category") // Requires reality_forge_category node in this category
         ));
         
         register(new ResearchNode(
             "rift_stabilizer",
-            "general",
+            "reality_forge",
             0, 160,
             applyConfigCosts("rift_stabilizer", Map.of(ResearchType.ENERGY, 20, ResearchType.SPACE, 10)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.RIFT_STABILIZER_ITEM.get()),
             true,
-            List.of("reality_forge") // Requires reality forge
+            List.of("reality_forge_category") // Requires reality_forge_category node in this category
         ));
         
-        // Levitation Pad device (locked) - Connected to reality_forge
+        // Levitation Pad device (locked) - Connected to reality_forge_category
         register(new ResearchNode(
             "levitation_pad",
-            "general",
+            "reality_forge",
             -240, 240,
             applyConfigCosts("levitation_pad", Map.of(ResearchType.GRAVITY, 15, ResearchType.ENERGY, 10)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.LEVITATION_PAD_ITEM.get()),
             true,
-            List.of("reality_forge") // Requires reality forge
+            List.of("reality_forge_category") // Requires reality_forge_category node in this category
         ));
         
-        // Hoverboard vehicle (locked) - Connected to containment_basics
+        // Hoverboard vehicle (locked) - Connected to containment_basics (in reality_forge category)
         register(new ResearchNode(
             "hoverboard",
-            "general",
+            "reality_forge",
             -240, 400,
             applyConfigCosts("hoverboard", Map.of(ResearchType.GRAVITY, 10, ResearchType.ENERGY, 15)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.HOVERBOARD.get()),
             true,
-            List.of("containment_basics") // Requires containment basics
+            List.of("containment_basics") // Requires containment_basics
         ));
         
         // ===== ANOMALY TYPES (SPECIALIZED RESEARCH) =====
@@ -422,8 +444,49 @@ public class ResearchNodeRegistry {
             // KubeJS not loaded or class not found - this is fine
         }
         
+        // Initialize custom research nodes from KubeJS (if available)
+        try {
+            Class<?> customRegistry = Class.forName("com.hexvane.strangematter.kubejs.CustomResearchRegistry");
+            customRegistry.getMethod("initializeCustomResearch").invoke(null);
+        } catch (Exception e) {
+            // KubeJS not loaded or class not found - this is fine
+        }
+        
+        // Initialize custom categories from KubeJS (if available)
+        try {
+            Class<?> customRegistry = Class.forName("com.hexvane.strangematter.kubejs.CustomResearchRegistry");
+            customRegistry.getMethod("initializeCustomCategories").invoke(null);
+        } catch (Exception e) {
+            // KubeJS not loaded or class not found - this is fine
+        }
+        
         // Load saved node positions on client side (after all nodes are registered)
         loadSavedPositions();
+    }
+    
+    /**
+     * Initialize default research categories.
+     */
+    private static void initializeDefaultCategories() {
+        // General category - always visible, uses research_notes icon
+        ResearchCategoryRegistry.register(new ResearchCategory(
+            "general",
+            Component.translatable("research.category.strangematter.general"),
+            null,
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.RESEARCH_NOTES.get()),
+            null, // No unlock requirement - always visible
+            0 // First category
+        ));
+        
+        // Reality Forge category - hidden until reality_forge research unlocks
+        ResearchCategoryRegistry.register(new ResearchCategory(
+            "reality_forge",
+            Component.translatable("research.category.strangematter.reality_forge"),
+            null,
+            new ItemStack(com.hexvane.strangematter.StrangeMatterMod.REALITY_FORGE_ITEM.get()),
+            "reality_forge", // Unlock requirement: reality_forge research node
+            1 // Second category
+        ));
     }
     
     /**

@@ -75,7 +75,8 @@ public class ResearchNodeInfoScreen extends Screen {
             initializeResonitePages();
         } else if (node.getId().equals("resonant_energy")) {
             initializeResonantEnergyPages();
-        } else if (node.getId().equals("reality_forge")) {
+        } else if (node.getId().equals("reality_forge") || node.getId().equals("reality_forge_category")) {
+            // reality_forge_category uses the same pages as reality_forge
             initializeRealityForgePages();
         } else if (node.getId().equals("resonance_condenser")) {
             initializeResonanceCondenserPages();

@@ -1,5 +1,6 @@
 package com.hexvane.strangematter.kubejs;
 
+import com.hexvane.strangematter.research.ResearchCategory;
 import com.hexvane.strangematter.research.ResearchNode;
 import com.mojang.logging.LogUtils;
 import org.slf4j.Logger;
@@ -17,8 +18,10 @@ public class CustomResearchRegistry {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final Map<String, List<ResearchInfoPage>> customPages = new HashMap<>();
     private static final List<ResearchNode> customNodes = new ArrayList<>();
+    private static final List<ResearchCategory> customCategories = new ArrayList<>();
     // Keep permanent copies that don't get cleared on reset
     private static final List<ResearchNode> permanentCustomNodes = new ArrayList<>();
+    private static final List<ResearchCategory> permanentCustomCategories = new ArrayList<>();
     private static final Map<String, List<ResearchInfoPage>> permanentCustomPages = new HashMap<>();
     private static boolean initialized = false;
     
@@ -34,6 +37,21 @@ public class CustomResearchRegistry {
         // Also add to working list if not initialized yet
         if (!initialized) {
             customNodes.add(node);
+        }
+    }
+    
+    /**
+     * Register a custom research category.
+     * This should be called during KubeJS initialization.
+     */
+    public static void registerCategory(ResearchCategory category) {
+        // Always add to permanent list (survives resets)
+        if (!permanentCustomCategories.contains(category)) {
+            permanentCustomCategories.add(category);
+        }
+        // Also add to working list if not initialized yet
+        if (!initialized) {
+            customCategories.add(category);
         }
     }
     
@@ -96,16 +114,30 @@ public class CustomResearchRegistry {
     }
     
     /**
+     * Initialize all custom research categories.
+     * This should be called after vanilla categories are initialized.
+     */
+    public static void initializeCustomCategories() {
+        // Always re-register from the permanent list
+        for (ResearchCategory category : permanentCustomCategories) {
+            com.hexvane.strangematter.research.ResearchCategoryRegistry.register(category);
+        }
+        
+        LOGGER.info("[Strange Matter KubeJS] Initialized {} custom research categories", permanentCustomCategories.size());
+    }
+    
+    /**
      * Reset the registry (useful for reloading).
-     * Note: This does NOT clear permanentCustomNodes - those persist across resets.
+     * Note: This does NOT clear permanentCustomNodes or permanentCustomCategories - those persist across resets.
      */
     public static void reset() {
         customPages.clear();
         customNodes.clear();
+        customCategories.clear();
         initialized = false;
         // Do NOT clear permanent storage - they need to survive resets
-        LOGGER.info("[Strange Matter KubeJS] Reset custom research registry (keeping {} permanent nodes and {} page sets)", 
-            permanentCustomNodes.size(), permanentCustomPages.size());
+        LOGGER.info("[Strange Matter KubeJS] Reset custom research registry (keeping {} permanent nodes, {} permanent categories, and {} page sets)", 
+            permanentCustomNodes.size(), permanentCustomCategories.size(), permanentCustomPages.size());
     }
     
     /**

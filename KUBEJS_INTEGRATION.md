@@ -5,6 +5,7 @@ This guide explains how to use KubeJS with Strange Matter to create custom recip
 ## Table of Contents
 - [Requirements](#requirements)
 - [Recipe Integration](#recipe-integration)
+- [Research Category Integration](#research-category-integration)
 - [Research Node Integration](#research-node-integration)
 - [Info Pages Integration](#info-pages-integration)
 - [Translation Keys](#translation-keys)
@@ -83,6 +84,104 @@ ServerEvents.recipes(event => {
 });
 ```
 
+## Research Category Integration
+
+### Creating Custom Research Categories
+
+Research categories allow you to organize research nodes into separate tabs in the research screen. Categories can be hidden until certain research nodes are unlocked.
+
+Categories MUST be created in `startup_scripts` (not server_scripts) because they need to be registered before the game fully loads.
+
+**Location:** `kubejs/startup_scripts/research.js`
+
+```javascript
+// Create a custom category
+StrangeMatter.registerCategory(
+  StrangeMatter.createCategory('my_custom_category')
+    .name('My Custom Category')
+    .iconItem('minecraft:diamond')
+    .unlockRequirement('reality_forge')  // Hidden until reality_forge unlocks
+    .order(10)  // Display order (lower = earlier)
+);
+```
+
+### Research Category Builder API
+
+#### Methods
+
+**`.name(string)`** - Set the display name
+- Can be a plain string: `'My Category'`
+- Or a translation key: `'research.category.mymod.my_category'`
+
+**`.iconTexture(string)`** - Set a custom texture icon for the tab
+- Example: `'mymod:textures/ui/category_icon.png'`
+- Texture should be 11x11 pixels (will be centered in 13x11 tab)
+
+**`.iconItem(string)`** - Set an item icon for the tab
+- Example: `'minecraft:diamond'`
+- Item icon will be rendered in the tab
+
+**`.unlockRequirement(string)`** - Set the research node ID that must unlock before category becomes visible
+- If not set, category is always visible
+- Example: `'.unlockRequirement('reality_forge')'` - category hidden until reality_forge research unlocks
+
+**`.order(int)`** - Set display order priority
+- Lower numbers appear first (left side)
+- Default is 100
+- Example: `.order(5)` - appears before categories with higher order
+
+**`.build()`** - Create the category (called automatically by `registerCategory`)
+
+### Category Examples
+
+```javascript
+// Basic category (always visible)
+StrangeMatter.registerCategory(
+  StrangeMatter.createCategory('basic_research')
+    .name('Basic Research')
+    .iconItem('minecraft:book')
+);
+
+// Category with unlock requirement
+StrangeMatter.registerCategory(
+  StrangeMatter.createCategory('advanced_research')
+    .name('Advanced Research')
+    .iconItem('minecraft:nether_star')
+    .unlockRequirement('reality_forge')  // Hidden until reality_forge unlocks
+    .order(20)
+);
+
+// Category with custom texture icon
+StrangeMatter.registerCategory(
+  StrangeMatter.createCategory('custom_category')
+    .name('Custom Category')
+    .iconTexture('mymod:textures/ui/custom_tab_icon.png')
+    .unlockRequirement('some_research_node')
+    .order(15)
+);
+```
+
+### Category Translation Keys
+
+Category names can use translation keys. The default translation key format is:
+- `research.category.strangematter.{category_id}`
+
+You can also use custom translation keys by passing them to `.name()`:
+
+```javascript
+// In startup_scripts/research.js
+StrangeMatter.registerCategory(
+  StrangeMatter.createCategory('my_category')
+    .name('research.category.mymod.my_category')  // Translation key
+    .iconItem('minecraft:diamond')
+);
+
+// In assets/mymod/lang/en_us.json
+{
+  "research.category.mymod.my_category": "My Custom Category"
+}
+```
+
 ## Research Node Integration
 
 ### Creating Custom Research Nodes
@@ -116,7 +215,9 @@ StrangeMatter.registerNode(
 #### Methods
 
 **`.category(string)`** - Set the category
-- Common categories: `'general'`, `'basic'`, `'advanced'`, `'anomalies'`, `'custom'`
+- Use the category ID you created with `createCategory()`
+- Default categories: `'general'`, `'reality_forge'`
+- Custom categories: Use your own category IDs
 
 **`.position(x, y)`** or **`.x(x).y(y)`** - Set position in research tree
 - Use coordinates relative to other nodes
@@ -250,14 +351,24 @@ Create translation files for your custom research:
 
 ## Complete Examples
 
-### Example 1: GregTech-Style Progression
+### Example 1: Custom Category with Research Nodes
 
 ```javascript
-// In startup_scripts/gregtech_research.js
+// In startup_scripts/custom_research.js
 
-// Tier 1: Basic Circuit Research
+// First, create a custom category
+StrangeMatter.registerCategory(
+  StrangeMatter.createCategory('gregtech_research')
+    .name('GregTech Integration')
+    .iconItem('gtceu:basic_circuit')
+    .unlockRequirement('resonant_energy')  // Hidden until resonant_energy unlocks
+    .order(10)
+);
+
+// Tier 1: Basic Circuit Research (in custom category)
 StrangeMatter.registerNode(
   StrangeMatter.createResearchNode('gt_basic_circuits')
+    .category('gregtech_research')  // Use custom category
     .position(-100, 100)
     .cost('energy', 20)
     .iconItem('gtceu:basic_circuit')
@@ -276,6 +387,7 @@ StrangeMatter.addInfoPages('gt_basic_circuits', builder => {
 // Tier 2: Advanced Circuits (requires Tier 1)
 StrangeMatter.registerNode(
   StrangeMatter.createResearchNode('gt_advanced_circuits')
+    .category('gregtech_research')  // Same category
     .position(-100, 200)
     .cost('energy', 40)
     .cost('space', 30)
@@ -368,12 +480,15 @@ ServerEvents.recipes(event => {
 
 ## Tips and Best Practices
 
-1. **Use startup_scripts for research** - Research nodes MUST be in startup_scripts, not server_scripts
+1. **Use startup_scripts for research** - Research nodes and categories MUST be in startup_scripts, not server_scripts
 2. **Use server_scripts for recipes** - Recipes go in server_scripts
-3. **Plan your coordinates** - Sketch out your research tree positions before implementing
-4. **Test prerequisite chains** - Make sure research unlocks in the right order
-5. **Add translations** - Always add translation keys
-7. **Document custom research** - Add detailed info pages explaining your custom content
+3. **Create categories before nodes** - Register categories before creating nodes that use them
+4. **Plan your coordinates** - Sketch out your research tree positions before implementing
+5. **Test prerequisite chains** - Make sure research unlocks in the right order
+6. **Use category unlock requirements** - Hide advanced categories until players unlock prerequisite research
+7. **Add translations** - Always add translation keys for category names and research nodes
+8. **Document custom research** - Add detailed info pages explaining your custom content
+9. **Order categories logically** - Use `.order()` to control category tab display order
 
 ## Debugging
 
