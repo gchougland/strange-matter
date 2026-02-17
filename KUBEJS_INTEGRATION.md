@@ -130,6 +130,11 @@ StrangeMatter.registerCategory(
 - Default is 100
 - Example: `.order(5)` - appears before categories with higher order
 
+**`.rootNode(string)`** - Set the research node ID to auto-focus when this category tab is selected
+- When the player switches to this tab (or opens the tablet on this category), the view pans so this node is centered
+- Example: `.rootNode('reality_forge_category')` - Reality Forge category centers on its duplicate node
+- If not set, the view keeps the current pan position when switching tabs
+
 **`.build()`** - Create the category (called automatically by `registerCategory`)
 
 ### Category Examples

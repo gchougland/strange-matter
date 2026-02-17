@@ -219,7 +219,7 @@ public class ResearchNodeRegistry {
         register(new ResearchNode(
             "reality_forge",
             "general",
-            -80, 240,
+            -80, 160,
             applyConfigCosts("reality_forge", Map.of(ResearchType.ENERGY, 5, ResearchType.SPACE, 5, ResearchType.TIME, 5)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.REALITY_FORGE_ITEM.get()),
@@ -295,7 +295,7 @@ public class ResearchNodeRegistry {
         register(new ResearchNode(
             "chrono_blister",
             "reality_forge",
-            80, 320,
+            0, 480,
             applyConfigCosts("chrono_blister", Map.of(ResearchType.TIME, 15, ResearchType.ENERGY, 10)),
             ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png"),
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.CHRONO_BLISTER.get()),
@@ -468,24 +468,26 @@ public class ResearchNodeRegistry {
      * Initialize default research categories.
      */
     private static void initializeDefaultCategories() {
-        // General category - always visible, uses research_notes icon
+        // General category - always visible, uses research_notes icon; root node "research" (0,0)
         ResearchCategoryRegistry.register(new ResearchCategory(
             "general",
             Component.translatable("research.category.strangematter.general"),
             null,
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.RESEARCH_NOTES.get()),
             null, // No unlock requirement - always visible
-            0 // First category
+            0, // First category
+            "research" // Root node to auto-focus when tab selected
         ));
         
-        // Reality Forge category - hidden until reality_forge research unlocks
+        // Reality Forge category - hidden until reality_forge research unlocks; root node "reality_forge_category"
         ResearchCategoryRegistry.register(new ResearchCategory(
             "reality_forge",
             Component.translatable("research.category.strangematter.reality_forge"),
             null,
             new ItemStack(com.hexvane.strangematter.StrangeMatterMod.REALITY_FORGE_ITEM.get()),
             "reality_forge", // Unlock requirement: reality_forge research node
-            1 // Second category
+            1, // Second category
+            "reality_forge_category" // Root node to auto-focus when tab selected
         ));
     }
     

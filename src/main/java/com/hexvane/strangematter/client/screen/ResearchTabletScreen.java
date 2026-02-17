@@ -35,12 +35,13 @@ public class ResearchTabletScreen extends Screen {
     private static final int BACKGROUND_TILE_SIZE = 64;
     
     // Tab constants (doubled size)
-    private static final int TAB_WIDTH = 26; // 2x original 13
+    private static final int TAB_WIDTH = 44; // 2x original 22
     private static final int TAB_HEIGHT = 22; // 2x original 11
     private static final int TAB_SPACING = 4; // Doubled from 2
     private static final int TAB_HOVER_OFFSET = 4; // Doubled - pixels to pull out on hover
     private static final int TAB_SELECTED_OFFSET = 4; // Doubled - pixels to pull in when selected
-    private static final int TAB_EXTEND_DISTANCE = 24; // How far tabs stick out from GUI edge (increased for better visibility)
+    private static final int TAB_EXTEND_DISTANCE = 26; // How far tabs stick out from GUI edge (increased for better visibility)
+    private static final int TAB_ICON_INSET = 6; // Pixels from outer edge of tab to icon (keeps icon away from GUI)
     
     private int guiX, guiY;
     /**
@@ -100,6 +101,23 @@ public class ResearchTabletScreen extends Screen {
         this.dragOffsetX = 0.0;
         this.dragOffsetY = 0.0;
         this.zoom = 1.0f;
+        focusOnCategoryRoot(selectedCategory);
+    }
+    
+    /**
+     * Pan the view so the category's root node (if set) is centered.
+     */
+    private void focusOnCategoryRoot(String categoryId) {
+        ResearchCategory category = ResearchCategoryRegistry.getCategory(categoryId);
+        if (category == null || !category.hasRootNode()) {
+            return;
+        }
+        ResearchNode rootNode = ResearchNodeRegistry.getNode(category.getRootNodeId());
+        if (rootNode == null) {
+            return;
+        }
+        this.dragOffsetX = -rootNode.getX();
+        this.dragOffsetY = -rootNode.getY();
     }
 
     private int getDraggableAreaX() {
@@ -772,9 +790,9 @@ public class ResearchTabletScreen extends Screen {
             tabY += TAB_HEIGHT + TAB_SPACING;
         }
         
-        // Render right side tabs (if overflow) - extend outward from GUI
+        // Render right side tabs (if overflow) - sit against GUI right edge, extend outward (mirror of left)
         if (!rightTabs.isEmpty()) {
-            int rightTabX = guiX + GUI_WIDTH + TAB_EXTEND_DISTANCE;
+            int rightTabX = guiX + GUI_WIDTH - TAB_WIDTH + TAB_EXTEND_DISTANCE;
             tabY = leftStartY;
             for (ResearchCategory category : rightTabs) {
                 boolean isSelected = selectedCategory.equals(category.getId());
@@ -835,19 +853,18 @@ public class ResearchTabletScreen extends Screen {
         
         guiGraphics.blit(RESEARCH_TAB_TEXTURE, renderX, renderY, 0, 0, TAB_WIDTH, TAB_HEIGHT, TAB_WIDTH, TAB_HEIGHT);
         
-        // Render category icon (centered in tab)
+        // Render category icon (offset toward outer edge of tab so it doesn't overlap the GUI)
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         
+        int iconY = renderY + (TAB_HEIGHT - 16) / 2;
+        int iconX = isLeftSide
+            ? renderX + TAB_ICON_INSET
+            : renderX + TAB_WIDTH - 16 - TAB_ICON_INSET;
+        
         if (category.hasIconItem()) {
-            // Center 16x16 item icon in 26x22 tab
-            int iconX = renderX + (TAB_WIDTH - 16) / 2; // Center horizontally: (26-16)/2 = 5
-            int iconY = renderY + (TAB_HEIGHT - 16) / 2; // Center vertically: (22-16)/2 = 3
             guiGraphics.renderItem(category.getIconItem(), iconX, iconY);
         } else if (category.hasIconTexture()) {
-            // Center texture icon (use 16x16 for consistency, or scale to fit)
-            int iconSize = 16; // Use 16x16 for consistency with items
-            int iconX = renderX + (TAB_WIDTH - iconSize) / 2; // Center horizontally
-            int iconY = renderY + (TAB_HEIGHT - iconSize) / 2; // Center vertically
+            int iconSize = 16;
             RenderSystem.setShaderTexture(0, category.getIconTexture());
             guiGraphics.blit(category.getIconTexture(), iconX, iconY, 0, 0, iconSize, iconSize, iconSize, iconSize);
         }
@@ -1129,6 +1146,7 @@ public class ResearchTabletScreen extends Screen {
                 for (ResearchCategory category : leftTabs) {
                     if (isMouseOverTab(leftTabX, tabY, (int)mouseX, (int)mouseY, true)) {
                         selectedCategory = category.getId();
+                        focusOnCategoryRoot(selectedCategory);
                         if (minecraft != null && minecraft.player != null) {
                             minecraft.player.playSound(StrangeMatterSounds.RESEARCH_TABLET_PAGE_TURN.get(), 0.6f, 1.0f);
                         }
@@ -1137,13 +1155,14 @@ public class ResearchTabletScreen extends Screen {
                     tabY += TAB_HEIGHT + TAB_SPACING;
                 }
                 
-                // Check right side tabs (account for extend distance)
+                // Check right side tabs (same position as render: against GUI, stick out right)
                 if (!rightTabs.isEmpty()) {
-                    int rightTabX = guiX + GUI_WIDTH + TAB_EXTEND_DISTANCE;
+                    int rightTabX = guiX + GUI_WIDTH - TAB_WIDTH + TAB_EXTEND_DISTANCE;
                     tabY = leftStartY;
                     for (ResearchCategory category : rightTabs) {
                         if (isMouseOverTab(rightTabX, tabY, (int)mouseX, (int)mouseY, false)) {
                             selectedCategory = category.getId();
+                            focusOnCategoryRoot(selectedCategory);
                             if (minecraft != null && minecraft.player != null) {
                                 minecraft.player.playSound(StrangeMatterSounds.RESEARCH_TABLET_PAGE_TURN.get(), 0.6f, 1.0f);
                             }

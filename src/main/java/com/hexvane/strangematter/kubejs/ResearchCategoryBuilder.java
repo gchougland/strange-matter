@@ -17,6 +17,7 @@ public class ResearchCategoryBuilder {
     private ItemStack iconItem = ItemStack.EMPTY;
     private String unlockRequirement = null;
     private int order = 100; // Default order (higher = later)
+    private String rootNodeId = null; // Node to auto-focus when this category is selected
     
     public ResearchCategoryBuilder(String id) {
         this.id = id;
@@ -79,6 +80,14 @@ public class ResearchCategoryBuilder {
     }
     
     /**
+     * Set the research node ID to auto-focus (center in view) when this category tab is selected.
+     */
+    public ResearchCategoryBuilder rootNode(String researchNodeId) {
+        this.rootNodeId = researchNodeId;
+        return this;
+    }
+    
+    /**
      * Build and return the research category.
      */
     public ResearchCategory build() {
@@ -104,7 +113,8 @@ public class ResearchCategoryBuilder {
             iconTexture,
             iconItem.copy(),
             unlockRequirement,
-            order
+            order,
+            rootNodeId
         );
     }
     
