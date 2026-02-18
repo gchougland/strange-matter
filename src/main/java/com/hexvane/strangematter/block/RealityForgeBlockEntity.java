@@ -409,6 +409,11 @@ public class RealityForgeBlockEntity extends BaseMachineBlockEntity {
         craftTicks = 0;
         currentRecipe = recipe; // Store the recipe for later use
         setChanged();
+        if (level != null && !level.isClientSide) {
+            level.playSound(null, worldPosition,
+                com.hexvane.strangematter.sound.StrangeMatterSounds.REALITY_FORGE_CRAFTING.get(),
+                net.minecraft.sounds.SoundSource.BLOCKS, 0.6f, 1.0f);
+        }
     }
     
     

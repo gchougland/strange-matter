@@ -15,6 +15,7 @@ public class StrangeMatterSounds {
     public static final RegistryObject<SoundEvent> RESEARCH_TABLET_NODE_HOVER = registerSoundEvent("research_tablet_node_hover");
     public static final RegistryObject<SoundEvent> RESEARCH_TABLET_NODE_CLICK = registerSoundEvent("research_tablet_node_click");
     public static final RegistryObject<SoundEvent> RESEARCH_TABLET_PAGE_TURN = registerSoundEvent("research_tablet_page_turn");
+    public static final RegistryObject<SoundEvent> RESEARCH_TABLET_BUTTON = registerSoundEvent("button_noise");
     
     // Research Node Sounds
     public static final RegistryObject<SoundEvent> RESEARCH_NODE_LOCKED_CLICK = registerSoundEvent("research_node_locked_click");
@@ -65,6 +66,7 @@ public class StrangeMatterSounds {
     
     // Reality Forge sounds
     public static final RegistryObject<SoundEvent> REALITY_FORGE_CRAFT = registerSoundEvent("reality_forge_craft");
+    public static final RegistryObject<SoundEvent> REALITY_FORGE_CRAFTING = registerSoundEvent("reality_forge_crafting");
     public static final RegistryObject<SoundEvent> REALITY_FORGE_INSERT = registerSoundEvent("reality_forge_insert");
 
     // Stasis Projector sounds

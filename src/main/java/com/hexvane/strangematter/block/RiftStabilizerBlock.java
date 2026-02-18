@@ -63,14 +63,14 @@ public class RiftStabilizerBlock extends Block implements EntityBlock {
                 
                 if (isGenerating) {
                     player.displayClientMessage(
-                        Component.translatable("block.strangematter.rift_stabilizer.generating", 
-                            powerGeneration, energyStored, maxEnergy), 
+                        Component.translatable("block.strangematter.rift_stabilizer.generating",
+                            powerGeneration, com.hexvane.strangematter.Config.energyUnitDisplay, energyStored, maxEnergy, com.hexvane.strangematter.Config.energyUnitDisplay),
                         false
                     );
                 } else {
                     player.displayClientMessage(
-                        Component.translatable("block.strangematter.rift_stabilizer.not_generating", 
-                            energyStored, maxEnergy), 
+                        Component.translatable("block.strangematter.rift_stabilizer.not_generating",
+                            energyStored, maxEnergy, com.hexvane.strangematter.Config.energyUnitDisplay),
                         false
                     );
                 }

@@ -133,8 +133,13 @@ public class RealityForgeScreen extends BaseMachineScreen<RealityForgeMenu> {
             // Render shard
             renderShard(guiGraphics, shardX, shardY, shardType);
             
-            // Render particle trail
-            renderParticleTrail(guiGraphics, shardX, shardY, shardType, angle, time);
+            if (isCoalescing) {
+                // When crafting: particles stream from shard toward center
+                renderConvergenceParticles(guiGraphics, shardX, shardY, centerX, centerY, getShardColor(shardType));
+            } else {
+                // When not crafting: particles trail behind the shards on their orbit
+                renderParticleTrail(guiGraphics, shardX, shardY, shardType, angle);
+            }
         }
     }
     
@@ -143,19 +148,32 @@ public class RealityForgeScreen extends BaseMachineScreen<RealityForgeMenu> {
         guiGraphics.blit(shardTexture, x - 8, y - 8, 0, 0, 16, 16, 16, 16);
     }
     
-    private void renderParticleTrail(GuiGraphics guiGraphics, int x, int y, String shardType, float angle, float time) {
+    /** Trail behind the shard along its orbit (used only when not crafting). */
+    private void renderParticleTrail(GuiGraphics guiGraphics, int x, int y, String shardType, float angle) {
         int color = getShardColor(shardType);
-        
-        // Create particle trail behind the shard
-        for (int i = 1; i <= 5; i++) {
+        int trailCount = 5;
+        int size = 2;
+        for (int i = 1; i <= trailCount; i++) {
             float trailAngle = angle - (i * 0.2f);
             float trailRadius = 25 - (i * 3);
             int trailX = x + (int) (Math.cos(trailAngle) * trailRadius) - (int) (Math.cos(angle) * 25);
             int trailY = y + (int) (Math.sin(trailAngle) * trailRadius) - (int) (Math.sin(angle) * 25);
-            
-            // Render trail particle with alpha
             int alpha = 255 - (i * 40);
-            guiGraphics.fill(trailX - 2, trailY - 2, trailX + 2, trailY + 2, (alpha << 24) | (color & 0xFFFFFF));
+            guiGraphics.fill(trailX - size, trailY - size, trailX + size, trailY + size, (alpha << 24) | (color & 0xFFFFFF));
+        }
+    }
+    
+    /** When crafting, draw particles streaming from the shard toward the center to emphasize convergence. */
+    private void renderConvergenceParticles(GuiGraphics guiGraphics, int fromX, int fromY, int toX, int toY, int color) {
+        int count = 12;
+        for (int i = 1; i <= count; i++) {
+            float t = (float) i / (count + 1);
+            int px = (int) (fromX + (toX - fromX) * t);
+            int py = (int) (fromY + (toY - fromY) * t);
+            int alpha = (int) (180 * (1f - t * 0.7f));
+            alpha = Math.max(60, alpha);
+            int size = i % 2 == 0 ? 2 : 3;
+            guiGraphics.fill(px - size, py - size, px + size, py + size, (alpha << 24) | (color & 0xFFFFFF));
         }
     }
     

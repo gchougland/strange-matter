@@ -69,7 +69,7 @@ public class EnergyBarRenderer {
      * Get the tooltip component for the energy bar
      */
     public static Component getEnergyBarTooltip(int energyStored, int maxEnergyStored) {
-        return Component.translatable("gui.strangematter.resonance_energy", energyStored, maxEnergyStored);
+        return Component.translatable("gui.strangematter.resonance_energy", energyStored, maxEnergyStored, com.hexvane.strangematter.Config.energyUnitDisplay);
     }
     
     /**

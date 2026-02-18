@@ -163,6 +163,9 @@ public class Config {
     private static final ForgeConfigSpec.IntValue RESONANT_CONDUIT_MAX_NETWORK_SIZE;
     private static final ForgeConfigSpec.DoubleValue RESONANT_CONDUIT_DISTANCE_PENALTY;
 
+    // Energy display (localization)
+    private static final ForgeConfigSpec.ConfigValue<String> ENERGY_UNIT_DISPLAY;
+
     // ========================================
     // RESEARCH SYSTEM CONFIG VALUES
     // ========================================
@@ -667,6 +670,11 @@ public class Config {
                 .defineInRange("distancePenalty", 0.05, 0.0, 1.0);
         BUILDER.pop();
         
+        // Energy unit display (for tooltips and GUI)
+        ENERGY_UNIT_DISPLAY = BUILDER
+                .comment("Display name for energy unit in tooltips and GUIs. RE = Resonite Energy (default), FE = Forge Energy, RF = Redstone Flux")
+                .define("energyUnitDisplay", "RE", obj -> obj instanceof String s && ("RE".equals(s) || "FE".equals(s) || "RF".equals(s)));
+        
         BUILDER.pop(); // energy
         
         // ========================================
@@ -1038,7 +1046,9 @@ public class Config {
     public static int resonantConduitNetworkUpdateInterval;
     public static int resonantConduitMaxNetworkSize;
     public static double resonantConduitDistancePenalty;
-    
+    /** Display label for energy in tooltips/GUI: "RE", "FE", or "RF". */
+    public static String energyUnitDisplay;
+
     // Research system
     public static boolean hideRecipesInRecipeViewers;
     public static double researchCostMultiplier;
@@ -1239,6 +1249,8 @@ public class Config {
         resonantConduitNetworkUpdateInterval = RESONANT_CONDUIT_NETWORK_UPDATE_INTERVAL.get();
         resonantConduitMaxNetworkSize = RESONANT_CONDUIT_MAX_NETWORK_SIZE.get();
         resonantConduitDistancePenalty = RESONANT_CONDUIT_DISTANCE_PENALTY.get();
+        String rawUnit = ENERGY_UNIT_DISPLAY.get();
+        energyUnitDisplay = (rawUnit != null && (rawUnit.equals("FE") || rawUnit.equals("RF"))) ? rawUnit : "RE";
         
         // Research system
         hideRecipesInRecipeViewers = HIDE_RECIPES_IN_RECIPE_VIEWERS.get();

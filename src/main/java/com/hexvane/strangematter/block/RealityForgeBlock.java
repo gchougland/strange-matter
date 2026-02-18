@@ -78,7 +78,7 @@ public class RealityForgeBlock extends Block implements EntityBlock {
     
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        return blockEntityType == StrangeMatterMod.REALITY_FORGE_BLOCK_ENTITY.get() && !level.isClientSide ? 
+        return blockEntityType == StrangeMatterMod.REALITY_FORGE_BLOCK_ENTITY.get() && !level.isClientSide ?
             (level1, pos, state1, blockEntity) -> {
                 if (blockEntity instanceof RealityForgeBlockEntity realityForge) {
                     RealityForgeBlockEntity.tick(level1, pos, state1, realityForge);

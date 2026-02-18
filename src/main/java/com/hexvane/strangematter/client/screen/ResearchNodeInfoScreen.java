@@ -14,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
+import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -22,6 +23,12 @@ import java.util.List;
 public class ResearchNodeInfoScreen extends Screen {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation("strangematter:textures/ui/research_tablet_background.png");
+    
+    /** Remember last viewed node and page when closed from the Research Tablet, so the tablet can reopen it. */
+    private static String lastViewedNodeId = null;
+    private static int lastViewedPage = 0;
+    /** When true, removed() will not save (user closed via X button). */
+    private static boolean skipSaveOnNextRemoved = false;
     
     private final ResearchNode node;
     private final Screen parentScreen;
@@ -852,6 +859,7 @@ public class ResearchNodeInfoScreen extends Screen {
         addRenderableWidget(nextButton);
         addRenderableWidget(closeButton);
         
+        currentPage = Math.max(0, Math.min(currentPage, pages.isEmpty() ? 0 : pages.size() - 1));
         updateButtonStates();
     }
     
@@ -875,12 +883,54 @@ public class ResearchNodeInfoScreen extends Screen {
     }
     
     @Override
-    public void onClose() {
-        // Restore drag position in parent screen before closing
-        if (parentScreen instanceof ResearchTabletScreen) {
-            ((ResearchTabletScreen) parentScreen).restoreDragPosition();
+    public void removed() {
+        if (parentScreen instanceof ResearchTabletScreen && !skipSaveOnNextRemoved) {
+            lastViewedNodeId = this.node.getId();
+            lastViewedPage = Math.max(0, Math.min(this.currentPage, this.pages.size() - 1));
         }
-        this.minecraft.setScreen(parentScreen);
+        skipSaveOnNextRemoved = false;
+        super.removed();
+    }
+    
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+            // Close entire GUI (tablet + info)
+            if (this.minecraft != null) {
+                this.minecraft.setScreen(null);
+            }
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+    
+    @Override
+    public void onClose() {
+        // X button: close only the info page and return to tablet; don't save in removed() so we don't restore next time
+        if (parentScreen instanceof ResearchTabletScreen) {
+            ((ResearchTabletScreen) parentScreen).setSkipRestoreInfoOnNextInit(true);
+            ((ResearchTabletScreen) parentScreen).restoreDragPosition();
+            skipSaveOnNextRemoved = true;
+        }
+        if (this.minecraft != null) {
+            this.minecraft.setScreen(parentScreen);
+        }
+    }
+    
+    /** Called by ResearchTabletScreen to restore the last viewed info screen, if any. Returns the screen to open, or null. */
+    public static ResearchNodeInfoScreen restoreLastViewedIfAny(ResearchTabletScreen tabletScreen) {
+        if (lastViewedNodeId == null || lastViewedNodeId.isEmpty()) {
+            return null;
+        }
+        com.hexvane.strangematter.research.ResearchNode node = com.hexvane.strangematter.research.ResearchNodeRegistry.getNode(lastViewedNodeId);
+        if (node == null) {
+            lastViewedNodeId = null;
+            return null;
+        }
+        int page = lastViewedPage;
+        lastViewedNodeId = null;
+        lastViewedPage = 0;
+        return new ResearchNodeInfoScreen(node, tabletScreen, page);
     }
     
     @Override

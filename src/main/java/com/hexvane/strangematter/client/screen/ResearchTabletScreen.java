@@ -28,6 +28,7 @@ public class ResearchTabletScreen extends Screen {
     private static final ResourceLocation RESEARCH_TABLET_OVERLAY = ResourceLocation.parse("strangematter:textures/ui/research_tablet_overlay.png");
     private static final ResourceLocation RESEARCH_NODE_TEXTURE = ResourceLocation.parse("strangematter:textures/ui/research_gui_node.png");
     private static final ResourceLocation RESEARCH_TAB_TEXTURE = ResourceLocation.parse("strangematter:textures/ui/research_tablet_tab.png");
+    private static final ResourceLocation RESEARCH_TABLET_BUTTON_TEXTURE = ResourceLocation.parse("strangematter:textures/ui/research_tablet_button.png");
     
     private static final int GUI_WIDTH = 320;
     private static final int GUI_HEIGHT = 240;
@@ -43,6 +44,13 @@ public class ResearchTabletScreen extends Screen {
     private static final int TAB_SELECTED_OFFSET = 4; // Doubled - pixels to pull in when selected
     private static final int TAB_EXTEND_DISTANCE = 26; // How far tabs stick out from GUI edge (increased for better visibility)
     private static final int TAB_ICON_INSET = 6; // Pixels from outer edge of tab to icon (keeps icon away from GUI)
+    
+    // Bottom-center button (sits over recess in overlay texture); drawn 2x to match GUI scale
+    private static final int BUTTON_TEXTURE_WIDTH = 16;
+    private static final int BUTTON_TEXTURE_HEIGHT = 7;
+    private static final int BUTTON_WIDTH = 48;   // 3x for GUI scale
+    private static final int BUTTON_HEIGHT = 21;  // 3x for GUI scale
+    private static final int BUTTON_BOTTOM_INSET = 20;  // Higher up in the frame
     
     private int guiX, guiY;
     /**
@@ -62,6 +70,15 @@ public class ResearchTabletScreen extends Screen {
     
     // Track hovered tab
     private String hoveredTabCategory = null;
+    
+    /** Remember last selected category when closing the tablet (Escape or other close). */
+    private static String lastSelectedCategoryId = "general";
+    
+    /** When true, init() will not restore the info screen (used when returning from info screen via X button). */
+    private boolean skipRestoreInfoOnNextInit = false;
+    
+    /** True while the bottom-center button is being held down (for pressed visual). */
+    private boolean researchButtonPressed = false;
     
     // Debug mode state
     private boolean debugMode = false;
@@ -84,6 +101,17 @@ public class ResearchTabletScreen extends Screen {
         
         // Initialize position manager
         this.positionManager = ResearchNodePositionManager.getInstance();
+        
+        // Restore last selected category if it still exists
+        if (lastSelectedCategoryId != null && ResearchCategoryRegistry.getCategory(lastSelectedCategoryId) != null) {
+            this.selectedCategory = lastSelectedCategoryId;
+        }
+    }
+    
+    @Override
+    public void removed() {
+        super.removed();
+        lastSelectedCategoryId = this.selectedCategory;
     }
     
     @Override
@@ -103,6 +131,19 @@ public class ResearchTabletScreen extends Screen {
         this.dragOffsetY = 0.0;
         this.zoom = 1.0f;
         focusOnCategoryRoot(selectedCategory);
+        
+        // Restore last viewed info screen only when opening the tablet fresh (not when returning from info via X)
+        if (!skipRestoreInfoOnNextInit) {
+            ResearchNodeInfoScreen infoScreen = ResearchNodeInfoScreen.restoreLastViewedIfAny(this);
+            if (infoScreen != null && minecraft != null) {
+                minecraft.setScreen(infoScreen);
+            }
+        }
+        skipRestoreInfoOnNextInit = false;
+    }
+    
+    public void setSkipRestoreInfoOnNextInit(boolean skip) {
+        this.skipRestoreInfoOnNextInit = skip;
     }
     
     /**
@@ -259,6 +300,26 @@ public class ResearchTabletScreen extends Screen {
         // Render overlay last to appear on top of everything including item icons
         RenderSystem.setShaderTexture(0, RESEARCH_TABLET_OVERLAY);
         guiGraphics.blit(RESEARCH_TABLET_OVERLAY, guiX, guiY, 0, 0, GUI_WIDTH, GUI_HEIGHT, 320, 240);
+        
+        // Render bottom-center button (sits exactly over recess in overlay). Scale via pose so the
+        // texture is drawn once and stretched to BUTTON_WIDTH x BUTTON_HEIGHT, instead of tiling.
+        int buttonX = guiX + (GUI_WIDTH - BUTTON_WIDTH) / 2;
+        int buttonY = guiY + GUI_HEIGHT - BUTTON_HEIGHT - BUTTON_BOTTOM_INSET;
+        boolean buttonHovered = mouseX >= buttonX && mouseX < buttonX + BUTTON_WIDTH && mouseY >= buttonY && mouseY < buttonY + BUTTON_HEIGHT;
+        if (researchButtonPressed || buttonHovered) {
+            float darken = researchButtonPressed ? 0.55f : 0.75f; // darker when pressed
+            guiGraphics.setColor(darken, darken, darken, 1.0f);
+        }
+        float scaleX = (float) BUTTON_WIDTH / BUTTON_TEXTURE_WIDTH;
+        float scaleY = (float) BUTTON_HEIGHT / BUTTON_TEXTURE_HEIGHT;
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(buttonX, buttonY, 0);
+        guiGraphics.pose().scale(scaleX, scaleY, 1.0f);
+        guiGraphics.blit(RESEARCH_TABLET_BUTTON_TEXTURE, 0, 0, 0, 0, BUTTON_TEXTURE_WIDTH, BUTTON_TEXTURE_HEIGHT, BUTTON_TEXTURE_WIDTH, BUTTON_TEXTURE_HEIGHT);
+        guiGraphics.pose().popPose();
+        if (researchButtonPressed || buttonHovered) {
+            guiGraphics.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+        }
         
         // Render category title after overlay so it's visible
         renderCategoryTitle(guiGraphics);
@@ -1137,7 +1198,19 @@ public class ResearchTabletScreen extends Screen {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) { // Left click
-            // Check for tab clicks first
+            // Check bottom-center button first
+            int buttonX = guiX + (GUI_WIDTH - BUTTON_WIDTH) / 2;
+            int buttonY = guiY + GUI_HEIGHT - BUTTON_HEIGHT - BUTTON_BOTTOM_INSET;
+            if (mouseX >= buttonX && mouseX < buttonX + BUTTON_WIDTH && mouseY >= buttonY && mouseY < buttonY + BUTTON_HEIGHT) {
+                researchButtonPressed = true;
+                if (minecraft != null && minecraft.player != null) {
+                    float pitch = 0.9f + minecraft.player.getRandom().nextFloat() * 0.2f; // random pitch 0.9–1.1
+                    minecraft.player.playSound(StrangeMatterSounds.RESEARCH_TABLET_BUTTON.get(), 1.0f, pitch);
+                }
+                return true;
+            }
+            
+            // Check for tab clicks
             ResearchData researchData = ClientPacketHandlers.getClientResearchData();
             List<ResearchCategory> visibleCategories = ResearchCategoryRegistry.getVisibleCategories(researchData);
             
@@ -1281,6 +1354,7 @@ public class ResearchTabletScreen extends Screen {
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if (button == 0) {
+            researchButtonPressed = false;
             if (debugMode && draggedNode != null) {
                 // Finished dragging node - save positions
                 positionManager.savePositions();

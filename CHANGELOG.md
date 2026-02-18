@@ -16,10 +16,15 @@ All notable changes to Strange Matter will be documented in this file.
   - Nodes can be assigned to custom categories via `ResearchNodeBuilder.category(categoryId)`; documented in `KUBEJS_INTEGRATION.md` with examples
 - **Instant Unlock for Custom-Only Nodes**: Research nodes that cost only custom research point types (no built-in types with minigames) unlock immediately when the player has enough points—no research note or Research Machine required
 - **Research note + custom types**: Research notes that list both custom and built-in point types work in the Research Machine; minigames run only for the built-in types, and completion unlocks the research as usual
+- **Research Tablet**: New interactive element in the tablet interface for additional feedback
+- **Reality Forge**: Crafting sound plays once when a craft starts
 
 ### Changed
+- **Energy unit display**: New config option `energyUnitDisplay` (under energy) to show energy as **RE** (Resonite Energy, default), **FE** (Forge Energy), or **RF** (Redstone Flux) in tooltips and GUIs. Affects Rift Stabilizer status, Resonant Conduit tooltip, and energy bar tooltips (e.g. Resonance Condenser).
+- **Research Tablet**: The tablet remembers the last selected category/tab and the last open info page (node + page index) when closed (e.g. with Escape); reopening the tablet restores that category and reopens that info screen for the session.
 - **Research system type IDs**: Research points and node costs now use string type IDs internally; built-in types (cognition, energy, gravity, shadow, space, time) keep their names as IDs, and custom types are added via KubeJS
 - **Custom type icon size**: Item-based icons for custom research point types are rendered at 8×8 in the Research Tablet and cost tooltips to match built-in texture icons
+- **Reality Forge GUI particles**: When idle, shards show trailing particles along their orbit; when crafting, particles stream from each shard toward the center to make convergence more obvious.
 - **JEI Reality Forge**: All Reality Forge recipes are always registered; no filtering by research. Research-gated recipes the player hasn’t unlocked show a dynamic locked overlay (opaque overlay + “Learn this recipe in the Research Tablet” text) that hides the recipe items.
 
 ### Fixed

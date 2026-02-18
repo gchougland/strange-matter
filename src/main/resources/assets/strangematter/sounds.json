@@ -1,4 +1,8 @@
 {
+  "button_noise": {
+    "sounds": ["strangematter:button_noise"],
+    "subtitle": "Button clicked"
+  },
   "research_tablet_open": {
     "sounds": ["strangematter:research_tablet_open"],
     "subtitle": "Research tablet opens"
@@ -143,6 +147,10 @@
   "reality_forge_craft": {
     "sounds": ["strangematter:reality_forge_craft"],
     "subtitle": "Reality Forge crafts"
+  },
+  "reality_forge_crafting": {
+    "sounds": ["strangematter:reality_forge_crafting"],
+    "subtitle": "Reality Forge crafting"
   },
   "reality_forge_insert": {
     "sounds": ["strangematter:reality_forge_insert"],

@@ -29,7 +29,7 @@ public class ResonantConduitItem extends BlockItem {
         tooltip.add(Component.translatable("item.strangematter.resonant_conduit.tooltip1")
             .withStyle(ChatFormatting.GRAY));
         
-        tooltip.add(Component.translatable("item.strangematter.resonant_conduit.transfer_rate", Config.resonantConduitTransferRate)
+        tooltip.add(Component.translatable("item.strangematter.resonant_conduit.transfer_rate", Config.resonantConduitTransferRate, Config.energyUnitDisplay)
             .withStyle(ChatFormatting.GREEN));
     }
 }
